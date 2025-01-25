@@ -1,0 +1,49 @@
+{
+    "name": "teksite/{{ moduleLowerName }}",
+    "description": "This package is made for lareon (laravel)",
+    "keywords": ["laravel", "laravel" , "{{ moduleName }}"],
+
+    "authors": [
+        {
+            "name": "Sina Zangiband",
+            "email": "sina.zangiband@gmail.com",
+            "homepage": "https://teksite.net",
+            "role":"manager"
+        },
+        {
+            "name": "Sina zb",
+            "email": "sina.zangiband@laratek.ir",
+            "homepage": "https://laratek.ir",
+            "role": "developer"
+        }
+    ],
+    "require": {
+
+    },
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "{{ namespace }}\\": "App/",
+            "{{ namespace }}\\Database\\Factories\\": "Database/Factories/",
+            "{{ namespace }}\\Database\\Seeders\\": "Database/Seeders/"
+        },
+         "files": [
+
+         ]
+    },
+    "require-dev": {
+
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "{{ namespace }}\\Tests\\": "Tests/"
+        }
+    }
+}

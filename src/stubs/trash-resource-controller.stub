@@ -1,0 +1,51 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Http\Controllers\Controller;
+
+class {{ class }} extends Controller
+{
+
+    /**
+     * Display  a list of the resource.
+     */
+    public function index(): \Illuminate\Contracts\View\View
+    {
+        //
+    }
+
+    /**
+     * restore one instance from trash
+     */
+    public function reinstate($id): RedirectResponse
+    {
+        //
+    }
+
+    /**
+     * delete one instance from DB forever
+     */
+    public function remove($id): RedirectResponse
+    {
+      //;
+    }
+
+    /**
+     *  restore all instances.
+     */
+    public function restore(): RedirectResponse
+    {
+       //
+    }
+
+    /**
+     * delete all instances forever.
+     */
+    public function purge(): RedirectResponse
+    {
+        //
+    }
+
+
+}
