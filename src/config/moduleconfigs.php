@@ -1,12 +1,12 @@
 <?php
 
 return [
-    "main_path"=>'lareon',
+    "main_path"=>'Lareon',
 
    'module'=>[
-       "directory"=>"modules",
+       "directory"=>"Modules",
 
-       'namespace'=>'Lareon\\Modules\\',
+       'namespace'=>'Lareon\Modules',
 
        'path'=>base_path('Lareon/Modules'),
 

@@ -36,16 +36,16 @@ use Teksite\Module\Console\Make\ViewMakeCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Providers\ModuleControllerServiceProvider;
+use Teksite\Module\Services\ModuleServices;
 
 class ModuleServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->registerConfig();
-        $this->app->bind('lareon.stub', function () {
-            return __DIR__ . '/stubs/';
-        });
+        $this->registerFacades();
         $this->registerProviders();
+        $this->registerStubPath();
     }
 
     public function boot(): void
@@ -56,28 +56,23 @@ class ModuleServiceProvider extends ServiceProvider
 
     }
 
-    protected function loadHelpers()
-    {
-
-        $helpers = __DIR__ . '/helpers/functions.php';
-        if (file_exists($helpers)) {
-            require_once $helpers;
-        }
-    }
-
     public function registerConfig(): void
     {
-        $lareonConfigPath = config_path('lareon.php'); // Path to the published file
+        //Module configuration
+        $configPath = config_path('moduleconfigs.php'); // Path to the published file
+        $this->mergeConfigFrom(
+            file_exists($configPath) ? $configPath : __DIR__ . '/config/moduleconfigs.php', 'moduleconfigs');
+
+        //Modules Priority
         $modulesConfigPath = config_path('modules.php'); // Path to the published file
         $this->mergeConfigFrom(
-            file_exists($lareonConfigPath) ? $lareonConfigPath : __DIR__ . '/config/lareon.php', 'lareon');
+            file_exists($modulesConfigPath) ? $modulesConfigPath : __DIR__ . '/config/modules.php', 'modules');
+    }
 
-//        $this->mergeConfigFrom(
-//            file_exists($modulesConfigPath) ? $modulesConfigPath : __DIR__ . '/config/modules.php', 'modules');
-
-
-        $this->app->extend(MigrationCreator::class, function ($creator, $app) {
-            return new MigrationCreator($app['files'], __DIR__ . '/stubs');
+    public function registerFacades()
+    {
+        $this->app->singleton('Module', function () {
+            return new ModuleServices();
         });
     }
 
@@ -86,11 +81,17 @@ class ModuleServiceProvider extends ServiceProvider
         $this->app->register(ModuleControllerServiceProvider::class);
     }
 
+    public function registerStubPath(): void
+    {
+        $this->app->bind('module.stubs', function () {
+            return config('moduleconfigs.', __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR);
+        });
+
+    }
 
     public function bootCommands(): void
     {
         $this->commands([
-
             CastMakeCommand::class,
             ChannelMakeCommand::class,
             CommandMakeCommand::class,
@@ -131,8 +132,9 @@ class ModuleServiceProvider extends ServiceProvider
     public function publish(): void
     {
         $this->publishes([
-            __DIR__ . '/config/lareon.php' => config_path('lareon.php')
+            __DIR__ . '/config/moduleconfigs.php' => config_path('moduleconfigs.php')
         ], 'lareon');
+
         $this->publishes([
             __DIR__ . '/config/modules.php' => config_path('modules.php')
         ], 'modules');
@@ -144,7 +146,7 @@ class ModuleServiceProvider extends ServiceProvider
         $langPath = __DIR__ . '/lang/';
 
         if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, 'lareon');
+            $this->loadTranslationsFrom($langPath, 'module');
             $this->loadJsonTranslationsFrom($langPath);
         }
     }

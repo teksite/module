@@ -26,7 +26,7 @@ trait ModuleGeneratorCommandTrait
 
     protected function getStubFile($path)
     {
-        return app('lareon.stub') . trim($path, '\/');
+        return app('module.stubs') . trim($path, '\/');
     }
 
     private function getStubContent(string $stubPath, array $replacements = []): string
@@ -39,12 +39,10 @@ trait ModuleGeneratorCommandTrait
         $content = File::get($stubPath);
 
         if (count($replacements)) {
-
             foreach ($replacements as $key => $value) {
                 $content = str_replace($key, $value, $content);
             }
         }
-
         return $content;
     }
 

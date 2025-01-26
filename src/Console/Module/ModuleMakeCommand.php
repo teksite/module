@@ -5,6 +5,7 @@ namespace Teksite\Module\Console\Module;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
@@ -12,7 +13,7 @@ class ModuleMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:make {name}
-    {--self : make self service provider}
+              {--self : make self service provider}
     ';
 
     protected $description = 'Create a new module';
@@ -21,7 +22,8 @@ class ModuleMakeCommand extends Command
 
     public function handle()
     {
-        $moduleName = ucfirst($this->argument('name'));
+        $moduleName = Str::studly($this->argument('name'));
+
         $modulePath = $this->getModulePath($moduleName);
         if ($this->moduleExists($modulePath)) {
             $this->error("The module '{$moduleName}' already exists.");

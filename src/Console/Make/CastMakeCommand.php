@@ -4,14 +4,18 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class CastMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator , ModuleCommandsTrait;
 
-    protected $signature = 'module:make-cast {name} {module}';
+    protected $signature = 'module:make-cast {name} {module}
+         {--f|force : Create the class even if the cast already exists }
+         {--inbound : Generate an inbound cast class }
+    ';
 
     protected $description = 'Create a new cast class in the specific module';
 
@@ -21,11 +25,15 @@ class CastMakeCommand extends GeneratorCommand
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/cast-class.stub';
+        return $this->option('inbound')
+            ? $this->resolveStubPath('/cast.inbound.stub')
+            : $this->resolveStubPath('/cast.stub');
     }
+
 
     /**
      * Get the destination class path.
@@ -36,7 +44,7 @@ class CastMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Cast/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -48,12 +56,16 @@ class CastMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Cast');
+
+        return $this->setNamespace($module,$name , '\\App\\Cast');
     }
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
+
         [$isValid, $suggestedName] = $this->validateModuleName($module);
+
         if ($isValid) return parent::handle();
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
