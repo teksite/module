@@ -4,24 +4,40 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleCommandTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class CommandMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator , ModuleCommandsTrait;
 
-    protected $signature = 'module:make-command {name} {module}';
+    protected $signature = 'module:make-command {name} {module}
+             {--f|force : Create the class even if the console command already exists }
+             {--command : he terminal command that will be used to invoke the class }
+            ';
 
     protected $description = 'Create a new custom command class in the specific module';
 
     protected $type = 'Command';
 
+    protected function getStub()
+    {
+        return $this->resolveStubPath('/console.stub');
+    }
+
+    /**
+     * Get the destination class path.
+     *
+     * @param string $name
+     * @return string
+     */
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name , '/App/Console/Commands');
-
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -30,17 +46,29 @@ class CommandMakeCommand extends GeneratorCommand
      * @param string $name
      * @return string
      */
-    protected function qualifyClass($name)
+    protected function qualifyClass($name): string
     {
-
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Console\\Commands');
+
+        return $this->setNamespace($module,$name , '\\App\\Console\\Command');
     }
 
-    protected function getStub()
+    /**
+     * Replace the class name for the given stub.
+     *
+     * @param  string  $stub
+     * @param  string  $name
+     * @return string
+     */
+    protected function replaceClass($stub, $name)
     {
-        return __DIR__ . '/../../stubs/command-class.stub';
+        $stub = parent::replaceClass($stub, $name);
+
+        $command = $this->option('command') ?: 'app:'.(new Stringable($name))->classBasename()->kebab()->value();
+
+        return str_replace(['dummy:command', '{{ command }}'], $command, $stub);
     }
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');

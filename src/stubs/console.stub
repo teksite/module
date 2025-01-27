@@ -11,23 +11,20 @@ class {{ class }} extends Command
      *
      * @var string
      */
-    protected $signature = 'lareon:example {arg} {arg2} {--opt1} {opt2}';
+    protected $signature = 'example {arg} {arg2} {--opt1} {opt2}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'description';
+    protected $description = 'Command description';
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle()
     {
-        // Your logic here
-        $this->info('Command executed successfully!');
+        //
     }
 }
