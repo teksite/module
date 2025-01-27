@@ -4,11 +4,10 @@ return [
     "main_path"=>'Lareon',
 
    'module'=>[
+
        "directory"=>"Modules",
 
        'namespace'=>'Lareon\Modules',
-
-       'path'=>base_path('Lareon/Modules'),
 
        'view_path'=>'resources/views',
 
