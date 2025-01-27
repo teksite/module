@@ -8,18 +8,18 @@ use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\suggest;
 
 class ListenerMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait ,CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
     protected $signature = 'module:make-listener {name} {module}
-     {--e|event= : The event class being listened  for}
-     {--f|force : Create the class even if the listener already exists }
-     {--queued : Indicates the event listener should be queued }
+        {--e|event= : The event class being listened  for}
+        {--f|force : Create the class even if the listener already exists }
+        {--queued : Indicates the event listener should be queued }
     ';
 
     protected $description = 'Create a new listener in the specific module';
@@ -35,13 +35,13 @@ class ListenerMakeCommand extends GeneratorCommand
     {
         if ($this->option('queued')) {
             return $this->option('event')
-                ?  __DIR__ . '/../../stubs/listener.typed.queued.stub'
-                :  __DIR__ . '/../../stubs/listener.queued.stub';
+                ? $this->resolveStubPath('/listener.typed.queued.stub')
+                : $this->resolveStubPath('/listener.queued.stub');
         }
 
         return $this->option('event')
-            ?  __DIR__ . '/../../stubs/listener.typed.stub'
-            :  __DIR__ . '/../../stubs/listener.stub';
+            ? $this->resolveStubPath('/listener.typed.stub')
+            : $this->resolveStubPath('/listener.stub');
 
     }
 
@@ -54,7 +54,7 @@ class ListenerMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Listeners/');
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -66,10 +66,31 @@ class ListenerMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Listeners');
+
+        return $this->setNamespace($module, $name, '\\App\\Listeners');
     }
 
+    protected function buildClass($name)
+    {
+        $module=$this->argument('module');
+        $event = $this->option('event') ?? '';
 
+        if (!Str::startsWith($event, [
+            $this->moduleNamespace(),
+            $this->moduleNamespace($module),
+            $this->moduleNamespace($module ,'App\\Events\\'),
+        ])) {
+            $event = $this->moduleNamespace($module , 'App\\Events\\') .'\\' . str_replace('/', '\\', $event);
+        }
+
+        $stub = str_replace(
+            ['DummyEvent', '{{ event }}'], class_basename($event), parent::buildClass($name)
+        );
+
+        return str_replace(
+            ['DummyFullEvent', '{{ eventNamespace }}'], trim($event, '\\'), $stub
+        );
+    }
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
@@ -80,7 +101,7 @@ class ListenerMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 
@@ -100,26 +121,7 @@ class ListenerMakeCommand extends GeneratorCommand
         }
     }
 
-    protected function buildClass($name)
-    {
-        $event = $this->option('event') ?? '';
 
-        if (! Str::startsWith($event, [
-            $this->laravel->getNamespace(),
-            'Illuminate',
-            '\\',
-        ])) {
-            $event = $this->laravel->getNamespace().'Events\\'.str_replace('/', '\\', $event);
-        }
-
-        $stub = str_replace(
-            ['DummyEvent', '{{ event }}'], class_basename($event), parent::buildClass($name)
-        );
-
-        return str_replace(
-            ['DummyFullEvent', '{{ eventNamespace }}'], trim($event, '\\'), $stub
-        );
-    }
 
 
 }

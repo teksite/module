@@ -15,7 +15,7 @@ class CastMakeCommand extends GeneratorCommand
     protected $signature = 'module:make-cast {name} {module}
          {--f|force : Create the class even if the cast already exists }
          {--inbound : Generate an inbound cast class }
-    ';
+        ';
 
     protected $description = 'Create a new cast class in the specific module';
 
@@ -33,7 +33,6 @@ class CastMakeCommand extends GeneratorCommand
             ? $this->resolveStubPath('/cast.inbound.stub')
             : $this->resolveStubPath('/cast.stub');
     }
-
 
     /**
      * Get the destination class path.

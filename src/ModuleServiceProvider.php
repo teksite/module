@@ -19,6 +19,7 @@ use Teksite\Module\Console\Make\JobMiddlewareMakeCommand;
 use Teksite\Module\Console\Make\ListenerMakeCommand;
 use Teksite\Module\Console\Make\LogicMakeCommand;
 use Teksite\Module\Console\Make\MailMakeCommand;
+use Teksite\Module\Console\Make\MiddlewareMakeCommand;
 use Teksite\Module\Console\Make\MigrationMakeCommand;
 use Teksite\Module\Console\Make\ModelMakeCommand;
 use Teksite\Module\Console\Make\NotificationMakeCommand;
@@ -107,6 +108,7 @@ class ModuleServiceProvider extends ServiceProvider
             ListenerMakeCommand::class,
             LogicMakeCommand::class,
             MailMakeCommand::class,
+            MiddlewareMakeCommand::class,
             MigrationMakeCommand::class,
             ModelMakeCommand::class,
             NotificationMakeCommand::class,

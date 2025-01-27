@@ -4,17 +4,18 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class InterfaceMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-interface {name} {module}
+         {--f|force : Create the class even if the cast already exists }
     ';
 
-    protected $description = 'Create a new interface class in the specific module';
+    protected $description = 'Create a new interface in the specific module';
 
     protected $type = 'Interface';
 
@@ -25,8 +26,9 @@ class InterfaceMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-            return __DIR__ . '/../../stubs/Interface.stub';
+        return  $this->resolveStubPath('/interface.stub');
     }
+
 
     /**
      * Get the destination class path.
@@ -37,8 +39,9 @@ class InterfaceMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Interfaces/');
+        return $this->setPath($name,'php');
     }
+
 
     /**
      * Get the default namespace for the class.
@@ -49,7 +52,8 @@ class InterfaceMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Interfaces');
+
+        return $this->setNamespace($module,$name , '\\App\\Interfaces');
     }
 
 
@@ -63,7 +67,7 @@ class InterfaceMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 

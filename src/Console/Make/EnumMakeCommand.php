@@ -29,7 +29,7 @@ class EnumMakeCommand extends GeneratorCommand
          {--f|force : Create the class even if the cast already exists }
          {--s|string : Generate a string backed enum. }
          {--i|int : Generate an integer backed enum. }
-';
+         ';
 
     /**
      * The console command description.

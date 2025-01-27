@@ -4,15 +4,15 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class FactoryMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator , ModuleCommandsTrait;
 
     protected $signature = 'module:make-factory {name} {module}
-    {--model= : The name of the model}
+        {--model= : The name of the model}
     ';
 
     protected $description = 'Create a new factory class in the specific module';
@@ -23,10 +23,11 @@ class FactoryMakeCommand extends GeneratorCommand
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
     protected function getStub()
     {
-            return __DIR__ . '/../../stubs/factory-class.stub';
+        return $this->resolveStubPath('/factory.stub');
     }
 
     /**
@@ -38,8 +39,9 @@ class FactoryMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/Database/factories/');
+        return $this->setPath($name,'php');
     }
+
 
     /**
      * Get the default namespace for the class.
@@ -50,7 +52,8 @@ class FactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\Database\\Factories');
+
+        return $this->setNamespace($module,$name , '\\Database\\Factories');
     }
 
     /**
@@ -59,6 +62,7 @@ class FactoryMakeCommand extends GeneratorCommand
      * @param  string  $name
      * @return string
      */
+
     protected function buildClass($name)
     {
         $factory = class_basename(Str::ucfirst(str_replace('Factory', '', $name)));

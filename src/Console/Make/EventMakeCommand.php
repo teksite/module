@@ -4,14 +4,17 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class EventMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-event {name} {module}';
+    protected $signature = 'module:make-event {name} {module}
+        {--f|force : Create the class even if the event already exists }
+    ';
 
     protected $description = 'Create a new event class in the specific module';
 
@@ -22,9 +25,15 @@ class EventMakeCommand extends GeneratorCommand
      *
      * @return string
      */
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/event-class.stub';
+        return $this->resolveStubPath('/event.stub');
     }
 
     /**
@@ -36,7 +45,7 @@ class EventMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Events/');
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -48,8 +57,10 @@ class EventMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Events');
+
+        return $this->setNamespace($module, $name, '\\App\\Events');
     }
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
@@ -60,7 +71,7 @@ class EventMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 }

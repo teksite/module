@@ -4,14 +4,18 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
+use function Laravel\Prompts\confirm;
 
 class ExceptionMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-exception {name} {module}
+        {--f|force : Create the class even if the event already exists }
         {--render : Create the exception with an empty render method}
         {--report : Create the exception with an empty report method}
     ';
@@ -29,14 +33,14 @@ class ExceptionMakeCommand extends GeneratorCommand
     {
         if ($this->option('render')) {
             return $this->option('report')
-                ? __DIR__ . '/../../stubs/exception-render-report.stub'
-                :__DIR__ . '/../../stubs/exception-render.stub';
+                ? $this->resolveStubPath('/exception-render-report.stub')
+                : $this->resolveStubPath('/exception-render.stub');
         }
-
         return $this->option('report')
-            ?__DIR__ . '/../../stubs/exception-report.stub'
-            :__DIR__ . '/../../stubs/exception.stub';
+            ? $this->resolveStubPath('/exception-report.stub')
+            : $this->resolveStubPath('/exception.stub');
     }
+
 
     /**
      * Get the destination class path.
@@ -47,8 +51,9 @@ class ExceptionMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Exceptions/');
+        return $this->setPath($name,'php');
     }
+
 
     /**
      * Get the default namespace for the class.
@@ -59,8 +64,28 @@ class ExceptionMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Exceptions');
+        return $this->setNamespace($module,$name , '\\App\\Exceptions');
+
     }
+
+    /**
+     * Interact further with the user if they were prompted for missing arguments.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->didReceiveOptions($input)) {
+            return;
+        }
+
+        $input->setOption('report', confirm('Should the exception have a report method?', default: false));
+        $input->setOption('render', confirm('Should the exception have a render method?', default: false));
+    }
+
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
@@ -71,7 +96,7 @@ class ExceptionMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 }

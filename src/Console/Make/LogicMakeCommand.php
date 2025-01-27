@@ -5,14 +5,14 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class LogicMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait ,CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
-    protected $signature = 'lareon:make-logic {name} {module}';
+    protected $signature = 'module:make-logic {name} {module}';
 
 
     protected $description = 'Create a new logic class (repository and logic layer) in the specific module';
@@ -26,7 +26,7 @@ class LogicMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/logic-class.stub';
+        return $this->resolveStubPath('/logic-class.stub');
     }
 
     /**
@@ -38,7 +38,7 @@ class LogicMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Logics/');
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -50,8 +50,10 @@ class LogicMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Logic');
+
+        return $this->setNamespace($module, $name, '\\App\\Logic');
     }
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
@@ -62,7 +64,7 @@ class LogicMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 }

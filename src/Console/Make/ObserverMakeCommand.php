@@ -5,14 +5,18 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
+use function Laravel\Prompts\suggest;
 
 class ObserverMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator , ModuleCommandsTrait;
 
-    protected $signature = 'module:make-policy {name} {module}
+    protected $signature = 'module:make-observer {name} {module}
+        {--f|force : Create the class even if the cast already exists }
         {--m|model= : Generate a resource controller for the given model}
     ';
 
@@ -28,10 +32,9 @@ class ObserverMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         return $this->option('model')
-            ? __DIR__ . '/../../stubs/observer.stub'
-            : __DIR__ . '/../../stubs/observer.plain.stub';
+            ? $this->resolveStubPath('/observer.stub')
+            : $this->resolveStubPath('/observer.plain.stub');
     }
-
     /**
      * Get the destination class path.
      *
@@ -41,7 +44,7 @@ class ObserverMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Observers/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -53,8 +56,20 @@ class ObserverMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Observers');
+
+        return $this->setNamespace($module,$name , '\\App\\Observer');
     }
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
+
+        $model = $this->option('model');
+        return $model ? $this->replaceModel($stub, $model) : $stub;
+    }
+
+
+
+
 
     public function handle(): bool|int|null
     {
@@ -70,19 +85,9 @@ class ObserverMakeCommand extends GeneratorCommand
         return 1;
     }
 
-    protected function buildClass($name)
-    {
-        $stub = parent::buildClass($name);
-
-        $model = $this->option('model');
-
-        return $model ? $this->replaceModel($stub, $model) : $stub;
-    }
-
     protected function replaceModel($stub, $model)
     {
         $modelClass = $this->parseModel($model);
-
         $replace = [
             'DummyFullModelClass' => $modelClass,
             '{{ namespacedModel }}' => $modelClass,
@@ -113,8 +118,33 @@ class ObserverMakeCommand extends GeneratorCommand
         if (preg_match('([^A-Za-z0-9_/\\\\])', $model)) {
             throw new InvalidArgumentException('Model name contains invalid characters.');
         }
-
         return $this->qualifyModel($model);
     }
+
+    /**
+     * Interact further with the user if they were prompted for missing arguments.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
+            return;
+        }
+
+        $model = suggest(
+            'What model should this observer apply to? (Optional)',
+            $this->possibleModels(),
+        );
+
+        if ($model) {
+            $input->setOption('model', $model);
+        }
+    }
+
+
+
 
 }

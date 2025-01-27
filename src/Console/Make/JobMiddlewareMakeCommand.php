@@ -6,12 +6,12 @@ use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class JobMiddlewareMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait ,CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
     protected $signature = 'module:make-job-middleware {name} {module}
     ';
@@ -24,10 +24,11 @@ class JobMiddlewareMakeCommand extends GeneratorCommand
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
     protected function getStub()
     {
-        return   __DIR__ . '/../../stubs/job.middleware.stub';
+        return $this->resolveStubPath('/job.middleware.stub');
     }
 
     /**
@@ -39,7 +40,7 @@ class JobMiddlewareMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Jobs/Middleware/');
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -51,7 +52,8 @@ class JobMiddlewareMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Jobs\\Middleware');
+
+        return $this->setNamespace($module, $name, '\\App\\Jobs\\Middleware');
     }
 
 
@@ -65,7 +67,7 @@ class JobMiddlewareMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 

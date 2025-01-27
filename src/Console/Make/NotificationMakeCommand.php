@@ -5,18 +5,23 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\text;
 
 class NotificationMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-notification {name} {module}
+        {--f|force : Create the class even if the cast already exists }
         {--m|markdown= : Create a new Markdown template for the mailable}
     ';
 
-    protected $description = 'Create a new notification class in the specific module';
+    protected $description = 'Create a new notification in the specific module';
 
     protected $type = 'Notification';
 
@@ -28,8 +33,8 @@ class NotificationMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         return $this->option('markdown')
-            ? __DIR__ . '/../../stubs/markdown-notification.stub'
-            : __DIR__ . '/../../stubs/notification.stub';
+            ? $this->resolveStubPath('/markdown-notification.stub')
+            : $this->resolveStubPath('/notification.stub');
     }
 
     /**
@@ -41,7 +46,7 @@ class NotificationMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Notifications/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -53,14 +58,14 @@ class NotificationMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Notifications');
+
+        return $this->setNamespace($module,$name , '\\App\\Notifications');
     }
 
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
         [$isValid, $suggestedName] = $this->validateModuleName($module);
-
 
         if ($isValid) {
             if ($this->option('markdown')) {
@@ -97,14 +102,34 @@ class NotificationMakeCommand extends GeneratorCommand
 
     protected function buildClass($name)
     {
-        $module = $this->getLowerNameModule();
-
         $class = parent::buildClass($name);
+
+        $module = $this->getLowerNameModule();
 
         if ($this->option('markdown')) {
             $class = str_replace(['DummyView', '{{ view }}'], $module . "::".$this->option('markdown'), $class);
         }
 
         return $class;
+    }
+
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->didReceiveOptions($input)) {
+            return;
+        }
+
+        $wantsMarkdownView = confirm('Would you like to create a markdown view?');
+
+        if ($wantsMarkdownView) {
+            $defaultMarkdownView = (new Collection(explode('/', str_replace('\\', '/', $this->argument('name')))))
+                ->map(fn ($path) => Str::kebab($path))
+                ->prepend('mail')
+                ->implode('.');
+
+            $markdownView = text('What should the markdown view be named?', default: $defaultMarkdownView);
+
+            $input->setOption('markdown', $markdownView);
+        }
     }
 }

@@ -5,12 +5,12 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class PolicyMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-policy {name} {module}
         {--f|force= : Create the class even if the policy already exists }
@@ -30,9 +30,10 @@ class PolicyMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         return $this->option('model')
-            ? __DIR__ . '/../../stubs/policy.stub'
-            : __DIR__ . '/../../stubs/policy.plain.stub';
+            ? $this->resolveStubPath('/policy.stub')
+            : $this->resolveStubPath('/policy.plain.stub');
     }
+
 
     /**
      * Get the destination class path.
@@ -43,9 +44,8 @@ class PolicyMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Policies/');
+        return $this->setPath($name,'php');
     }
-
     /**
      * Get the default namespace for the class.
      *
@@ -55,7 +55,8 @@ class PolicyMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Policies');
+
+        return $this->setNamespace($module,$name , '\\App\\Policies');
     }
 
     public function handle(): bool|int|null
@@ -68,14 +69,12 @@ class PolicyMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 
     protected function buildClass($name)
     {
-
-
         $stub = $this->replaceUserNamespace(
             parent::buildClass($name)
         );
@@ -114,7 +113,7 @@ class PolicyMakeCommand extends GeneratorCommand
             'DummyUser' => $dummyUser,
             '{{ user }}' => $dummyUser,
             '{{user}}' => $dummyUser,
-            '$user' => '$'.Str::camel($dummyUser),
+            '$user' => '$' . Str::camel($dummyUser),
         ];
 
         $stub = str_replace(
@@ -135,12 +134,12 @@ class PolicyMakeCommand extends GeneratorCommand
     {
         $model = $this->userProviderModel();
 
-        if (! $model) {
+        if (!$model) {
             return $stub;
         }
 
         return str_replace(
-            $this->rootNamespace().'User',
+            $this->rootNamespace() . 'User',
             $model,
             $stub
         );

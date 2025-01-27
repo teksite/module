@@ -4,12 +4,12 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class MiddlewareMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-middleware {name} {module}';
 
@@ -24,7 +24,7 @@ class MiddlewareMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/controller/middleware.stub';
+        return $this->resolveStubPath('/middleware.stub');
     }
 
     /**
@@ -36,7 +36,7 @@ class MiddlewareMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Http/Middleware/');
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -48,8 +48,10 @@ class MiddlewareMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Http\\Middleware');
+
+        return $this->setNamespace($module, $name, '\\App\\Http\\Middleware');
     }
+
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
@@ -60,7 +62,7 @@ class MiddlewareMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 }

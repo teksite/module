@@ -6,19 +6,19 @@ use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class JobMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait ,CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
     protected $signature = 'module:make-job {name} {module}
      {--f|force : Create the class even if the job already exists }
      {--sync : Indicates that job should be synchronous }
     ';
 
-    protected $description = 'Create a new job class in the specific module';
+    protected $description = 'Create a new job in the specific module';
 
     protected $type = 'Job';
 
@@ -26,12 +26,13 @@ class JobMakeCommand extends GeneratorCommand
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
     protected function getStub()
     {
         return $this->option('sync')
-            ? __DIR__ . '/../../stubs/job.stub'
-            :  __DIR__ . '/../../stubs/job.queued.stub';
+            ? $this->resolveStubPath('/job.stub')
+            : $this->resolveStubPath('/job.queued.stub');
     }
 
     /**
@@ -43,7 +44,7 @@ class JobMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/Jobs/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -55,7 +56,8 @@ class JobMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Jobs');
+
+        return $this->setNamespace($module,$name , '\\App\\Jobs');
     }
 
 
@@ -69,7 +71,7 @@ class JobMakeCommand extends GeneratorCommand
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '".$module."' does not exist.");
+        $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
 

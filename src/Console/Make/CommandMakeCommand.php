@@ -15,9 +15,9 @@ class CommandMakeCommand extends GeneratorCommand
     use ModuleNameValidator , ModuleCommandsTrait;
 
     protected $signature = 'module:make-command {name} {module}
-             {--f|force : Create the class even if the console command already exists }
-             {--command : he terminal command that will be used to invoke the class }
-            ';
+         {--f|force : Create the class even if the console command already exists }
+         {--command : he terminal command that will be used to invoke the class }
+         ';
 
     protected $description = 'Create a new custom command class in the specific module';
 
