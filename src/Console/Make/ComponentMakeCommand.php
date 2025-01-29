@@ -9,13 +9,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 
 class ComponentMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator , ModuleCommandsTrait;
 
     /**
      * The console command signature.
@@ -23,9 +23,10 @@ class ComponentMakeCommand extends GeneratorCommand
      * @var string
      */
     protected $signature = 'module:make-component {name} {module}
-     {--inline : Create a component that renders an inline view}
-     {--view : Create an anonymous component with only a view}
-     {--path : The location where the component view should be created}
+     {--f|force : Create the class even if the cast already exists }
+     {--inline : Create a component that renders an inline view }
+     {--view : Create an anonymous component with only a view }
+     {--path : The location where the component view should be created }
     ';
 
     /**
@@ -42,21 +43,43 @@ class ComponentMakeCommand extends GeneratorCommand
      */
     protected $type = 'Component';
 
-    public function handle()
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub()
     {
-        if ($this->option('view')) {
-
-            return $this->writeView();
-        }
-
-        if (parent::handle() === false && ! $this->option('force')) {
-            return false;
-        }
-
-        if (! $this->option('inline')) {
-            $this->writeView();
-        }
+        return $this->resolveStubPath('/view-component.stub');
     }
+
+    /**
+     * Get the destination class path.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function getPath($name): string
+    {
+        $module = $this->argument('module');
+        return $this->setPath($name,'php');
+    }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function qualifyClass($name): string
+    {
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module,$name , '\\App\\View');
+    }
+
 
     /**
      * Write the view for the component.
@@ -135,36 +158,39 @@ class ComponentMakeCommand extends GeneratorCommand
             ->implode('.');
     }
 
-    /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
-    protected function getStub()
+
+    public function handle()
     {
-        return __DIR__ . '/../../stubs/view-component.stub';
+
+        $module = $this->argument('module');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return $this->generateViews();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return $this->generateViews();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
     }
 
-    /**
-     * Resolve the fully-qualified path to the stub.
-     *
-     * @param  string  $stub
-     * @return string
-     */
-    protected function resolveStubPath($stub)
-    {
-        return $stub;
+    protected function generateViews(){
+        if ($this->option('view')) {
+
+            return $this->writeView();
+        }
+
+        if (parent::handle() === false && ! $this->option('force')) {
+            return false;
+        }
+
+        if (! $this->option('inline')) {
+            $this->writeView();
+        }
     }
-    protected function getPath($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name ,'/App/View/');
-    }
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\View');
-    }
+
 
 
 }

@@ -51,9 +51,9 @@ class TestMakeCommand extends GeneratorCommand
         $module = $this->argument('module');
 
         if ($this->option('unit')) {
-            return $this->setNamespace($module , $name, '\\Test\\Unit');
+            return $this->setNamespace($module , $name, '\\Tests\\Unit');
         } else {
-            return $this->setNamespace($module , $name, '\\Test\\Feature');
+            return $this->setNamespace($module , $name, '\\Tests\\Feature');
         }
     }
 

@@ -4,10 +4,12 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use InvalidArgumentException;
+use Lareon\Modules\SIna\App\Models\Sina;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Facade\Module;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
@@ -16,7 +18,7 @@ use function Laravel\Prompts\suggest;
 
 class ControllerMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-controller {name} {module}
      {--A|api : Exclude the create and edit methods from the controller,}
@@ -27,7 +29,6 @@ class ControllerMakeCommand extends GeneratorCommand
      {--r|resource : Generate a resource controller class}
      {--s|singleton : Generate a singleton resource controller class}
      {--creatable : Indicate that a singleton resource should be creatable}
-
      {--R|requests : Generate FormRequest classes for store and update}
      {--m|model= : Generate a resource controller for the given model}
     ';
@@ -51,28 +52,28 @@ class ControllerMakeCommand extends GeneratorCommand
         $stub = null;
 
         if ($type = $this->option('type')) {
-            $stub =  __DIR__ . "/../../stubs/controller/controller.{$type}.stub";
+            $stub = $this->resolveStubPath("/controller/controller.{$type}.stub");
         } elseif ($this->option('parent')) {
             $stub = $this->option('singleton')
-                ?  __DIR__ . '/../../stubs/controller/controller.nested.singleton.stub'
-                :  __DIR__ . '/../../stubs/controller/ontroller.nested.stub';
+                ? $this->resolveStubPath("/controller/controller.nested.singleton.stub")
+                : $this->resolveStubPath("/controller/ontroller.nested.stub");
         } elseif ($this->option('model')) {
-            $stub =  __DIR__ . '/../../stubs/controller/controller.model.stub';
+            $stub = $this->resolveStubPath("/controller/controller.model.stub");
         } elseif ($this->option('invokable')) {
-            $stub =  __DIR__ . '/../../stubs/controller/controller.invokable.stub';
+            $stub = $this->resolveStubPath("/controller/controller.invokable.stub");
         } elseif ($this->option('singleton')) {
-            $stub =  __DIR__ . '/../../stubs/controller/controller.singleton.stub';
+            $stub = $this->resolveStubPath("/controller/controller.singleton.stub");
         } elseif ($this->option('resource')) {
-            $stub =  __DIR__ . '/../../stubs/controller/controller.stub';
+            $stub = $this->resolveStubPath("/controller/controller.stub");
         }
 
         if ($this->option('api') && is_null($stub)) {
-            $stub =  __DIR__ . '/../../stubs/controller/controller.api.stub';
-        } elseif ($this->option('api') && ! is_null($stub) && ! $this->option('invokable')) {
+            $stub = $this->resolveStubPath("/controller/controller.api.stub");
+        } elseif ($this->option('api') && !is_null($stub) && !$this->option('invokable')) {
             $stub = str_replace('.stub', '.api.stub', $stub);
         }
 
-        $stub ??=  __DIR__ . '/../../stubs/controller/controller.plain.stub';
+        $stub ??= $this->resolveStubPath("/controller/controller.plain.stub");
 
         return $stub;
 
@@ -82,7 +83,7 @@ class ControllerMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name , '/App/Http/Controllers');
+        return $this->setPath($name,'php');
 
     }
 
@@ -94,9 +95,9 @@ class ControllerMakeCommand extends GeneratorCommand
      */
     protected function qualifyClass($name)
     {
-
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module,$name , '\\App\\Http\\Controllers');
+
+        return $this->setNamespace($module,$name , '\\App\\Http\\Controllers');
     }
 
     /**
@@ -104,7 +105,7 @@ class ControllerMakeCommand extends GeneratorCommand
      *
      * Remove the base controller import if we are already in the base namespace.
      *
-     * @param  string  $name
+     * @param string $name
      * @return string
      */
     protected function buildClass($name)
@@ -126,7 +127,7 @@ class ControllerMakeCommand extends GeneratorCommand
             $replace['abort(404);'] = '//';
         }
 
-        $baseControllerExists = file_exists($this->getPath("{$rootNamespace}Http\Controllers\Controller"));
+        $baseControllerExists = file_exists($this->getPath("{$rootNamespace}\Http\Controllers\Controller"));
 
         if ($baseControllerExists) {
             $replace["use {$controllerNamespace}\Controller;\n"] = '';
@@ -147,11 +148,13 @@ class ControllerMakeCommand extends GeneratorCommand
      */
     protected function buildParentReplacements()
     {
+        dd('buildParentReplacements');
         $parentModelClass = $this->parseModel($this->option('parent'));
-
-        if (! class_exists($parentModelClass) &&
+        dd(str_starts_with($parentModelClass , Module::ModuleNamespace()) , str_starts_with($parentModelClass ,app()->getNamespace()));
+        str_starts_with($parentModelClass , Module::ModuleNamespace()) || str_starts_with($parentModelClass ,app()->getNamespace());
+        if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {
-            $this->call('make:model', ['name' => $parentModelClass]);
+            $this->call('module:make-model', ['name' => $parentModelClass]);
         }
 
         return [
@@ -170,14 +173,14 @@ class ControllerMakeCommand extends GeneratorCommand
     /**
      * Build the model replacement values.
      *
-     * @param  array  $replace
+     * @param array $replace
      * @return array
      */
     protected function buildModelReplacements(array $replace)
     {
         $modelClass = $this->parseModel($this->option('model'));
 
-        if (! class_exists($modelClass) && confirm("A {$modelClass} model does not exist. Do you want to generate it?", default: true)) {
+        if (!class_exists($modelClass) && confirm("A {$modelClass} model does not exist. Do you want to generate it?", default: true)) {
             $this->call('module:make-model', ['name' => $modelClass]);
         }
 
@@ -199,7 +202,7 @@ class ControllerMakeCommand extends GeneratorCommand
     /**
      * Get the fully-qualified model class name.
      *
-     * @param  string  $model
+     * @param string $model
      * @return string
      *
      * @throws \InvalidArgumentException
@@ -216,29 +219,29 @@ class ControllerMakeCommand extends GeneratorCommand
     /**
      * Build the model replacement values.
      *
-     * @param  array  $replace
-     * @param  string  $modelClass
+     * @param array $replace
+     * @param string $modelClass
      * @return array
      */
     protected function buildFormRequestReplacements(array $replace, $modelClass)
     {
-     $module=$this->argument('module');
-        [$namespace, $storeRequestClass, $updateRequestClass , ] = [
+        $module = $this->argument('module');
+        [$namespace, $storeRequestClass, $updateRequestClass,] = [
             'Illuminate\\Http', 'Request', 'Request',
         ];
 
         if ($this->option('requests')) {
-            $namespace = config('lareon.module.namespace').$module.'\\'.'App\\Http\\Requests';
+            $namespace = config('lareon.module.namespace') . $module . '\\' . 'App\\Http\\Requests';
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
                 $modelClass, $storeRequestClass, $updateRequestClass
             );
         }
 
-        $namespacedRequests = $namespace.'\\'.$storeRequestClass.';';
+        $namespacedRequests = $namespace . '\\' . $storeRequestClass . ';';
 
         if ($storeRequestClass !== $updateRequestClass) {
-            $namespacedRequests .= PHP_EOL.'use '.$namespace.'\\'.$updateRequestClass.';';
+            $namespacedRequests .= PHP_EOL . 'use ' . $namespace . '\\' . $updateRequestClass . ';';
         }
 
         return array_merge($replace, [
@@ -246,10 +249,10 @@ class ControllerMakeCommand extends GeneratorCommand
             '{{storeRequest}}' => $storeRequestClass,
             '{{ updateRequest }}' => $updateRequestClass,
             '{{updateRequest}}' => $updateRequestClass,
-            '{{ namespacedStoreRequest }}' => $namespace.'\\'.$storeRequestClass,
-            '{{namespacedStoreRequest}}' => $namespace.'\\'.$storeRequestClass,
-            '{{ namespacedUpdateRequest }}' => $namespace.'\\'.$updateRequestClass,
-            '{{namespacedUpdateRequest}}' => $namespace.'\\'.$updateRequestClass,
+            '{{ namespacedStoreRequest }}' => $namespace . '\\' . $storeRequestClass,
+            '{{namespacedStoreRequest}}' => $namespace . '\\' . $storeRequestClass,
+            '{{ namespacedUpdateRequest }}' => $namespace . '\\' . $updateRequestClass,
+            '{{namespacedUpdateRequest}}' => $namespace . '\\' . $updateRequestClass,
             '{{ namespacedRequests }}' => $namespacedRequests,
             '{{namespacedRequests}}' => $namespacedRequests,
         ]);
@@ -258,21 +261,21 @@ class ControllerMakeCommand extends GeneratorCommand
     /**
      * Generate the form requests for the given model and classes.
      *
-     * @param  string  $modelClass
-     * @param  string  $storeRequestClass
-     * @param  string  $updateRequestClass
+     * @param string $modelClass
+     * @param string $storeRequestClass
+     * @param string $updateRequestClass
      * @return array
      */
     protected function generateFormRequests($modelClass, $storeRequestClass, $updateRequestClass)
     {
-        $storeRequestClass = 'Store'.class_basename($modelClass).'Request';
-        $module=$this->argument('module');
+        $storeRequestClass = 'Store' . class_basename($modelClass) . 'Request';
+        $module = $this->argument('module');
         $this->call('module:make-request', [
             'name' => $storeRequestClass,
             'module' => $module,
         ]);
 
-        $updateRequestClass = 'Update'.class_basename($modelClass).'Request';
+        $updateRequestClass = 'Update' . class_basename($modelClass) . 'Request';
 
         $this->call('module:make-request', [
             'name' => $updateRequestClass,
@@ -283,12 +286,11 @@ class ControllerMakeCommand extends GeneratorCommand
     }
 
 
-
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
     protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
@@ -319,5 +321,22 @@ class ControllerMakeCommand extends GeneratorCommand
                 $input->setOption('model', $model);
             }
         }
+    }
+
+
+    public function handle(): bool|int|null
+    {
+        $module = $this->argument('module');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return parent::handle();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return parent::handle();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
     }
 }

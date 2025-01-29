@@ -10,20 +10,19 @@ use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\select;
-use function Laravel\Prompts\suggest;
 
 class MailMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait, CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
     // protected $name = 'module:make-mail';
     protected $signature = 'module:make-mail {name} {module}
-    {--m|markdown= : Create a new Markdown template for the mailable}
-    {--view= : Create a new Blade template for the mailable}
-    {--force= : Create a new Blade template for the mailable (true false)}
+    {--force= : Create a new Blade template for the mailable (true false) }
+    {--m|markdown= : Create a new Markdown template for the mailable }
+    {--view= : Create a new Blade template for the mailable }
     ';
 
     protected $description = 'Create a new email in the specific module';
@@ -38,14 +37,15 @@ class MailMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         if (!!$this->option('markdown') !== false) {
-            return __DIR__ . '/../../stubs/markdown-mail.stub';
+            return $this->resolveStubPath('/markdown-mail.stub');
         }
 
         if (!!$this->option('view') !== false) {
-            return __DIR__ . '/../../stubs/view-mail.stub';
+            return $this->resolveStubPath('/view-mail.stub');
         }
 
-        return __DIR__ . '/../../stubs/mail.stub';
+        return $this->resolveStubPath('/mail.stub');
+
     }
 
     /**
@@ -57,7 +57,7 @@ class MailMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Mail/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -69,22 +69,39 @@ class MailMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Mail');
+
+        return $this->setNamespace($module,$name , '\\App\\Mail');
     }
 
 
     public function handle()
+    {
+        $module = $this->argument('module');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return $this->generateViews();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return $this->generateViews();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
+    }
+
+    protected function generateViews()
     {
         if (parent::handle() === false && !!!$this->option('force')) {
             return;
         }
 
         if (!!$this->option('markdown') !== false) {
-            $this->writeMarkdownTemplate();
+           return  $this->writeMarkdownTemplate();
         }
 
         if (!!$this->option('view') !== false) {
-            $this->writeView();
+           return  $this->writeView();
         }
     }
 

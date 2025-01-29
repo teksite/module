@@ -68,21 +68,23 @@ class NotificationMakeCommand extends GeneratorCommand
         [$isValid, $suggestedName] = $this->validateModuleName($module);
 
         if ($isValid) {
-            if ($this->option('markdown')) {
-                $this->writeMarkdownTemplate();
-            }
-            return parent::handle();
+          return $this->generateViews();
         }
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
             $this->input->setArgument('module', $suggestedName);
-            if ($this->option('markdown')) {
-                $this->writeMarkdownTemplate();
-            }
-            return parent::handle();
+          return $this->generateViews();
         }
         $this->error("The module '" . $module . "' does not exist.");
         return 1;
+    }
+
+    protected function generateViews()
+    {
+        if ($this->option('markdown')) {
+            $this->writeMarkdownTemplate();
+        }
+        return parent::handle();
     }
 
     protected function writeMarkdownTemplate()

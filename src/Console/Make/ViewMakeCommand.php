@@ -11,13 +11,13 @@ use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\select;
 
 class ViewMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-view {name} {module}
          {--f|force : Create the test even if the view already exists }
@@ -30,17 +30,28 @@ class ViewMakeCommand extends GeneratorCommand
 
     protected $type = 'View';
 
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/view.stub';
+        return $this->resolveStubPath('/view.stub');
     }
 
-
+    /**
+     * Get the destination class path.
+     *
+     * @param string $name
+     * @return string
+     */
     protected function getPath($name)
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/resources/views' ,$this->option('extension') ?? 'blade.php');
-
+        return $this->setPath($name,$this->option('extension') ?? 'blade.php');
     }
 
     protected function rootNamespace()

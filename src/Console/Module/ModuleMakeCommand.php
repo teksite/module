@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
@@ -13,8 +14,8 @@ class ModuleMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:make {name}
-              {--self : make self service provider}
-    ';
+          {--self : make self service provider}
+      ';
 
     protected $description = 'Create a new module';
 
@@ -38,7 +39,7 @@ class ModuleMakeCommand extends Command
 
     private function getModulePath(string $moduleName): string
     {
-        return config('lareon.module.path') . DIRECTORY_SEPARATOR . $moduleName;
+        return Module::ModulePath($moduleName );
     }
 
     private function moduleExists(string $modulePath): bool
@@ -76,9 +77,9 @@ class ModuleMakeCommand extends Command
 
     private function createFiles(string $path, string $moduleName): void
     {
-        $namespace = config('lareon.module.namespace') . $moduleName;
+        $namespace = config('moduleconfigs.module.namespace') .'\\' . $moduleName;
 
-        $modulePath = str_replace(base_path(), '', config('lareon.module.path') . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR);
+        $modulePath = Module::ModulePath($moduleName ,absolute:false);
 
         /* Register Composer file  */
         $this->generateFile(
@@ -196,7 +197,7 @@ class ModuleMakeCommand extends Command
         $configPath = config_path('modules.php');
         $modules = File::exists($configPath) ? require $configPath : ['modules' => []];
 
-        $namespace = config('lareon.module.namespace') . $moduleName;
+        $namespace = Module::ModuleNamespace($moduleName);
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $modules['modules'])) {
