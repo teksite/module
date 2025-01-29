@@ -41,11 +41,12 @@ class {{ class }} extends ServiceProvider
 
      private function loadModuleMigrations(): void
      {
-        $migrationPath=module_path($this->moduleName, config('moduleconfigs.module.database.migration_path'));
+        $migrationPath=Module::ModulePath($this->moduleName , config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
 
         if (is_dir($migrationPath)) {
-            $this->loadMigrationsFrom(module_path($this->moduleName, config('moduleconfigs.module.database.migration_path')));
+            $this->loadMigrationsFrom(module_path($this->moduleName, config('moduleconfigs.module.database.migration_path' , 'Database/Migrations')));
         }
+
      }
     /**
      * Register commands in the format of Command::class
