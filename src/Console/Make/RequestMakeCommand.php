@@ -4,14 +4,16 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class RequestMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-request {name} {--api} {module}';
+    protected $signature = 'module:make-request {name} {module}
+         {--f|force : Create the class even if the cast already exists }
+         {--api : return json } ';
 
 
     protected $description = 'Create a new request class in the specific module';
@@ -20,16 +22,16 @@ class RequestMakeCommand extends GeneratorCommand
 
     protected function getStub()
     {
-        return $this->option('api') ?
-            __DIR__ . '/../../stubs/request-api-class.stub' :
-            __DIR__ . '/../../stubs/request-class.stub';
+        return $this->option('api')
+            ? $this->resolveStubPath('/request-api.stub')
+            : $this->resolveStubPath('/request.stub');
     }
 
 
     protected function getPath($name)
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Http/Requests/');
+        return $this->setPath($name,'php');
 
     }
 
@@ -41,21 +43,25 @@ class RequestMakeCommand extends GeneratorCommand
      */
     protected function qualifyClass($name)
     {
-         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Http\\Requests');
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module,$name , '\\App\\Http\\Requests');
+
     }
 
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
+
         [$isValid, $suggestedName] = $this->validateModuleName($module);
+
         if ($isValid) return parent::handle();
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '" . $module . "' does not exist.");
+        $this->error("The module '".$module."' does not exist.");
         return 1;
     }
 

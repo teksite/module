@@ -7,13 +7,13 @@ use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\select;
 
 class TestMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-test {name} {module}
          {--f|force : Create the test even if the test already exists }
@@ -32,31 +32,28 @@ class TestMakeCommand extends GeneratorCommand
         $suffix = $this->option('unit') ? '.unit.stub' : '.stub';
 
         return $this->usingPest()
-            ?  __DIR__.'/../../stubs/pest'.$suffix
-            :  __DIR__.'/../../stubs/test'.$suffix;
+            ? $this->resolveStubPath('/pest'.$suffix)
+            : $this->resolveStubPath('/test'.$suffix)
+            ;
     }
 
 
     protected function getPath($name)
     {
         $module = $this->argument('module');
+        return $this->setPath($name,'php');
 
-        if ($this->option('unit')) {
-            return $this->setDefaultPath($module, $name, '/Tests/Unit');
-        } else {
-            return $this->setDefaultPath($module, $name, '/Tests/Feature');
-        }
     }
 
 
     protected function qualifyClass($name)
     {
-         $module = $this->argument('module');
+        $module = $this->argument('module');
 
         if ($this->option('unit')) {
-            return $this->setDefaultNamespace($module, $name, '\\Tests\\Unit');
+            return $this->setNamespace($module , $name, '\\Test\\Unit');
         } else {
-            return $this->setDefaultNamespace($module, $name, '\\Tests\\Feature');
+            return $this->setNamespace($module , $name, '\\Test\\Feature');
         }
     }
 
@@ -88,8 +85,8 @@ class TestMakeCommand extends GeneratorCommand
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
     protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
@@ -122,7 +119,7 @@ class TestMakeCommand extends GeneratorCommand
 
         return $this->option('pest') ||
             (function_exists('\Pest\\version') &&
-                file_exists(base_path('tests').'/Pest.php'));
+                file_exists(base_path('tests') . '/Pest.php'));
     }
 
 

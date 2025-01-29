@@ -5,12 +5,12 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class RuleMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-rule {name} {module}
      {--f|force : Create the class even if the resource already exists },
@@ -25,16 +25,15 @@ class RuleMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         return $this->option('implicit')
-            ? __DIR__.'/../../stubs/rule.implicit.stub'
-            : __DIR__.'/../../stubs/rule.stub';
+            ? $this->resolveStubPath('/rule.implicit.stub')
+            : $this->resolveStubPath('/rule.stub');
     }
 
 
     protected function getPath($name)
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Rules/');
-
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -45,9 +44,20 @@ class RuleMakeCommand extends GeneratorCommand
      */
     protected function qualifyClass($name)
     {
-         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Rules');
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module,$name , '\\App\\Rules');
     }
+
+    protected function buildClass($name)
+    {
+        return str_replace(
+            '{{ ruleType }}',
+            $this->option('implicit') ? 'ImplicitRule' : 'Rule',
+            parent::buildClass($name)
+        );
+    }
+
 
     public function handle(): bool|int|null
     {
@@ -62,15 +72,6 @@ class RuleMakeCommand extends GeneratorCommand
         }
         $this->error("The module '" . $module . "' does not exist.");
         return 1;
-    }
-
-    protected function buildClass($name)
-    {
-        return str_replace(
-            '{{ ruleType }}',
-            $this->option('implicit') ? 'ImplicitRule' : 'Rule',
-            parent::buildClass($name)
-        );
     }
 
 }

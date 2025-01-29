@@ -5,12 +5,12 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class ResourceMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-resource {name} {module}
      {--f|force : Create the class even if the resource already exists },
@@ -25,16 +25,15 @@ class ResourceMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         return $this->collection()
-            ?  __DIR__ . '/../../stubs/resource-collection.stub'
-            :  __DIR__ . '/../../stubs/resource.stub';
+            ? $this->resolveStubPath('/resource-collection.stub')
+            : $this->resolveStubPath('/resource.stub');
     }
 
 
     protected function getPath($name)
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Http/Resources/');
-
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -45,8 +44,10 @@ class ResourceMakeCommand extends GeneratorCommand
      */
     protected function qualifyClass($name)
     {
-         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Http\\Resources');
+
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module,$name , '\\App\\Http\\Resources');
     }
 
     public function handle(): bool|int|null

@@ -4,27 +4,22 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
-use Illuminate\Database\Migrations\MigrationCreator;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Command\Command as CommandAlias;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
-class ChannelMakeCommand extends Command
+class ChannelMakeCommand extends GeneratorCommand
 {
-    use ModuleCommandTrait, ModuleNameValidator;
+    use ModuleCommandsTrait, ModuleNameValidator;
 
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'module:make-migration {name} {module}
-                            {--create= : The table to be created}
-                            {--table= : The table to migrate}
-                            {--columns= : Predefined columns for the migration (comma-separated)}';
+    protected $signature = 'module:make-channel {name} {module}
+        --f|force : Create the class even if the cast already exists }
+        ';
 
     /**
      * The console command description.
@@ -36,115 +31,69 @@ class ChannelMakeCommand extends Command
     protected $type = 'Migration';
 
     /**
-     * Execute the console command.
+     * Build the class with the given name.
      *
-     * @return int
-     */
-    public function getSchemaParser()
-    {
-        return new SchemaParser($this->option('fields'));
-    }
-
-    /**
-     * @return mixed
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function getTemplateContents()
-    {
-        $parser = new NameParser($this->argument('name'));
-
-        if ($parser->isCreate()) {
-            return Stub::create('/migration/create.stub', [
-                'class' => $this->getClass(),
-                'table' => $parser->getTableName(),
-                'fields' => $this->getSchemaParser()->render(),
-            ]);
-        } elseif ($parser->isAdd()) {
-            return Stub::create('/migration/add.stub', [
-                'class' => $this->getClass(),
-                'table' => $parser->getTableName(),
-                'fields_up' => $this->getSchemaParser()->up(),
-                'fields_down' => $this->getSchemaParser()->down(),
-            ]);
-        } elseif ($parser->isDelete()) {
-            return Stub::create('/migration/delete.stub', [
-                'class' => $this->getClass(),
-                'table' => $parser->getTableName(),
-                'fields_down' => $this->getSchemaParser()->up(),
-                'fields_up' => $this->getSchemaParser()->down(),
-            ]);
-        } elseif ($parser->isDrop()) {
-            return Stub::create('/migration/drop.stub', [
-                'class' => $this->getClass(),
-                'table' => $parser->getTableName(),
-                'fields' => $this->getSchemaParser()->render(),
-            ]);
-        }
-
-        return Stub::create('/migration/plain.stub', [
-            'class' => $this->getClass(),
-        ]);
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function getDestinationFilePath()
-    {
-        $path = $this->laravel['modules']->getModulePath($this->getModuleName());
-
-        $generatorPath = GenerateConfigReader::read('migration');
-
-        return $path.$generatorPath->getPath().'/'.$this->getFileName().'.php';
-    }
-
-    /**
+     * @param  string  $name
      * @return string
      */
-    private function getFileName()
+    protected function buildClass($name)
     {
-        return date('Y_m_d_His_').$this->getSchemaName();
+        return str_replace(
+            ['DummyUser', '{{ userModel }}'],
+            class_basename($this->userProviderModel()),
+            parent::buildClass($name)
+        );
     }
 
     /**
-     * @return array|string
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
      */
-    private function getSchemaName()
+    protected function getStub()
     {
-        return $this->argument('name');
+        return $this->resolveStubPath('/channel.stub');
     }
-
     /**
+     * Get the destination class path.
+     *
+     * @param string $name
      * @return string
      */
-    private function getClassName()
+    protected function getPath($name): string
     {
-        return Str::studly($this->argument('name'));
-    }
-
-    public function getClass()
-    {
-        return $this->getClassName();
+        $module = $this->argument('module');
+        return $this->setPath($name,'php');
     }
 
     /**
-     * Run the command.
+     * Get the default namespace for the class.
+     *
+     * @param string $name
+     * @return string
      */
-    public function handle(): int
+    protected function qualifyClass($name): string
     {
+        $module = $this->argument('module');
 
-        $this->components->info('Creating migration...');
-
-        if (parent::handle() === E_ERROR) {
-            return E_ERROR;
-        }
-
-        if (app()->environment() === 'testing') {
-            return 0;
-        }
-
-        return 0;
+        return $this->setNamespace($module,$name , '\\App\\Broadcasting');
     }
+    public function handle(): bool|int|null
+    {
+        $module = $this->argument('module');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return parent::handle();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return parent::handle();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
+    }
+
 
 }

@@ -5,14 +5,15 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class ProviderMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-provider {name} {module}
+        {--f|force : Create the class even if the cast already exists }
     ';
 
     protected $description = 'Create a new provider in the specific module';
@@ -26,7 +27,7 @@ class ProviderMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/provider.stub';
+        return $this->resolveStubPath('/provider.stub');
     }
 
     /**
@@ -38,7 +39,7 @@ class ProviderMakeCommand extends GeneratorCommand
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Providers/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -50,20 +51,23 @@ class ProviderMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Providers');
+
+        return $this->setNamespace($module,$name , '\\App\\Providers');
     }
 
     public function handle(): bool|int|null
     {
         $module = $this->argument('module');
+
         [$isValid, $suggestedName] = $this->validateModuleName($module);
+
         if ($isValid) return parent::handle();
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
             $this->input->setArgument('module', $suggestedName);
             return parent::handle();
         }
-        $this->error("The module '" . $module . "' does not exist.");
+        $this->error("The module '".$module."' does not exist.");
         return 1;
     }
 

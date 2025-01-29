@@ -5,12 +5,12 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class ScopeMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-scope {name} {module}
      {--f|force : Create the class even if the resource already exists },
@@ -23,15 +23,15 @@ class ScopeMakeCommand extends GeneratorCommand
 
     protected function getStub()
     {
-        return __DIR__.'/../../stubs/scope.stub';
+        return $this->resolveStubPath('/scope.stub');
     }
 
 
     protected function getPath($name)
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Models/Scopes/');
 
+        return $this->setPath($name, 'php');
     }
 
     /**
@@ -42,8 +42,9 @@ class ScopeMakeCommand extends GeneratorCommand
      */
     protected function qualifyClass($name)
     {
-         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Models\\Scopes');
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module, $name, '\\App\\Models\\Scopes');
     }
 
     public function handle(): bool|int|null
@@ -60,7 +61,6 @@ class ScopeMakeCommand extends GeneratorCommand
         $this->error("The module '" . $module . "' does not exist.");
         return 1;
     }
-
 
 
 }

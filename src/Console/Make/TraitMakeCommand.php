@@ -4,16 +4,15 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\select;
 
 class TraitMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-trait {name} {module}
          {--f|force : Create the test even if the test already exists }
@@ -24,26 +23,41 @@ class TraitMakeCommand extends GeneratorCommand
 
     protected $type = 'Trait';
 
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
     protected function getStub()
     {
-        return __DIR__ . '/../../stubs/trait.stub';
+        return  $this->resolveStubPath('/trait.stub');
+    }
+
+    /**
+     * Get the destination class path.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function getPath($name): string
+    {
+        $module = $this->argument('module');
+        return $this->setPath($name,'php');
     }
 
 
-    protected function getPath($name)
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Traits');
 
-    }
-
-
-    protected function qualifyClass($name)
-    {
-        $module = $this->argument('module');
-
-        return $this->setDefaultNamespace($module, $name, '\\App\\Traits');
-
+        return $this->setNamespace($module,$name , '\\App\\Traits');
     }
 
     public function handle(): bool|int|null

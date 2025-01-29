@@ -5,12 +5,12 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class SeederMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait;
+    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:make-seeder {name} {module}
     ';
@@ -20,29 +20,41 @@ class SeederMakeCommand extends GeneratorCommand
 
     protected $type = 'Seeder';
 
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
     protected function getStub()
     {
-        return __DIR__.'/../../stubs/seeder.stub';
-    }
-
-
-    protected function getPath($name)
-    {
-        $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/Database/seeder/');
-
+        return $this->resolveStubPath('/seeder.stub');
     }
 
     /**
-     * تنظیمات نام‌گذاری کلاس.
+     * Get the destination class path.
      *
      * @param string $name
      * @return string
      */
-    protected function qualifyClass($name)
+    protected function getPath($name): string
     {
-         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\Database\\Seeders');
+        $module = $this->argument('module');
+        return $this->setPath($name,'php');
+    }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function qualifyClass($name): string
+    {
+        $module = $this->argument('module');
+
+        return $this->setNamespace($module,$name , '\\Database\\Seeders');
     }
 
     public function handle(): bool|int|null
