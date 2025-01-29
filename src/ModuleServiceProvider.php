@@ -6,6 +6,7 @@ use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Support\ServiceProvider;
 use Teksite\Module\Console\Make\CastMakeCommand;
 use Teksite\Module\Console\Make\ChannelMakeCommand;
+use Teksite\Module\Console\Make\ClassMakeCommand;
 use Teksite\Module\Console\Make\CommandMakeCommand;
 use Teksite\Module\Console\Make\ComponentMakeCommand;
 use Teksite\Module\Console\Make\ControllerMakeCommand;
@@ -95,6 +96,7 @@ class ModuleServiceProvider extends ServiceProvider
         $this->commands([
             CastMakeCommand::class,
             ChannelMakeCommand::class,
+            ClassMakeCommand::class,
             CommandMakeCommand::class,
             ComponentMakeCommand::class,
             ControllerMakeCommand::class,
