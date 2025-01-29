@@ -13,7 +13,9 @@ class DeleteMakeCommand extends Command
 {
     use ModuleGeneratorCommandTrait;
 
-    protected $signature = 'module:delete {name}';
+    protected $signature = 'module:delete {name}
+     {--y|yes : delete without ask}
+        ';
 
     protected $description = 'delete the specific module';
 
@@ -21,6 +23,19 @@ class DeleteMakeCommand extends Command
 
     public function handle()
     {
+        if($this->option('yes')){
+            $this->proceedDeleting();
+            return;
+        }
+
+        $answer =$this->confirm('Are you sure you want to delete the module?' ,'no');
+        if ($answer == 'yes') {
+            $this->proceedDeleting();
+        }
+
+
+    }
+    protected function proceedDeleting(){
         $moduleNames = $this->argument('name');
         $modulesNamesArray = explode(",", $moduleNames);
         $existedModules = [];

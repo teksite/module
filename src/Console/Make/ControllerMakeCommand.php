@@ -149,7 +149,6 @@ class ControllerMakeCommand extends GeneratorCommand
     protected function buildParentReplacements()
     {
         $parentModelClass = $this->parseModel($this->option('parent'));
-        str_starts_with($parentModelClass , Module::ModuleNamespace()) || str_starts_with($parentModelClass ,app()->getNamespace());
         if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {
             $this->call('module:make-model', ['name' => $parentModelClass]);
@@ -229,7 +228,7 @@ class ControllerMakeCommand extends GeneratorCommand
         ];
 
         if ($this->option('requests')) {
-            $namespace = config('lareon.module.namespace') . $module . '\\' . 'App\\Http\\Requests';
+            $namespace =Module::ModuleNamespace($module ,'App\\Http\\Requests');
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
                 $modelClass, $storeRequestClass, $updateRequestClass

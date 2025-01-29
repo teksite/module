@@ -3,12 +3,12 @@
 namespace Teksite\Module\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Lareon\Modules\Sina\App\Providers\SinaServiceProvider;
 
 class ModuleControllerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->moduleRegistration();
     }
 
     public function boot()
@@ -16,12 +16,6 @@ class ModuleControllerServiceProvider extends ServiceProvider
 
     }
 
-    private function moduleRegistration(){
-        foreach (config('modules.modules', []) as $module=>$provider) {
-            if (class_exists($provider)) {
-                $this->app->register($provider);
-            }
-        }
-    }
+
 
 }

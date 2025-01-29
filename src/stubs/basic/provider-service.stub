@@ -41,10 +41,10 @@ class {{ class }} extends ServiceProvider
 
      private function loadModuleMigrations(): void
      {
-        $migrationPath=module_path($this->moduleName, config('lareon.module.database.migration_path'));
+        $migrationPath=module_path($this->moduleName, config('moduleconfigs.module.database.migration_path'));
 
         if (is_dir($migrationPath)) {
-            $this->loadMigrationsFrom(module_path($this->moduleName, config('lareon.module.database.migration_path')));
+            $this->loadMigrationsFrom(module_path($this->moduleName, config('moduleconfigs.module.database.migration_path')));
         }
      }
     /**
