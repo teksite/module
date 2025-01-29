@@ -9,27 +9,27 @@ use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\multiselect;
 
 class ModelMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator, ModuleCommandTrait, CreatesMatchingTest;
+    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
     protected $signature = 'module:make-model {name} {module}
-            {--a|all : Generate a migration, seeder, factory, policy, resource controller, and form request classes for the model}
-            {--c|controller : Create a new controller for the model}
-            {--f|factory : Create a new factory for the model}
-            {--ull|force : Create the class even if the model already exists}
-            {--m|migration : Create a new migration file for the model}
-            {--morph: , Indicates if the generated model should be a custom polymorphic intermediate table model}
-            {--policy : Create a new policy for the model}
-            {--s|seed : Create a new seeder for the model}
-            {--p|pivot : Indicates if the generated model should be a custom intermediate table model}
-            {--r|resource : Indicates if the generated controller should be a resource controller}
-            {--api : Indicates if the generated controller should be an API resource controller}
-            {--R|requests : Create new form request classes and use them in the resource controller}
+            {--a|all : Generate a migration, seeder, factory, policy, resource controller, and form request classes for the model }
+            {--c|controller : Create a new controller for the model }
+            {--f|factory : Create a new factory for the model }
+            {--ull|force : Create the class even if the model already exists }
+            {--m|migration : Create a new migration file for the model }
+            {--morph-pivot :  Indicates if the generated model should be a custom polymorphic intermediate table model }
+            {--policy : Create a new policy for the model }
+            {--s|seed : Create a new seeder for the model }
+            {--p|pivot : Indicates if the generated model should be a custom intermediate table model }
+            {--r|resource : Indicates if the generated controller should be a resource controller }
+            {--api : Indicates if the generated controller should be an API resource controller }
+            {--R|requests : Create new form request classes and use them in the resource controller }
 ';
 
     protected $description = 'Create a new model class in the module';
@@ -37,6 +37,20 @@ class ModelMakeCommand extends GeneratorCommand
 
     public function handle()
     {
+        $module = $this->argument('module');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return $this->generatingModel();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return $this->generatingModel();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
+    }
+    protected function generatingModel(){
         if (parent::handle() === false && !$this->option('force')) {
             return false;
         }
@@ -194,20 +208,22 @@ class ModelMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         if ($this->option('pivot')) {
-            return __DIR__ . '/../../stubs/model-pivot-class.stub';
+            return $this->resolveStubPath('/model-pivot-class.stub');
         }
-//
-//        if ($this->option('morph-pivot') ?? false) {
-//            return $this->resolveStubPath('/stubs/model.morph-pivot.stub');
-//        }
 
-        return __DIR__ . '/../../stubs/model-class.stub';
+        if ($this->option('morph-pivot') ?? false) {
+            return $this->resolveStubPath('/model.morph-pivot.stub');
+        }
+
+        return $this->resolveStubPath('/model-class.stub');
+
+
     }
 
     protected function getPath($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultPath($module, $name, '/App/Mail/');
+        return $this->setPath($name,'php');
     }
 
     /**
@@ -219,7 +235,8 @@ class ModelMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-        return $this->setDefaultNamespace($module, $name, '\\App\\Models');
+
+        return $this->setNamespace($module,$name , '\\App\\Models');
     }
 
 

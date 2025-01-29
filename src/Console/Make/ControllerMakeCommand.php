@@ -148,9 +148,7 @@ class ControllerMakeCommand extends GeneratorCommand
      */
     protected function buildParentReplacements()
     {
-        dd('buildParentReplacements');
         $parentModelClass = $this->parseModel($this->option('parent'));
-        dd(str_starts_with($parentModelClass , Module::ModuleNamespace()) , str_starts_with($parentModelClass ,app()->getNamespace()));
         str_starts_with($parentModelClass , Module::ModuleNamespace()) || str_starts_with($parentModelClass ,app()->getNamespace());
         if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {

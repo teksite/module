@@ -5,6 +5,8 @@ namespace Teksite\Module\Console\Module;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class DeleteMakeCommand extends Command
@@ -24,9 +26,12 @@ class DeleteMakeCommand extends Command
         $existedModules = [];
         $wrongModules = [];
         foreach ($modulesNamesArray as $name) {
-            $moduleName = ucfirst($name);
-            if (File::isDirectory(config('lareon.module.path') . '/' . $moduleName)) {
-                File::deleteDirectory(config('lareon.module.path') . '/' . $moduleName);
+            $moduleName = Str::studly($name);
+            $modulePath=Module::ModulePath($moduleName);
+            if ($modulePath && $name===$moduleName) {
+                $this->info("{$moduleName} module directory deleted successfully.");
+
+                File::deleteDirectory($modulePath);
                 $this->removeModuleFromConfig($moduleName);
 
                 $existedModules[] = $moduleName;

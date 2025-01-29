@@ -5,15 +5,16 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Database\Console\Migrations\BaseCommand;
-
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandTrait;
+use Teksite\Module\Facade\Module;
+use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 
 class MigrationMakeCommand extends GeneratorCommand
 {
+    use ModuleNameValidator , ModuleCommandsTrait;
     /**
      * The console command signature.
      *
@@ -34,7 +35,24 @@ class MigrationMakeCommand extends GeneratorCommand
     public function handle()
     {
         $module = $this->argument('module');
-        $modulePath = config('lareon.module.path') . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . config('lareon.module.database.migration_path');
+
+        [$isValid, $suggestedName] = $this->validateModuleName($module);
+
+        if ($isValid) return $this->generateMigration();
+
+        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
+            $this->input->setArgument('module', $suggestedName);
+            return $this->generateMigration();
+        }
+        $this->error("The module '".$module."' does not exist.");
+        return 1;
+
+    }
+    protected function generateMigration()
+    {
+        $module = $this->argument('module');
+        $modulePath = Module::ModulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
+
         if (!is_dir($modulePath)){
             File::makeDirectory($modulePath , '0755' , true);
         }
@@ -46,7 +64,6 @@ class MigrationMakeCommand extends GeneratorCommand
             '--path' =>$relativeBase,
         ];
         $this->call('make:migration', $options);
-
     }
 
 
