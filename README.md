@@ -62,20 +62,6 @@ php artisan vendor:publish --provider="teksite\lareon\LareonCmsServiceProvider"
 ### Step 5: add to Composer.json
 By default, modules classes are not loaded automatically. You can autoload your modules by adding below codes:
 
-```json
-"autoload": {
-    "psr-4": {
-        "App\\": "app/",
-        "Database\\Factories\\": "database/factories/",
-        "Database\\Seeders\\": "database/seeders/",
-    
-        "Lareon\\Modules\\": "Lareon/Modules/",
-        
-  }
-},
-```
-
-and
 
 ```json
 "extra": {
@@ -90,7 +76,7 @@ and
 },
 ```
 ### Step 6: publish Service Provider (optional)
-**Tip: `composer dump-autoload` .**
+**Tip: do not forget: `composer dump-autoload` .**
 
 
 

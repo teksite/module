@@ -189,6 +189,18 @@ class ModuleMakeCommand extends Command
             "{$path}/routes/web.php"
         );
 
+        /* Register Seeder file file  */
+        $this->generateFile(
+            'basic/seeder.stub',
+            [
+                '{{ module }}' => strtolower($moduleName),
+                '{{ namespace }}' => "{$namespace}\\Database\\Seeders",
+                '{{ class }}' => "{$moduleName}DatabaseSeeder",
+            ],
+
+            "{$path}/Database/Seeders/{$moduleName}DatabaseSeeder.php"
+        );
+
         $this->addModuleToConfig($moduleName);
 
     }

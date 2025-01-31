@@ -75,7 +75,7 @@ class {{ class }} extends ServiceProvider
      */
     public function registerTranslations(): void
     {
-        $langPath = module_path($this->moduleName , config('moduleconfigs.modules.lang_path' , 'lang'));
+        $langPath = module_path($this->moduleName , config('moduleconfigs.module.lang_path' , 'lang'));
 
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, $this->lowerModuleName);
@@ -97,24 +97,24 @@ class {{ class }} extends ServiceProvider
      */
     public function registerViews(): void
     {
-             // Path to the module's custom views directory
-                $viewPath = resource_path('views/modules/'.$this->lowerModuleName);
+         // Path to the module's custom views directory
+         $viewPath = resource_path('views/modules/'.$this->lowerModuleName);
 
-                // Path to the module's source views directory
-                $sourcePath = module_path($this->moduleName, 'resources/views');
+         // Path to the module's source views directory
+         $sourcePath = module_path($this->moduleName, 'resources/views');
 
-                // Publish the module views to the main application views folder
-                $this->publishes([$sourcePath => $viewPath], ['views', $this->lowerModuleName.'-module-views']);
+         // Publish the module views to the main application views folder
+         $this->publishes([$sourcePath => $viewPath], ['views', $this->lowerModuleName.'-module-views']);
 
-                // Merge the default view paths with the module's custom views
-                $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
+         // Merge the default view paths with the module's custom views
+         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
 
-                // Optionally, register Blade components if your module uses them
-                $componentNamespace = module_namespace(
-                    $this->moduleName,module_path($this->moduleName, 'App/View/Components'));
+         // Optionally, register Blade components if your module uses them
+         $componentNamespace = module_namespace(
+             $this->moduleName,module_path($this->moduleName, 'App/View/Components'));
 
 
-                Blade::componentNamespace($componentNamespace, $this->lowerModuleName);
+         Blade::componentNamespace($componentNamespace, $this->lowerModuleName);
     }
 
     /**
