@@ -30,7 +30,9 @@ class {{ class }}  extends ServiceProvider
         */
        protected function mapWebRoutes(): void
        {
-           Route::middleware('web')->group(module_path($this->moduleName, '/routes/web.php'));
+          if (file_exists(module_path($this->moduleName, '/routes/web.php'))) {
+              Route::middleware('web')->group(module_path($this->moduleName, '/routes/web.php'));
+          }
        }
 
        /**
@@ -40,6 +42,8 @@ class {{ class }}  extends ServiceProvider
         */
        protected function mapApiRoutes(): void
        {
-           Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->moduleName, '/routes/api.php'));
+            if (file_exists(module_path($this->moduleName, '/routes/api.php'))) {
+                Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->moduleName, '/routes/api.php'));
+            }
        }
 }

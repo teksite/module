@@ -31,7 +31,7 @@ trait ModuleCommandsTrait
 
     protected function setNamespace($module, $name, $relative): string
     {
-        $namespace = Module::ModuleNamespace($module, $relative);
+        $namespace = Module::moduleNamespace($module, $relative);
         return $namespace . '\\' . str_replace('/', '\\', $name);
     }
 
@@ -62,7 +62,7 @@ trait ModuleCommandsTrait
 
         $thisNamespace = Str::finish($this->rootNamespace() ,'\\');
         $appNamespace = app()->getNamespace();
-        $moduleNamespace = Module::ModuleNamespace();
+        $moduleNamespace = Module::moduleNamespace();
 
         if (Str::startsWith($model, $thisNamespace)) {
             return $model;
@@ -73,7 +73,7 @@ trait ModuleCommandsTrait
         if (Str::startsWith($model, $moduleNamespace)) {
             return $model;
         }
-        return Module::ModuleNamespace($this->argument('module') , 'App\\Models\\'.$model);
+        return Module::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
 
 
 
@@ -83,12 +83,12 @@ trait ModuleCommandsTrait
     {
         $module = $this->argument('module');
 
-        return Module::ModuleNamespace($module , 'App');
+        return Module::moduleNamespace($module , 'App');
     }
 
     public function moduleNamespace(?string $module =null, string $path=null)
     {
-       return Module::ModuleNamespace($module , $path);
+       return Module::moduleNamespace($module , $path);
 
     }
 

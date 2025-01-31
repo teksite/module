@@ -7,24 +7,17 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Teksite\Module\Facade\Module;
 
 
 class {{ class }} extends ServiceProvider
 {
-    public const TYPE='self-service';
-
-    protected string $moduleName = '{{ module }}';
-
-    protected string $lowerModuleName = '{{ moduleLowerName }}';
 
     /**
      * Register the service provider.
      */
     public function register(): void
     {
-        $this->app->register(EventServiceProvider::class);
-        $this->app->register(RouteServiceProvider::class);
+        //;
     }
 
     /**
@@ -32,12 +25,12 @@ class {{ class }} extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->registerCommands();
-        $this->registerCommandSchedules();
-        $this->registerTranslations();
-        $this->registerConfig();
-        $this->registerViews();
-        $this->loadModuleMigrations();
+     //   $this->registerCommands();
+     //   $this->registerCommandSchedules();
+     //   $this->registerTranslations();
+     //   $this->registerConfig();
+     //   $this->registerViews();
+     //   $this->loadModuleMigrations();
 
     }
 
@@ -75,7 +68,7 @@ class {{ class }} extends ServiceProvider
      */
     public function registerTranslations(): void
     {
-        $langPath = module_path($this->moduleName , config('moduleconfigs.modules.lang_path' , 'lang'));
+        $langPath = module_path($this->moduleName) . DIRECTORY_SEPARATOR . config('lareon.module.lang_path');
 
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, $this->lowerModuleName);

@@ -2,6 +2,7 @@
 
 namespace Teksite\Module\Services;
 
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\StudyPathNamespace;
 
 class ModuleServices
@@ -15,7 +16,7 @@ class ModuleServices
      * @param bool $absolute
      * @return string
      */
-    public function ModulePath(?string $moduleName = null, ?string $path = null, bool $absolute = true): string
+    public function modulePath(?string $moduleName = null, ?string $path = null, bool $absolute = true): string
     {
         $mainPath = config('moduleconfigs.main_path') && config('moduleconfigs.module.path')
             ? config('moduleconfigs.main_path') . DIRECTORY_SEPARATOR . config('moduleconfigs.module.path')
@@ -25,7 +26,7 @@ class ModuleServices
         return $absolute ? base_path($relativePath) : $relativePath;
     }
 
-    public function ModuleNamespace(string $moduleName = null, ?string $path = null): string
+    public function moduleNamespace(string $moduleName = null, ?string $path = null): string
     {
         $mainNamespace = config('moduleconfigs.module.namespace', "Lareon\Module");
 
@@ -35,6 +36,17 @@ class ModuleServices
     public function ModuleViewPath(string $moduleName = null, ?string $path = null): string
     {
         return $this->ModulePath($moduleName, 'resources/views' . ($path ? DIRECTORY_SEPARATOR . $path : ''));
+    }
+
+    public function all()
+    {
+        $moduleFromConfig=config('modules.modules' ,[]);
+        return collect(array_keys($moduleFromConfig));
+    }
+    public function allProvider()
+    {
+        $moduleFromConfig=config('modules.modules' ,[]);
+        return collect($moduleFromConfig);
     }
 
 

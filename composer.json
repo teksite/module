@@ -14,14 +14,12 @@
             "email": "teksite.design@gmail.com"
         }
     ],
-    "version": "0.0.1",
     "minimum-stability": "dev",
     "license": "MIT",
     "prefer-stable": true,
 
     "autoload": {
         "psr-4": {
-
             "Teksite\\Module\\": "src/"
         },
         "files": [
@@ -29,7 +27,7 @@
         ]
     },
     "require": {
-        "php": ">=8.2",
+        "php": "^8.2",
         "illuminate/support": "~11.0",
         "teksite/handler": "^0.0.1",
         "teksite/extralaravel": "^0.0.1",

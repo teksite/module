@@ -2,19 +2,12 @@
 if (!function_exists('module_path')) {
     function module_path(string $moduleName = null, ?string $path = null, bool $absolute = true ): ?string
     {
-        if (is_null($moduleName)) {
-            return $absolute ? base_path(config('moduleconfigs.path')) : config('moduleconfigs.path');
-        }
-        if (in_array($moduleName, array_keys(config('modules.modules')))) {
-            $relative = $path
-                ? config('moduleconfigs.main_path') . DIRECTORY_SEPARATOR . config('moduleconfigs.module.directory') . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR . $path
-                : config('moduleconfigs.main_path') . DIRECTORY_SEPARATOR . config('moduleconfigs.module.directory') . DIRECTORY_SEPARATOR . $moduleName;
-            if ($relative && is_dir(base_path($relative))) {
-                return $absolute ? base_path($relative) : $relative;
-            }
+        $mainPath = config('moduleconfigs.main_path') && config('moduleconfigs.module.path')
+            ? config('moduleconfigs.main_path') . DIRECTORY_SEPARATOR . config('moduleconfigs.module.path')
+            : "Lareon/Modules";
 
-        }
-        return null;
+        $relativePath = $moduleName ? normalizePath($mainPath . '/' . $moduleName . ($path ? '/' . $path : '')) : $mainPath;
+        return $absolute ? base_path($relativePath) : $relativePath;
     }
 
 }
@@ -39,6 +32,6 @@ if (!function_exists('normalizePath')) {
         $normalizedPath = str_replace(['/', '\\', '/\\', '\\/'], DIRECTORY_SEPARATOR, $path);
 
         // Ensure the path ends with DIRECTORY_SEPARATOR
-        return rtrim($normalizedPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        return rtrim($normalizedPath, DIRECTORY_SEPARATOR);
     }
 }

@@ -4,6 +4,7 @@ namespace Teksite\Module;
 
 use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Support\ServiceProvider;
+use Teksite\Module\Console\Installer\InstallerCommand;
 use Teksite\Module\Console\Make\CastMakeCommand;
 use Teksite\Module\Console\Make\ChannelMakeCommand;
 use Teksite\Module\Console\Make\ClassMakeCommand;
@@ -37,7 +38,9 @@ use Teksite\Module\Console\Make\TraitMakeCommand;
 use Teksite\Module\Console\Make\ViewMakeCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
-use Teksite\Module\Providers\ModuleControllerServiceProvider;
+use Teksite\Module\Providers\ModulesManagerServiceProvider;
+use Teksite\Module\Providers\RoutesManagerServiceProvider;
+use Teksite\Module\Services\ManagerServices;
 use Teksite\Module\Services\ModuleServices;
 
 class ModuleServiceProvider extends ServiceProvider
@@ -76,11 +79,15 @@ class ModuleServiceProvider extends ServiceProvider
         $this->app->singleton('Module', function () {
             return new ModuleServices();
         });
+        $this->app->singleton('ModuleManager', function () {
+            return new ManagerServices();
+        });
     }
 
     public function registerProviders(): void
     {
-        $this->app->register(ModuleControllerServiceProvider::class);
+        $this->app->register(ModulesManagerServiceProvider::class);
+        $this->app->register(RoutesManagerServiceProvider::class);
     }
 
     public function registerStubPath(): void
@@ -130,6 +137,8 @@ class ModuleServiceProvider extends ServiceProvider
             /* Module -> Generator commands */
             ModuleMakeCommand::class,
             DeleteMakeCommand::class,
+
+            InstallerCommand::class,
         ]);
     }
 

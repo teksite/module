@@ -51,7 +51,7 @@ class MigrationMakeCommand extends GeneratorCommand
     protected function generateMigration()
     {
         $module = $this->argument('module');
-        $modulePath = Module::ModulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
+        $modulePath = Module::modulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
 
         if (!is_dir($modulePath)){
             File::makeDirectory($modulePath , '0755' , true);

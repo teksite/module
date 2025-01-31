@@ -228,7 +228,7 @@ class ControllerMakeCommand extends GeneratorCommand
         ];
 
         if ($this->option('requests')) {
-            $namespace =Module::ModuleNamespace($module ,'App\\Http\\Requests');
+            $namespace =Module::moduleNamespace($module ,'App\\Http\\Requests');
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
                 $modelClass, $storeRequestClass, $updateRequestClass

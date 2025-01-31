@@ -5,12 +5,15 @@ namespace Teksite\Module\Console\Module;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
 {
+
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:make {name}
@@ -33,13 +36,17 @@ class ModuleMakeCommand extends Command
 
         $this->createDirectories($modulePath);
         $this->createFiles($modulePath, $moduleName);
+        $this->dumpngComposer();
 
-        $this->info("Module {$moduleName} created successfully.");
+        $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('black', 'blue', ['bold']));
+        $this->newLine();
+
+        $this->info("<success>SUCCESS</success> Module {$moduleName} created successfully.");
     }
 
     private function getModulePath(string $moduleName): string
     {
-        return Module::ModulePath($moduleName );
+        return Module::modulePath($moduleName);
     }
 
     private function moduleExists(string $modulePath): bool
@@ -70,16 +77,16 @@ class ModuleMakeCommand extends Command
 
         foreach ($directories as $directory) {
             File::makeDirectory("{$path}/{$directory}", 0755, true);
-            $this->info("Directory: {$path}/{$directory} is generated");
+            $this->line("Directory: {$path}/{$directory} is generated");
 
         }
     }
 
     private function createFiles(string $path, string $moduleName): void
     {
-        $namespace = config('moduleconfigs.module.namespace') .'\\' . $moduleName;
+        $namespace = config('moduleconfigs.module.namespace') . '\\' . $moduleName;
 
-        $modulePath = Module::ModulePath($moduleName ,absolute:false);
+        $modulePath = Module::modulePath($moduleName, absolute: false);
 
         /* Register Composer file  */
         $this->generateFile(
@@ -178,7 +185,7 @@ class ModuleMakeCommand extends Command
         /* Register web route file  */
         $this->generateFile(
             'basic/route-web.stub',
-            ['{{ module }}' => $moduleName],
+            ['{{ module }}' => strtolower($moduleName)],
             "{$path}/routes/web.php"
         );
 
@@ -189,15 +196,79 @@ class ModuleMakeCommand extends Command
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
-        $this->info("File: $destination is generated");
+        $this->line("File: $destination is generated");
     }
 
     private function addModuleToConfig(string $moduleName): void
     {
         $configPath = config_path('modules.php');
-        $modules = File::exists($configPath) ? require $configPath : ['modules' => []];
+        $modules = File::exists($configPath) ? require $configPath : [
+            'modules' => [],
+            'routes' => [
+                'client.web' => [
+                    'path' => 'web.php',
+                    'middleware' => '',
+                    'prefix' => '',
+                    'name' => ''
+                ],
+                'client.api.v1' => [
+                    'path' => 'api.php',
+                    'middleware' => 'api',
+                    'prefix' => 'api\v1',
+                    'name' => 'api.v1.'
+                ],
+                'client.ajax' => [
+                    'path' => 'ajax.php',
+                    'middleware' => 'api',
+                    'prefix' => 'ajax',
+                    'name' => 'ajax'
+                ],
+                'admin.web' => [
+                    'path' => 'admin/web.php',
+                    'middleware' => 'auth,verified',
+                    'prefix' => 'tkadmin',
+                    'name' => ''
+                ],
+                'admin.api.v1' => [
+                    'path' => 'admin/api.php',
+                    'middleware' => 'api',
+                    'prefix' => 'tkadmin/api',
+                    'name' => 'api.v1.'
+                ],
+                'admin.ajax' => [
+                    'path' => 'admin/ajax.php',
+                    'middleware' => 'api,auth,verified',
+                    'prefix' => 'tkadmin/ajax',
+                    'name' => 'admin.ajax.'
+                ],
+                'panel.web' => [
+                    'path' => 'panel/web.php',
+                    'middleware' => 'auth,verified',
+                    'prefix' => 'panel',
+                    'name' => ''
+                ],
+                'panel.api.v1' => [
+                    'path' => 'panel/api.php',
+                    'middleware' => 'api',
+                    'prefix' => 'panel/api',
+                    'name' => 'api.v1.'
+                ],
+                'panel.ajax' => [
+                    'path' => 'panel/ajax.php',
+                    'middleware' => 'api,auth,verified',
+                    'prefix' => 'panel/ajax',
+                    'name' => 'panel.ajax.'
+                ],
 
-        $namespace = Module::ModuleNamespace($moduleName);
+            ],
+            'configs' => [
+                'config.php',
+                'search.php',
+                'sitemap.php',
+            ]
+        ];
+
+        $namespace = Module::moduleNamespace($moduleName);
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $modules['modules'])) {
@@ -209,11 +280,20 @@ class ModuleMakeCommand extends Command
             );
 
             $this->info("Module {$moduleName} added to config/modules.php.");
-            $this->info("now wait to dump autoload of composer, it may take a while ...");
-            exec("composer dump-autoload");
+
         } else {
             $this->info("Module {$moduleName} is already in config/modules.php.");
         }
+    }
+
+    private function dumpngComposer()
+    {
+        $this->info("now wait to dump autoload of composer, it may take a while ...");
+
+        Process::path(base_path())
+            ->command('composer dump-autoload')
+            ->run()->output();
+
     }
 
 }

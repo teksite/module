@@ -24,6 +24,14 @@ return [
 
           'default_file'=>'config',
       ]
-   ]
+   ],
+
+    'manager'=>[
+        "directory"=>"ModuleManager",
+
+        'namespace'=>'Lareon\ModuleManager',
+
+        'provider' =>\Lareon\ModuleManager\App\Providers\ModuleMangerServiceProvider::class,
+    ]
 ];
 
