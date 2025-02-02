@@ -50,7 +50,7 @@
     "extra": {
         "laravel": {
             "providers": [
-              "LareonServiceProvider"
+              "Teksite\\Module\\ModuleServiceProvider"
             ]
 
         }
