@@ -4,8 +4,8 @@ namespace Teksite\Module\Traits;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Services\ModuleServices;
+use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Services\LareonServices;
 
 trait ModuleCommandsTrait
 {
@@ -31,7 +31,7 @@ trait ModuleCommandsTrait
 
     protected function setNamespace($module, $name, $relative): string
     {
-        $namespace = Module::moduleNamespace($module, $relative);
+        $namespace = Lareon::moduleNamespace($module, $relative);
         return $namespace . '\\' . str_replace('/', '\\', $name);
     }
 
@@ -50,7 +50,7 @@ trait ModuleCommandsTrait
     protected function viewPath($path= '')
     {
         $module = $this->argument('module');
-        return Module::ModuleViewPath($module , $path);
+        return Lareon::ModuleViewPath($module , $path);
 
     }
 
@@ -62,7 +62,7 @@ trait ModuleCommandsTrait
 
         $thisNamespace = Str::finish($this->rootNamespace() ,'\\');
         $appNamespace = app()->getNamespace();
-        $moduleNamespace = Module::moduleNamespace();
+        $moduleNamespace = Lareon::moduleNamespace();
 
         if (Str::startsWith($model, $thisNamespace)) {
             return $model;
@@ -73,7 +73,7 @@ trait ModuleCommandsTrait
         if (Str::startsWith($model, $moduleNamespace)) {
             return $model;
         }
-        return Module::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
+        return Lareon::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
 
 
 
@@ -83,12 +83,12 @@ trait ModuleCommandsTrait
     {
         $module = $this->argument('module');
 
-        return Module::moduleNamespace($module , 'App');
+        return Lareon::moduleNamespace($module , 'App');
     }
 
     public function moduleNamespace(?string $module =null, string $path=null)
     {
-       return Module::moduleNamespace($module , $path);
+       return Lareon::moduleNamespace($module , $path);
 
     }
 

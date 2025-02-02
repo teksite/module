@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Teksite\Module\Facade\Module;
+use Teksite\Module\Facade\Lareon;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class DeleteMakeCommand extends Command
@@ -48,7 +48,7 @@ class DeleteMakeCommand extends Command
         $failedModules = [];
 
         foreach ($moduleNames as $moduleName) {
-            if ($modulePath = Module::modulePath($moduleName)) {
+            if ($modulePath = Lareon::modulePath($moduleName)) {
                 $this->removeModule($moduleName, $modulePath);
                 $existingModules[] = $moduleName;
             } else {
@@ -88,7 +88,7 @@ class DeleteMakeCommand extends Command
         }
 
         unset($modules['modules'][$moduleName]);
-        File::put($configPath, '<?php return ' . var_export($modules, true) . ';');
+        File::put($configPath, '<?php return ' . var_export_short($modules, true) . ';');
         $this->line("Module {$moduleName} removed from config/modules.php.");
     }
 

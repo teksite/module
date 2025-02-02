@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Teksite\Module\Facade\Module;
+use Teksite\Module\Facade\Lareon;
 use Teksite\Module\Facade\ModuleManager;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
@@ -18,7 +18,7 @@ class InstallerCommand extends Command
 
     protected $description = 'install Module Manager';
 
-    protected $type = 'Installer';
+    protected string $type = 'Installer';
 
     public function handle()
     {

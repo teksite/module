@@ -32,7 +32,9 @@ Run the following command in your CLI:
 ```bash
 composer require teksite\module
 ```
-
+#### wikimedia/composer-merge-plugin
+if you face to ``Do you trust "wikimedia/composer-merge-plugin" to execute code and wish to enable it now? (writes "allow-plugins" to composer.json) [y,n,d,?]
+`` press ``y`` and enter. this package is used to recognize and merge composer.json files of modules. 
 ### Step 2: Register the Service Provider
 > **Note:** This step is not required for newer versions of Laravel (5.x and above) but in case:.
 
@@ -40,7 +42,7 @@ composer require teksite\module
 Add the following line to the `bootstrap/providers` file:
 
 ```php
-Teksite\Module\ModuleServiceProvider::class,
+Teksite\Module\LareonServiceProvider::class,
 ```
 
 #### Laravel 5.x and earlier
@@ -56,7 +58,7 @@ If you are using Laravel 5.x or earlier, register the service provider in the `c
 Optionally, publish the package's configuration file by running:
 
 ```bash
-php artisan vendor:publish --provider="teksite\lareon\LareonCmsServiceProvider"
+php artisan vendor:publish --provider="teksite\lareon\ModuleServiceProvider"
 ```
 
 ### Step 5: add to Composer.json

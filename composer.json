@@ -8,7 +8,10 @@
         "module",
         "modularity"
     ],
+    "version": "0.0.1",
+
     "authors": [
+
         {
             "name": "sina zangibadn",
             "email": "teksite.design@gmail.com"
@@ -49,7 +52,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Teksite\\Module\\ModuleServiceProvider"
+              "LareonServiceProvider"
             ]
 
         }

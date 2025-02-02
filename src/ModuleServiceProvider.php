@@ -42,7 +42,7 @@ use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Providers\ModulesManagerServiceProvider;
 use Teksite\Module\Providers\RoutesManagerServiceProvider;
 use Teksite\Module\Services\ManagerServices;
-use Teksite\Module\Services\ModuleServices;
+use Teksite\Module\Services\LareonServices;
 
 class ModuleServiceProvider extends ServiceProvider
 {
@@ -78,7 +78,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function registerFacades()
     {
         $this->app->singleton('Module', function () {
-            return new ModuleServices();
+            return new LareonServices();
         });
         $this->app->singleton('ModuleManager', function () {
             return new ManagerServices();

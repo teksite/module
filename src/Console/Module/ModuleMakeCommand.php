@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Teksite\Module\Facade\Module;
+use Teksite\Module\Facade\Lareon;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
@@ -46,7 +46,7 @@ class ModuleMakeCommand extends Command
 
     private function getModulePath(string $moduleName): string
     {
-        return Module::modulePath($moduleName);
+        return Lareon::modulePath($moduleName);
     }
 
     private function moduleExists(string $modulePath): bool
@@ -86,7 +86,7 @@ class ModuleMakeCommand extends Command
     {
         $namespace = config('moduleconfigs.module.namespace') . '\\' . $moduleName;
 
-        $modulePath = Module::modulePath($moduleName, absolute: false);
+        $modulePath = Lareon::modulePath($moduleName, absolute: false);
 
         /* Register Composer file  */
         $this->generateFile(
@@ -280,7 +280,7 @@ class ModuleMakeCommand extends Command
             ]
         ];
 
-        $namespace = Module::moduleNamespace($moduleName);
+        $namespace = Lareon::moduleNamespace($moduleName);
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $modules['modules'])) {
@@ -288,7 +288,7 @@ class ModuleMakeCommand extends Command
 
             File::put(
                 $configPath,
-                '<?php return ' . var_export($modules, true) . ';'
+                '<?php return ' . var_export_short($modules, true) . ';'
             );
 
             $this->info("Module {$moduleName} added to config/modules.php.");

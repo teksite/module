@@ -2,8 +2,7 @@
 
 namespace Teksite\Module\Services;
 
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\StudyPathNamespace;
+use Teksite\Extralaravel\Traits\StudyPathNamespace;
 
 class ModuleServices
 {

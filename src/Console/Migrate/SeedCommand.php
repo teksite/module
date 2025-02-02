@@ -4,7 +4,7 @@ namespace Teksite\Module\Console\Migrate;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
-use Teksite\Module\Facade\Module;
+use Teksite\Module\Facade\Lareon;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
@@ -50,14 +50,14 @@ class SeedCommand extends Command
 
     protected function seedAllModules()
     {
-        foreach (Module::all() as $module) {
+        foreach (Lareon::all() as $module) {
             $this->callSeeders($module);
         }
     }
 
     protected function callSeeders($module)
     {
-        $mainSeeder = Module::moduleNamespace($module , "\\Database\\Seeders\\{$module}DatabaseSeeder");
+        $mainSeeder = Lareon::moduleNamespace($module , "\\Database\\Seeders\\{$module}DatabaseSeeder");
             if (class_exists($mainSeeder)) {
                 $this->line("Seeding: {$mainSeeder}");
                 $startTime = Carbon::now(); // زمان شروع

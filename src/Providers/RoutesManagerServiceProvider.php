@@ -3,7 +3,7 @@
 namespace Teksite\Module\Providers;
 
 use Illuminate\Support\Facades\Route;
-use Teksite\Module\Facade\Module;
+use Teksite\Module\Facade\Lareon;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
 class RoutesManagerServiceProvider extends ServiceProvider
@@ -20,7 +20,7 @@ class RoutesManagerServiceProvider extends ServiceProvider
         foreach ($modules ?? [] as $module => $provider) {
             if (!defined("$provider::TYPE") || $provider::TYPE !== 'self') {
                 foreach ($routes as $route) {
-                    $suggestedPath = Module::modulePath($module, 'routes' . DIRECTORY_SEPARATOR . $route['path']);
+                    $suggestedPath = Lareon::modulePath($module, 'routes' . DIRECTORY_SEPARATOR . $route['path']);
                     if (file_exists($suggestedPath)) {
                         Route::prefix($route['prefix'] ?? '')
                             ->name($route['name'] ?? '')
