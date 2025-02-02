@@ -30,8 +30,8 @@
     "require": {
         "php": "^8.2",
         "illuminate/support": "~11.0",
-        "teksite/handler": "^0.0.1",
-        "teksite/extralaravel": "^0.0.1",
+        "teksite/handler": "*",
+        "teksite/extralaravel": "*",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-simplexml": "*",
