@@ -7,7 +7,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleCommandTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class CommandMakeCommand extends GeneratorCommand

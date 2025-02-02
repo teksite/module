@@ -57,7 +57,7 @@ class ViewMakeCommand extends GeneratorCommand
     protected function rootNamespace()
     {
         $module = $this->argument('module');
-        return config('lareon.module.namespace') . $module;
+        return config('moduleconfigs.module.namespace') . $module;
     }
 
     public function handle(): bool|int|null

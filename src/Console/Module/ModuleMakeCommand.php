@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
@@ -46,7 +46,7 @@ class ModuleMakeCommand extends Command
 
     private function getModulePath(string $moduleName): string
     {
-        return Lareon::modulePath($moduleName);
+        return Module::modulePath($moduleName);
     }
 
     private function moduleExists(string $modulePath): bool
@@ -86,7 +86,7 @@ class ModuleMakeCommand extends Command
     {
         $namespace = config('moduleconfigs.module.namespace') . '\\' . $moduleName;
 
-        $modulePath = Lareon::modulePath($moduleName, absolute: false);
+        $modulePath = Module::modulePath($moduleName, absolute: false);
 
         /* Register Composer file  */
         $this->generateFile(
@@ -280,7 +280,7 @@ class ModuleMakeCommand extends Command
             ]
         ];
 
-        $namespace = Lareon::moduleNamespace($moduleName);
+        $namespace = Module::moduleNamespace($moduleName);
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $modules['modules'])) {

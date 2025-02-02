@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 
 class ModulesManagerServiceProvider extends ServiceProvider
 {
@@ -183,7 +183,7 @@ class ModulesManagerServiceProvider extends ServiceProvider
      */
     private function loadMigrationsForModule(string $module): void
     {
-        $migrationPath = Lareon::modulePath($module, config('moduleconfigs.module.database.migration_path', 'Database/Migrations'));
+        $migrationPath = Module::modulePath($module, config('moduleconfigs.module.database.migration_path', 'Database/Migrations'));
         if (is_dir($migrationPath)) {
             $this->loadMigrationsFrom($migrationPath);
         }
@@ -227,7 +227,7 @@ class ModulesManagerServiceProvider extends ServiceProvider
     private function runSeederForModule(string $module): void
     {
         $fullClassName = "Lareon\\Modules\\{$module}\\Database\\Seeders\\{$module}DatabaseSeeder";
-        $mainSeederPath = Lareon::modulePath($module, "Database/Seeders/{$module}DatabaseSeeder.php");
+        $mainSeederPath = Module::modulePath($module, "Database/Seeders/{$module}DatabaseSeeder.php");
 
         if (file_exists($mainSeederPath) && class_exists($fullClassName)) {
             Artisan::call('db:seed', ['--class' => $fullClassName]);

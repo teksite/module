@@ -4,11 +4,10 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use InvalidArgumentException;
-use Lareon\Modules\SIna\App\Models\Sina;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\confirm;
@@ -228,7 +227,7 @@ class ControllerMakeCommand extends GeneratorCommand
         ];
 
         if ($this->option('requests')) {
-            $namespace =Lareon::moduleNamespace($module ,'App\\Http\\Requests');
+            $namespace =Module::moduleNamespace($module ,'App\\Http\\Requests');
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
                 $modelClass, $storeRequestClass, $updateRequestClass

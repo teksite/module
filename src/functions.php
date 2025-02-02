@@ -18,7 +18,7 @@ if (!function_exists('module_namespace')) {
     function module_namespace(string $moduleName, ?string $path = null): string
     {
         // Add any additional logic for your module namespaces
-        $moduleBaseNamespace = config('lareon.module.namespace') . $moduleName . '\\';
+        $moduleBaseNamespace = config('moduleconfigs.module.namespace') . $moduleName . '\\';
         return $path
             ? $moduleBaseNamespace . $path
             : $moduleBaseNamespace;

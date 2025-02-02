@@ -3,10 +3,10 @@
 namespace Teksite\Module\Facade;
 
 /**
- * @method static \Teksite\Module\Services\LareonServices ModulePath(?string $moduleName = null, bool $absolute=true)
- * @method static \Teksite\Module\Services\LareonServices ModuleNamespace(?string $moduleName = null, ?string $path=null)
+ * @method static \Teksite\Module\Services\ModuleServices ModulePath(?string $moduleName = null, bool $absolute=true)
+ * @method static \Teksite\Module\Services\ModuleServices ModuleNamespace(?string $moduleName = null, ?string $path=null)
  *
- * @see \Teksite\Module\Services\LareonServices
+ * @see \Teksite\Module\Services\ModuleServices
  */
 use Illuminate\Support\Facades\Facade;
 

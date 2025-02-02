@@ -58,7 +58,9 @@ If you are using Laravel 5.x or earlier, register the service provider in the `c
 Optionally, publish the package's configuration file by running:
 
 ```bash
-php artisan vendor:publish --provider="teksite\lareon\ModuleServiceProvider"
+php artisan vendor:publish --provider="teksite\module\ModuleServiceProvider"
+php artisan vendor:publish --provider="teksite\module\ModulesManagerServiceProvider"
+php artisan vendor:publish --provider="teksite\module\RoutesManagerServiceProvider"
 ```
 
 ### Step 5: add to Composer.json
