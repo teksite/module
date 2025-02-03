@@ -87,8 +87,7 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function registerProviders(): void
     {
-        $this->app->register(ModulesManagerServiceProvider::class);
-        $this->app->register(RoutesManagerServiceProvider::class);
+
     }
 
     public function registerStubPath(): void

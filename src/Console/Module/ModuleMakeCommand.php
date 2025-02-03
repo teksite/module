@@ -17,7 +17,7 @@ class ModuleMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:make {name}
-          {--self : make self service provider}
+          {--lareon : managed by cms (Lareon) }
       ';
 
     protected $description = 'Create a new module';
@@ -102,7 +102,7 @@ class ModuleMakeCommand extends Command
         );
 
         /* Register ServiceProvider file  */
-        if (!$this->option('self')) {
+        if ($this->option('lareon')) {
             $this->generateFile(
                 'basic/provider.stub',
                 [
@@ -216,68 +216,6 @@ class ModuleMakeCommand extends Command
         $configPath = config_path('modules.php');
         $modules = File::exists($configPath) ? require $configPath : [
             'modules' => [],
-            'routes' => [
-                'client.web' => [
-                    'path' => 'web.php',
-                    'middleware' => '',
-                    'prefix' => '',
-                    'name' => ''
-                ],
-                'client.api.v1' => [
-                    'path' => 'api.php',
-                    'middleware' => 'api',
-                    'prefix' => 'api\v1',
-                    'name' => 'api.v1.'
-                ],
-                'client.ajax' => [
-                    'path' => 'ajax.php',
-                    'middleware' => 'api',
-                    'prefix' => 'ajax',
-                    'name' => 'ajax'
-                ],
-                'admin.web' => [
-                    'path' => 'admin/web.php',
-                    'middleware' => 'auth,verified',
-                    'prefix' => 'tkadmin',
-                    'name' => ''
-                ],
-                'admin.api.v1' => [
-                    'path' => 'admin/api.php',
-                    'middleware' => 'api',
-                    'prefix' => 'tkadmin/api',
-                    'name' => 'api.v1.'
-                ],
-                'admin.ajax' => [
-                    'path' => 'admin/ajax.php',
-                    'middleware' => 'api,auth,verified',
-                    'prefix' => 'tkadmin/ajax',
-                    'name' => 'admin.ajax.'
-                ],
-                'panel.web' => [
-                    'path' => 'panel/web.php',
-                    'middleware' => 'auth,verified',
-                    'prefix' => 'panel',
-                    'name' => ''
-                ],
-                'panel.api.v1' => [
-                    'path' => 'panel/api.php',
-                    'middleware' => 'api',
-                    'prefix' => 'panel/api',
-                    'name' => 'api.v1.'
-                ],
-                'panel.ajax' => [
-                    'path' => 'panel/ajax.php',
-                    'middleware' => 'api,auth,verified',
-                    'prefix' => 'panel/ajax',
-                    'name' => 'panel.ajax.'
-                ],
-
-            ],
-            'configs' => [
-                'config.php',
-                'search.php',
-                'sitemap.php',
-            ]
         ];
 
         $namespace = Module::moduleNamespace($moduleName);

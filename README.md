@@ -42,7 +42,7 @@ if you face to ``Do you trust "wikimedia/composer-merge-plugin" to execute code 
 Add the following line to the `bootstrap/providers` file:
 
 ```php
-Teksite\Module\LareonServiceProvider::class,
+Teksite\Module\ModuleServiceProvider::class,
 ```
 
 #### Laravel 5.x and earlier
@@ -51,10 +51,10 @@ If you are using Laravel 5.x or earlier, register the service provider in the `c
 ```php
 'providers' => [
     // Other Service Providers
-    Teksite\Handler\ModuleServiceProvider::class,
+    Teksite\Module\ModuleServiceProvider::class,
 ];
 ```
-### Step 4: publish Service Provider (optional)
+### Step 3: publish Service Provider (optional)
 Optionally, publish the package's configuration file by running:
 
 ```bash
@@ -63,7 +63,7 @@ php artisan vendor:publish --provider="teksite\module\ModulesManagerServiceProvi
 php artisan vendor:publish --provider="teksite\module\RoutesManagerServiceProvider"
 ```
 
-### Step 5: add to Composer.json
+### Step 4: add to Composer.json
 By default, modules classes are not loaded automatically. You can autoload your modules by adding below codes:
 
 
@@ -93,6 +93,18 @@ By default, modules classes are not loaded automatically. You can autoload your 
 ```bash
 php artisan module:make Example
 ```
+### make a model in a module
+
+```bash
+php artisan module:make-model <name> <module> <--options>
+```
+### make a controller in a module
+
+```bash
+php artisan module:make-controller <name> <module> <--options>
+```
+
+all commands of this package is same as Laravel with their options.
 
 ### Change module priority
 To change priority of loading modules you can change the order of modules in the ``config/modules``.
