@@ -42,7 +42,7 @@ if you face to ``Do you trust "wikimedia/composer-merge-plugin" to execute code 
 Add the following line to the `bootstrap/providers` file:
 
 ```php
-Teksite\Module\LareonServiceProvider::class,
+Teksite\Module\moduleServiceProvider::class,
 ```
 
 #### Laravel 5.x and earlier

@@ -2,7 +2,6 @@
 
 namespace Teksite\Module;
 
-use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Support\ServiceProvider;
 use Teksite\Module\Console\Installer\InstallerCommand;
 use Teksite\Module\Console\Make\CastMakeCommand;
@@ -39,10 +38,9 @@ use Teksite\Module\Console\Make\ViewMakeCommand;
 use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
-use Teksite\Module\Providers\ModulesManagerServiceProvider;
-use Teksite\Module\Providers\RoutesManagerServiceProvider;
+use Teksite\Module\Providers\EventServiceProvider;
 use Teksite\Module\Services\ManagerServices;
-use Teksite\Module\Services\LareonServices;
+use Teksite\Module\Services\ModuleServices;
 
 class ModuleServiceProvider extends ServiceProvider
 {
@@ -58,45 +56,29 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $this->bootCommands();
         $this->publish();
-        $this->bootTranslations();
-
     }
 
     public function registerConfig(): void
     {
-        //Module configuration
-        $configPath = config_path('moduleconfigs.php'); // Path to the published file
-        $this->mergeConfigFrom(
-            file_exists($configPath) ? $configPath : __DIR__ . '/config/moduleconfigs.php', 'moduleconfigs');
-
-        //Modules Priority
-        $modulesConfigPath = config_path('modules.php'); // Path to the published file
-        $this->mergeConfigFrom(
-            file_exists($modulesConfigPath) ? $modulesConfigPath : __DIR__ . '/config/modules.php', 'modules');
+        $configPath = config_path('module.php');
+        $this->mergeConfigFrom(file_exists($configPath) ? $configPath : __DIR__ . '/config/module.php', 'module');
     }
 
-    public function registerFacades()
+    public function registerFacades(): void
     {
-        $this->app->singleton('Module', function () {
-            return new LareonServices();
-        });
-        $this->app->singleton('ModuleManager', function () {
-            return new ManagerServices();
-        });
+        $this->app->singleton('Module', fn() => new ModuleServices());
     }
 
     public function registerProviders(): void
     {
-        $this->app->register(ModulesManagerServiceProvider::class);
-        $this->app->register(RoutesManagerServiceProvider::class);
+        $this->app->register(EventServiceProvider::class);
     }
 
     public function registerStubPath(): void
     {
         $this->app->bind('module.stubs', function () {
-            return config('moduleconfigs.', __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR);
+            return __DIR__ . DIRECTORY_SEPARATOR . "stubs" . DIRECTORY_SEPARATOR;
         });
-
     }
 
     public function bootCommands(): void
@@ -150,22 +132,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function publish(): void
     {
         $this->publishes([
-            __DIR__ . '/config/moduleconfigs.php' => config_path('moduleconfigs.php')
-        ], 'lareon');
-
-        $this->publishes([
-            __DIR__ . '/config/modules.php' => config_path('modules.php')
-        ], 'modules');
-
-    }
-
-    public function bootTranslations(): void
-    {
-        $langPath = __DIR__ . '/lang/';
-
-        if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, 'module');
-            $this->loadJsonTranslationsFrom($langPath);
-        }
+            __DIR__ . '/config/module.php' => config_path('module.php')
+        ], 'module');
     }
 }
