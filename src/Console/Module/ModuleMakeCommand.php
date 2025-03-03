@@ -36,10 +36,9 @@ class ModuleMakeCommand extends Command
 
         $this->createDirectories($modulePath);
         $this->createFiles($modulePath, $moduleName);
-        $this->registerModule($modulePath);
         $this->dumpingComposer();
 
-        $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('black', 'white', ['bold']));
+        $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('black', 'blue', ['bold']));
         $this->newLine();
 
         $this->info("<success>SUCCESS</success> Module $moduleName created successfully.");
@@ -52,10 +51,9 @@ class ModuleMakeCommand extends Command
 
     private function moduleExists(string $modulePath): bool
     {
-
-        if (File::exists($modulePath)) return false;
-        if (in_array($modulePath, Module::all())) return false;
-        return true;
+        if (File::exists($modulePath)) return true;
+        if (in_array($modulePath, Module::all())) return true;
+        return false;
     }
 
     private function createDirectories(string $path): void
@@ -108,7 +106,7 @@ class ModuleMakeCommand extends Command
         );
 
         /* Register ServiceProvider file  */
-        if (!$this->option('self')) {
+        if ($this->option('lareon')) {
             $this->generateFile(
                 'basic/provider.stub',
                 [
@@ -207,7 +205,7 @@ class ModuleMakeCommand extends Command
             "{$path}/Database/Seeders/{$moduleName}DatabaseSeeder.php"
         );
 
-        $this->addModuleToConfig($moduleName);
+        $this->registerModule($moduleName);
 
     }
 
@@ -231,8 +229,8 @@ class ModuleMakeCommand extends Command
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $registeredModule)) {
-            $registeredModule[$moduleName] = $providerClass;
-            $registeredModule['active'] = true;
+            $registeredModule[$moduleName]['provider'] = $providerClass;
+            $registeredModule[$moduleName]['active'] = true;
 
             File::put(
                 $bootstrapModulePath,

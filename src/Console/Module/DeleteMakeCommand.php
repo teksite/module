@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class DeleteMakeCommand extends Command
@@ -15,8 +15,8 @@ class DeleteMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:delete {name}
-     {--y|yes : Delete without confirmation}
-     ';
+        {--y|yes : Delete without confirmation}
+    ';
     protected $description = 'Delete a specific module';
     protected string $type = 'Module';
 
@@ -25,9 +25,7 @@ class DeleteMakeCommand extends Command
      */
     public function handle()
     {
-        if ($this->option('yes') || $this->confirmDeletion() =='yes') {
-            $this->deleteModules();
-        }
+        if ($this->option('yes') || $this->confirmDeletion() =='yes') $this->deleteModules();
     }
 
     /**
@@ -48,7 +46,7 @@ class DeleteMakeCommand extends Command
         $failedModules = [];
 
         foreach ($moduleNames as $moduleName) {
-            if ($modulePath = Lareon::modulePath($moduleName)) {
+            if ($modulePath = Module::modulePath($moduleName)) {
                 $this->removeModule($moduleName, $modulePath);
                 $existingModules[] = $moduleName;
             } else {
@@ -66,30 +64,29 @@ class DeleteMakeCommand extends Command
     {
         File::deleteDirectory($modulePath);
         $this->line("{$moduleName} module directory deleted successfully.");
-        $this->updateModuleConfig($moduleName);
+        $this->updateModuleBootstrap($moduleName);
     }
 
     /**
      * Remove the module from config/modules.php if it exists.
      */
-    private function updateModuleConfig(string $moduleName): void
+    private function updateModuleBootstrap(string $moduleName): void
     {
-        $configPath = config_path('modules.php');
-
-        if (!File::exists($configPath)) {
-            $this->error("Config file config/modules.php does not exist!");
+        $bootstrapFile = base_path('bootstrap/modules.php');
+        if (!File::exists($bootstrapFile)) {
+            $this->error("Config file bootstrap/modules.php does not exist!");
             return;
         }
 
-        $modules = require $configPath;
-        if (!isset($modules['modules'][$moduleName])) {
-            $this->warn("Module {$moduleName} was not found in config/modules.php.");
+        $modules = require $bootstrapFile;
+        if (!in_array($moduleName, array_keys($modules))) {
+            $this->warn("Module {$moduleName} was not found in bootstrap/modules.php");
             return;
         }
 
-        unset($modules['modules'][$moduleName]);
-        File::put($configPath, '<?php return ' . var_export_short($modules, true) . ';');
-        $this->line("Module {$moduleName} removed from config/modules.php.");
+        unset($modules[$moduleName]);
+        File::put($bootstrapFile, '<?php return ' . var_export_short($modules, true) . ';');
+        $this->line("Module {$moduleName} removed from bootstrap/modules.php");
     }
 
     /**
