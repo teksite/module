@@ -3,7 +3,6 @@
 namespace Teksite\Module;
 
 use Illuminate\Support\ServiceProvider;
-use Teksite\Module\Console\Installer\InstallerCommand;
 use Teksite\Module\Console\Make\CastMakeCommand;
 use Teksite\Module\Console\Make\ChannelMakeCommand;
 use Teksite\Module\Console\Make\ClassMakeCommand;
@@ -39,7 +38,6 @@ use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Providers\EventServiceProvider;
-use Teksite\Module\Services\ManagerServices;
 use Teksite\Module\Services\ModuleServices;
 
 class ModuleServiceProvider extends ServiceProvider
@@ -125,7 +123,6 @@ class ModuleServiceProvider extends ServiceProvider
             ModuleMakeCommand::class,
             DeleteMakeCommand::class,
 
-            InstallerCommand::class,
         ]);
     }
 

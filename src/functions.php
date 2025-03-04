@@ -17,9 +17,9 @@ if (!function_exists('module_path')) {
 
 if (!function_exists('module_namespace')) {
 
-    function module_namespace(string $moduleName, ?string $path = null): string
+    function module_namespace(?string $moduleName, ?string $path = null): string
     {
-        $moduleBaseNamespace = config('module.module.namespace' ,'Lareon\Modules') . '\\'. Str::ucfirst($moduleName);
+        $moduleBaseNamespace = config('module.module.namespace' ,'Lareon\Modules') . '\\'. ($moduleName ? Str::ucfirst($moduleName): '');
 
         $path=$path ? str_replace('/', '\\', $path) :null;
 

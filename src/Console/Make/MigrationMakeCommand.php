@@ -7,7 +7,7 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Database\Console\Migrations\BaseCommand;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
@@ -51,7 +51,7 @@ class MigrationMakeCommand extends GeneratorCommand
     protected function generateMigration()
     {
         $module = $this->argument('module');
-        $modulePath = Lareon::modulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
+        $modulePath = Module::modulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
 
         if (!is_dir($modulePath)){
             File::makeDirectory($modulePath , '0755' , true);

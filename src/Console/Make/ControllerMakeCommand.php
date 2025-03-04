@@ -4,11 +4,10 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use InvalidArgumentException;
-use Lareon\Modules\SIna\App\Models\Sina;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Facade\Lareon;
+use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 use function Laravel\Prompts\confirm;
@@ -25,7 +24,7 @@ class ControllerMakeCommand extends GeneratorCommand
      {--type= : Manually specify the controller stub file to use}
      {--i|invokable : Generate a single method, invokable controller class}
      {--m|model= : Generate a resource controller for the given model}
-     {--p|parent : Generate a nested resource controller class}
+     {--p|parent= : Generate a nested resource controller class}
      {--r|resource : Generate a resource controller class}
      {--s|singleton : Generate a singleton resource controller class}
      {--creatable : Indicate that a singleton resource should be creatable}
@@ -56,7 +55,7 @@ class ControllerMakeCommand extends GeneratorCommand
         } elseif ($this->option('parent')) {
             $stub = $this->option('singleton')
                 ? $this->resolveStubPath("/controller/controller.nested.singleton.stub")
-                : $this->resolveStubPath("/controller/ontroller.nested.stub");
+                : $this->resolveStubPath("/controller/controller.nested.stub");
         } elseif ($this->option('model')) {
             $stub = $this->resolveStubPath("/controller/controller.model.stub");
         } elseif ($this->option('invokable')) {
@@ -148,10 +147,13 @@ class ControllerMakeCommand extends GeneratorCommand
      */
     protected function buildParentReplacements()
     {
+
         $parentModelClass = $this->parseModel($this->option('parent'));
         if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {
-            $this->call('module:make-model', ['name' => $parentModelClass]);
+            $module = $this->argument('module');
+            $model = $this->option('parent');
+            $this->call('module:make-model', ['name' =>$model ,'module'=>$module]);
         }
 
         return [
@@ -228,7 +230,7 @@ class ControllerMakeCommand extends GeneratorCommand
         ];
 
         if ($this->option('requests')) {
-            $namespace =Lareon::moduleNamespace($module ,'App\\Http\\Requests');
+            $namespace =Module::moduleNamespace($module ,'App\\Http\\Requests');
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
                 $modelClass, $storeRequestClass, $updateRequestClass

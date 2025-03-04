@@ -31,7 +31,7 @@ trait ModuleCommandsTrait
 
     protected function setNamespace($module, $name, $relative): string
     {
-        $namespace = Lareon::moduleNamespace($module, $relative);
+        $namespace = Module::moduleNamespace($module, ltrim($relative, '\\'));
         return $namespace . '\\' . str_replace('/', '\\', $name);
     }
 
@@ -50,7 +50,7 @@ trait ModuleCommandsTrait
     protected function viewPath($path= '')
     {
         $module = $this->argument('module');
-        return Lareon::ModuleViewPath($module , $path);
+        return Module::modulePath($module , "resources/views/$path");
 
     }
 
@@ -62,7 +62,7 @@ trait ModuleCommandsTrait
 
         $thisNamespace = Str::finish($this->rootNamespace() ,'\\');
         $appNamespace = app()->getNamespace();
-        $moduleNamespace = Lareon::moduleNamespace();
+        $moduleNamespace = Module::moduleNamespace();
 
         if (Str::startsWith($model, $thisNamespace)) {
             return $model;
@@ -73,7 +73,7 @@ trait ModuleCommandsTrait
         if (Str::startsWith($model, $moduleNamespace)) {
             return $model;
         }
-        return Lareon::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
+        return Module::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
 
 
 
@@ -83,12 +83,12 @@ trait ModuleCommandsTrait
     {
         $module = $this->argument('module');
 
-        return Lareon::moduleNamespace($module , 'App');
+        return Module::moduleNamespace($module , 'App');
     }
 
     public function moduleNamespace(?string $module =null, string $path=null)
     {
-       return Lareon::moduleNamespace($module , $path);
+       return Module::moduleNamespace($module , $path);
 
     }
 

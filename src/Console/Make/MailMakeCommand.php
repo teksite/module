@@ -112,7 +112,7 @@ class MailMakeCommand extends GeneratorCommand
      */
     protected function writeMarkdownTemplate()
     {
-        $path = $this->viewPath(
+        $path = $this->viewPath('mail/'.
             str_replace('.', '/', $this->getView()) . '.blade.php'
         );
 
@@ -134,8 +134,9 @@ class MailMakeCommand extends GeneratorCommand
      */
     protected function writeView()
     {
+
         $path = $this->viewPath(
-            str_replace('.', '/', $this->getView()) . '.blade.php'
+            str_replace('.', '/', 'mails.'.$this->getView()) . '.blade.php'
         );
 
         if ($this->files->exists($path)) {
@@ -172,7 +173,7 @@ class MailMakeCommand extends GeneratorCommand
         );
 
         if (!!$this->option('markdown') !== false || !!$this->option('view') !== false) {
-            $class = str_replace(['DummyView', '{{ view }}'], $module . '::' . $this->getView(), $class);
+            $class = str_replace(['DummyView', '{{ view }}'], $module . '::mails.' . $this->getView(), $class);
         }
 
         if (!!!$this->option('markdown') || !!!$this->option('view')) {
