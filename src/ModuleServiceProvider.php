@@ -34,6 +34,7 @@ use Teksite\Module\Console\Make\SeederMakeCommand;
 use Teksite\Module\Console\Make\TestMakeCommand;
 use Teksite\Module\Console\Make\TraitMakeCommand;
 use Teksite\Module\Console\Make\ViewMakeCommand;
+use Teksite\Module\Console\Migrate\MigrateCommands;
 use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
@@ -117,6 +118,7 @@ class ModuleServiceProvider extends ServiceProvider
 
             /* Module -> Migration and Seeds */
             SeedCommand::class,
+            MigrateCommands::class,
 
 
             /* Module -> Generator commands */
