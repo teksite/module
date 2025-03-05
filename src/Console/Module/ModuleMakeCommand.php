@@ -79,11 +79,11 @@ class ModuleMakeCommand extends Command
             'Tests/Feature',
             'Tests/Unit',
         ];
+        $module=$this->argument('name');
 
         foreach ($directories as $directory) {
             File::makeDirectory("{$path}/{$directory}", 0755, true);
-            $this->line("Directory: {$path}/{$directory} is generated");
-
+            $this->components->twoColumnDetail("Directory: <fg=white;options=bold>$module/$directory</>" ,'<fg=green;options=bold>DONE</>' );
         }
     }
 
@@ -212,7 +212,9 @@ class ModuleMakeCommand extends Command
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
-        $this->line("File: $destination is generated");
+        $relativePath=str_replace(base_path(), '' , $destination);
+        $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>" ,'<fg=green;options=bold>DONE</>' );
+
     }
 
     private function registerModule(string $moduleName): void
@@ -236,11 +238,11 @@ class ModuleMakeCommand extends Command
                 $bootstrapModulePath,
                 '<?php return ' . var_export_short($registeredModule, true) . ';'
             );
-
-            $this->info("Module $moduleName added to bootstrap/modules.php");
-
+            $this->newLine();
+            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php" ,'<fg=green;options=bold>DONE</>' );
         } else {
-            $this->info("Module $moduleName is already in bootstrap/modules.php");
+            $this->newLine();
+            $this->error("Module $moduleName is already in bootstrap/modules.php");
         }
     }
 

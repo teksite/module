@@ -25,7 +25,7 @@ class DeleteMakeCommand extends Command
      */
     public function handle()
     {
-        if ($this->option('yes') || $this->confirmDeletion() =='yes') $this->deleteModules();
+        if ($this->option('yes') || $this->confirmDeletion() == 'yes') $this->deleteModules();
     }
 
     /**
@@ -47,7 +47,8 @@ class DeleteMakeCommand extends Command
 
         foreach ($moduleNames as $moduleName) {
             if ($modulePath = Module::modulePath($moduleName)) {
-                $this->removeModule($moduleName, $modulePath);
+                $this->removeDirectory($moduleName, $modulePath);
+                $this->updateModuleBootstrap($moduleName);
                 $existingModules[] = $moduleName;
             } else {
                 $failedModules[] = $moduleName;
@@ -60,11 +61,14 @@ class DeleteMakeCommand extends Command
     /**
      * Remove the module directory and update configuration.
      */
-    private function removeModule(string $moduleName, string $modulePath): void
+    private function removeDirectory(string $moduleName, string $modulePath): void
     {
+        if (!File::isDirectory($modulePath)) {
+            $this->warn("Directory {$moduleName} was not found");
+            return;
+        }
         File::deleteDirectory($modulePath);
-        $this->line("{$moduleName} module directory deleted successfully.");
-        $this->updateModuleBootstrap($moduleName);
+        $this->components->twoColumnDetail("deleting directory: <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
     }
 
     /**
@@ -74,11 +78,12 @@ class DeleteMakeCommand extends Command
     {
         $bootstrapFile = base_path('bootstrap/modules.php');
         if (!File::exists($bootstrapFile)) {
-            $this->error("Config file bootstrap/modules.php does not exist!");
+            $this->error("The file bootstrap/modules.php does not exist!");
             return;
         }
 
         $modules = require $bootstrapFile;
+
         if (!in_array($moduleName, array_keys($modules))) {
             $this->warn("Module {$moduleName} was not found in bootstrap/modules.php");
             return;
@@ -86,7 +91,8 @@ class DeleteMakeCommand extends Command
 
         unset($modules[$moduleName]);
         File::put($bootstrapFile, '<?php return ' . var_export_short($modules, true) . ';');
-        $this->line("Module {$moduleName} removed from bootstrap/modules.php");
+        $this->components->twoColumnDetail("updating module bootstrap: remove <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
+
     }
 
     /**
@@ -100,7 +106,7 @@ class DeleteMakeCommand extends Command
 
         if (!empty($existingModules)) {
             $this->composerDumpAutoload();
-            $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('blue', null, ['bold']));
+            $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('red', null, ['bold']));
             $this->newLine();
             $this->info("<success>DELETED</success> Module(s) " . implode(", ", $existingModules) . " deleted successfully.");
         }
