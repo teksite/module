@@ -18,37 +18,34 @@ class FreshCommands extends Command
 
     protected $signature = 'module:migrate-fresh {module?}
         {--database=}
+        {--seed}
         {--force}
-        {--path=}
-        {--realpath}
-        {--pretend}
-        {--step=1}
     ';
 
-    protected $description = 'Rollback the migrations for a specific module or all modules';
+    protected $description = 'Drop all tables and re-run migrations for a specific module or all modules';
 
     public function handle()
     {
         $module = $this->argument('module');
 
         if ($module) {
-            $this->rollbackMigrationsForModule($module);
+            $this->freshMigrationsForModule($module);
         } else {
-            $this->rollbackMigrationsForAllModules();
+            $this->freshMigrationsForAllModules();
         }
     }
 
-    protected function rollbackMigrationsForModule($module)
+    protected function freshMigrationsForModule($module)
     {
 
         [$isValid, $suggestedName] = $this->validateModuleName($module);
         if ($isValid) {
-            $this->runRollbackCommand($module);
+            $this->runMigrationsForModule($module);
             return;
         }
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->runRollbackCommand($suggestedName);
+            $this->runMigrationsForModule($suggestedName);
             return;
         }
         $this->error("The module '" . $module . "' does not exist.");
@@ -56,26 +53,24 @@ class FreshCommands extends Command
     }
 
 
-    protected function rollbackMigrationsForAllModules()
+    protected function freshMigrationsForAllModules()
     {
         foreach (Module::all() as $module) {
-            $this->info("Running migrations for module: " . $module);
-            $this->rollbackMigrationsForModule($module);
+            $this->info("Dropping all tables and re-running migrations for module: " . $module);
+            $this->runMigrationsForModule($module);
         }
     }
 
-    protected function runRollbackCommand($module)
+    protected function runMigrationsForModule($module)
     {
 
         $options = [
             '--database' => $this->option('database'),
-            '--force' => $this->option('force'),
-            '--realpath' => $this->option('realpath'),
-            '--pretend' => $this->option('pretend'),
-            '--step' => $this->option('step'),
+            '--force' => true,
         ];
 
         $migrationsPath = module_path($module, 'Database/Migrations');
+        $seedersPath = module_path($module, "Database/Seeders");
 
         $migration_list = File::allFiles($migrationsPath);
 
@@ -85,8 +80,12 @@ class FreshCommands extends Command
         }
         $options['--path'] = $allFiles;
 
-        Artisan::call('migrate:rollback', $options, $this->output);
+        Artisan::call('migrate:fresh', $options, $this->output);
 
-
+        if ($this->option('seed') && File::exists($seedersPath)) {
+            Artisan::call('module:seed', [
+                '--module' => "$module"
+            ], $this->output);
+        }
     }
 }

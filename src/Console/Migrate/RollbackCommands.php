@@ -59,7 +59,7 @@ class RollbackCommands extends Command
     protected function rollbackMigrationsForAllModules()
     {
         foreach (Module::all() as $module) {
-            $this->info("Running migrations for module: " . $module);
+            $this->info("Rolling back migrations for module: " . $module);
             $this->rollbackMigrationsForModule($module);
         }
     }
