@@ -36,6 +36,8 @@ use Teksite\Module\Console\Make\TraitMakeCommand;
 use Teksite\Module\Console\Make\ViewMakeCommand;
 use Teksite\Module\Console\Migrate\FreshCommands;
 use Teksite\Module\Console\Migrate\MigrateCommands;
+use Teksite\Module\Console\Migrate\RefreshCommands;
+use Teksite\Module\Console\Migrate\ResetCommands;
 use Teksite\Module\Console\Migrate\RollbackCommands;
 use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
@@ -123,6 +125,8 @@ class ModuleServiceProvider extends ServiceProvider
             MigrateCommands::class,
             RollbackCommands::class,
             FreshCommands::class,
+            RefreshCommands::class,
+            ResetCommands::class,
 
 
             /* Module -> Generator commands */
