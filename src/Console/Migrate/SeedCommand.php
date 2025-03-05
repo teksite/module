@@ -12,8 +12,8 @@ class SeedCommand extends Command
     use ModuleNameValidator;
 
     protected $signature = 'module:seed
-    {--module= : The module to seed.}
-      ';
+        {--module= : The module to seed.}
+    ';
 
     protected $description = 'Seed the module';
 
@@ -58,12 +58,12 @@ class SeedCommand extends Command
     {
         $mainSeeder = Module::moduleNamespace($module , "Database\\Seeders\\{$module}DatabaseSeeder");
             if (class_exists($mainSeeder)) {
-                $this->line("Seeding: {$mainSeeder}");
-                $startTime = Carbon::now(); // زمان شروع
+                $startTime = Carbon::now();
                 $this->call($mainSeeder);
-                $endTime = Carbon::now(); // زمان پایان
-                $executionTime = $startTime->diffInMilliseconds($endTime); // محاسبه زمان اجرا
-                $this->line(sprintf('%s ................................................................................................ %dms DONE', $mainSeeder, $executionTime));
+                $endTime = Carbon::now();
+                $executionTime = $startTime->diffInMilliseconds($endTime);
+
+                $this->components->twoColumnDetail("seeding: <fg=white;options=bold>$mainSeeder</>" ,"<fg=gray;options=bold>$executionTime</> <fg=green;options=bold>DONE</>" );
                 $this->newLine();
             }
     }

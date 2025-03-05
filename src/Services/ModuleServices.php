@@ -59,5 +59,23 @@ class ModuleServices
         return $modules;
     }
 
+    /**
+     * @param string $moduleName
+     * @return bool
+     */
+    public function isEnabled(string $moduleName): bool
+    {
+        return in_array($moduleName, $this->enables());
+    }
+
+    /**
+     * @param string $moduleName
+     * @return bool
+     */
+    public function exists(string $moduleName) :bool
+    {
+        return in_array($moduleName, $this->all());
+    }
+
 
 }

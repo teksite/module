@@ -48,7 +48,7 @@ class MigrationMakeCommand extends GeneratorCommand
         return 1;
 
     }
-    protected function generateMigration()
+    protected function generateMigration(): void
     {
         $module = $this->argument('module');
         $modulePath = Module::modulePath($module ,config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
