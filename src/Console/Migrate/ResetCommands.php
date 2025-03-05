@@ -7,6 +7,7 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
@@ -17,68 +18,77 @@ class ResetCommands extends Command
     use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:migrate-reset {module?}
-        {--database=}
-        {--force}
-        '
-    ;
+        ';
 
-    protected $description = 'Rollback and re-run migrations for a specific module or all modules';
+    protected $description = 'Rollback migrations for a specific module or all modules';
 
     public function handle()
     {
-        $module = $this->argument('module');
+        $modules = $this->getModules();
+         foreach ($modules as $module) {
+             $correctedModule = $this->checkModule($module);
+             if (!$correctedModule){
+                 $this->error("The module '" . $module . "' does not exist.");
+                 return 0;
+             }
+             $this->runTheCommand($correctedModule);
 
-        if ($module) {
-            $this->resetMigrationsForModule($module);
-        } else {
-            $this->resetMigrationsForAllModules();
-        }
+         }
     }
 
-    protected function resetMigrationsForModule($module)
+    protected function checkModule($module) : false|string
     {
 
         [$isValid, $suggestedName] = $this->validateModuleName($module);
         if ($isValid) {
-            $this->runMigrationsForModule($module);
-            return;
+            return $module;
         }
 
         if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->runMigrationsForModule($suggestedName);
-            return;
+            return $suggestedName;
         }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
+        return false;
     }
 
-
-    protected function resetMigrationsForAllModules()
+    protected function runTheCommand($module)
     {
-        foreach (Module::all() as $module) {
-            $this->info("Dropping all tables for module: " . $module);
-            $this->runMigrationsForModule($module);
-        }
-    }
-
-    protected function runMigrationsForModule($module)
-    {
-        $options = [
-            '--database' => $this->option('database'),
-            '--force' => $this->option('force'),
-        ];
+        $this->info("Dropping all tables for module: " . $module);
 
         $migrationsPath = module_path($module, 'Database/Migrations');
 
         $migration_list = File::allFiles($migrationsPath);
-
         $allFiles = [];
         foreach ($migration_list as $migrateFile) {
-            $allFiles[] = str_replace(base_path(), '', $migrateFile);
+            $absPath = $migrateFile->getPathname();
+            $this->runAndCalculate(function () use ($absPath) {
+                $class=$this->resolve($absPath);
+
+            });
         }
-        $options['--path'] = $allFiles;
 
-        Artisan::call('migrate:reset', $options, $this->output);
 
+    }
+
+    public function resolve($file)
+    {
+        return include $file;
+    }
+
+    public function runAndCalculate(\Closure $closer, string $first = '', string $second = ''): void
+    {
+        $startTime = Carbon::now();
+        $closer();
+        $endTime = Carbon::now();
+
+        $executionTime = $startTime->diffInMilliseconds($endTime);
+
+        $this->components->twoColumnDetail($first, "$executionTime <fg=green;options=bold>DONE</>");
+
+    }
+
+    public function getModules()
+    {
+        $module = $this->argument('module');
+        return $module ? [$module] : Module::all();
     }
 }
