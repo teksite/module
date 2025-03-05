@@ -12,11 +12,11 @@ use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
-class RollbackCommands extends Command
+class FreshCommands extends Command
 {
     use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:migrate-rollback {module?}
+    protected $signature = 'module:migrate-fresh {module?}
         {--database=}
         {--force}
         {--path=}
