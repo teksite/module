@@ -29,7 +29,6 @@ class RefreshCommands extends Command
     public function handle()
     {
         $module = $this->argument('module');
-
         if ($module) {
             $this->refreshMigrationsForModule($module);
         } else {

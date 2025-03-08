@@ -14,22 +14,21 @@ use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
-class MigrateCommands extends  BasicMigrator implements MigrationContract
+class MigrateCommands extends BasicMigrator implements MigrationContract
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
     protected $signature = 'module:migrate {module?}  {--seed}';
 
     protected $description = 'Run the migrations for a specific module or all modules';
 
-    public function handle()
+    public function handle(): void
     {
        parent::handle();
        if ($this->option('seed')) $this->seeding();
 
     }
 
-    public function runTheCommand($module)
+    public function runTheCommand($module): void
     {
         $this->up($module);
     }
