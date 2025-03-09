@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\File;
 
 class ModuleServices
 {
+    public function __construct()
+    {
+    }
+
     /**
      * @param string|null $moduleName
      * @param string|null $path
@@ -85,7 +89,7 @@ class ModuleServices
      * @param string $moduleName
      * @return bool
      */
-    public function exists(string $moduleName) :bool
+    public function exists(string $moduleName): bool
     {
         return in_array($moduleName, $this->all());
     }
@@ -93,16 +97,79 @@ class ModuleServices
 
     /**
      * @param string $moduleName
-     * @return array
+     * @param string|array $key
+     * @return mixed
      */
-    public function info(string $moduleName): array
+    public function info(string $moduleName, string|array $key = ['*']): mixed
     {
-        $path=$this->modulePath($moduleName ,'info.json');
-        if(file_exists($path)){
-            return json_decode(file_get_contents($path), true);
+
+        $key = is_array($key) ? $key : [$key];
+
+        $path = $this->modulePath($moduleName, 'info.json');
+        if (file_exists($path)) {
+            $info = json_decode(file_get_contents($path), true);
+            $info['isEnabled'] = $this->isEnabled($moduleName);
+        } else {
+            $info = [];
         }
-        return [];
+        if (in_array('*', $key)) return $info;
+
+        return collect($info)->filter(function ($item, $index) use ($key) {
+            return in_array($index, $key);
+        })->toArray();
     }
 
+    /**
+     * @param $moduleName
+     * @return int
+     * @throws \Exception
+     */
+    public function enable($moduleName): int
+    {
+        $bootstrapModulePath = base_path('bootstrap/modules.php');
+
+        $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : throw new \Exception('bootstrap/modules.php is not exist');
+
+        if (array_key_exists($moduleName, $registeredModule) ) {
+           $inEnable=$registeredModule[$moduleName]['active'] ?? false;
+           if ($inEnable) return 1;
+            $registeredModule[$moduleName]['active']=true;
+            
+            File::put(
+                $bootstrapModulePath,
+                '<?php return ' . var_export_short($registeredModule, true) . ';'
+            );
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param $moduleName
+     * @return int
+     * @throws \Exception
+     */
+    public function disable($moduleName): int
+    {
+        $bootstrapModulePath = base_path('bootstrap/modules.php');
+
+        $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : throw new \Exception('bootstrap/modules.php is not exist');
+
+        if (array_key_exists($moduleName, $registeredModule) ) {
+            $inEnable=$registeredModule[$moduleName]['active'] ?? false;
+            if (!$inEnable) return -1;
+            $registeredModule[$moduleName]['active']=false;
+
+
+            File::put(
+                $bootstrapModulePath,
+                '<?php return ' . var_export_short($registeredModule, true) . ';'
+            );
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 
 }

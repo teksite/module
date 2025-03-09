@@ -235,8 +235,6 @@ class ModuleMakeCommand extends Command
 
         $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : [];
 
-        $configPath = config_path('modules.php');
-
 
         $namespace = Module::moduleNamespace($moduleName);
 
