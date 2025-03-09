@@ -76,7 +76,7 @@ class DeleteMakeCommand extends Command
      */
     private function updateModuleBootstrap(string $moduleName): void
     {
-        $bootstrapFile = base_path('bootstrap/modules.php');
+        $bootstrapFile =config('module.registration_file');
         if (!File::exists($bootstrapFile)) {
             $this->error("The file bootstrap/modules.php does not exist!");
             return;

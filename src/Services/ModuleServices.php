@@ -38,9 +38,9 @@ class ModuleServices
      */
     public function all(): array
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
-        if (File::exists($bootstrapModulePath)) {
-            $bootstrapModule = include $bootstrapModulePath;
+        $bootstrapFile = config('module.registration_file');
+        if (File::exists($bootstrapFile)) {
+            $bootstrapModule = include $bootstrapFile;
             return array_keys($bootstrapModule);
         }
 
@@ -52,9 +52,9 @@ class ModuleServices
      */
     public function registeredModules(): array
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
-        if (File::exists($bootstrapModulePath)) {
-            return include $bootstrapModulePath;
+        $bootstrapFile = config('module.registration_file');
+        if (File::exists($bootstrapFile)) {
+            return include $bootstrapFile;
         }
 
         return [];
@@ -65,10 +65,10 @@ class ModuleServices
      */
     public function enables(): array
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
+        $bootstrapFile = config('module.registration_file');
         $modules = [];
-        if (File::exists($bootstrapModulePath)) {
-            $bootstrapModule = include $bootstrapModulePath;
+        if (File::exists($bootstrapFile)) {
+            $bootstrapModule = include $bootstrapFile;
             foreach ($bootstrapModule as $name => $data) {
                 if ($data['active']) $modules[] = $name;
             }
@@ -126,17 +126,17 @@ class ModuleServices
      */
     public function enable($moduleName): int
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
+        $bootstrapFile = config('module.registration_file');
 
-        $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : throw new \Exception('bootstrap/modules.php is not exist');
+        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
 
         if (array_key_exists($moduleName, $registeredModule) ) {
            $inEnable=$registeredModule[$moduleName]['active'] ?? false;
            if ($inEnable) return 1;
             $registeredModule[$moduleName]['active']=true;
-            
+
             File::put(
-                $bootstrapModulePath,
+                $bootstrapFile,
                 '<?php return ' . var_export_short($registeredModule, true) . ';'
             );
             return 1;
@@ -152,18 +152,17 @@ class ModuleServices
      */
     public function disable($moduleName): int
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
+        $bootstrapFile = config('module.registration_file');
 
-        $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : throw new \Exception('bootstrap/modules.php is not exist');
+        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
 
         if (array_key_exists($moduleName, $registeredModule) ) {
             $inEnable=$registeredModule[$moduleName]['active'] ?? false;
             if (!$inEnable) return -1;
             $registeredModule[$moduleName]['active']=false;
 
-
             File::put(
-                $bootstrapModulePath,
+                $bootstrapFile,
                 '<?php return ' . var_export_short($registeredModule, true) . ';'
             );
             return -1;

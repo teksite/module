@@ -231,9 +231,9 @@ class ModuleMakeCommand extends Command
 
     private function registerModule(string $moduleName): void
     {
-        $bootstrapModulePath = base_path('bootstrap/modules.php');
+        $bootstrapFile =config('module.registration_file');
 
-        $registeredModule = File::exists($bootstrapModulePath) ? require $bootstrapModulePath : [];
+        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : [];
 
 
         $namespace = Module::moduleNamespace($moduleName);
@@ -245,7 +245,7 @@ class ModuleMakeCommand extends Command
             $registeredModule[$moduleName]['active'] = true;
 
             File::put(
-                $bootstrapModulePath,
+                $bootstrapFile,
                 '<?php return ' . var_export_short($registeredModule, true) . ';'
             );
             $this->newLine();
