@@ -21,7 +21,7 @@ return [
    | CAUTION: if you don,t have enough information DO NOT CHANGE it.
    |
    */
-    "registration_file"=>base_path('bootstrap').'/module.php',
+    "registration_file"=>base_path('bootstrap').'/modules.php',
 
 
     /*

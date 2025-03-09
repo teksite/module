@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\File;
 
 class ModuleServices
 {
+    private string $bootstrapFile;
+
     public function __construct()
     {
+        $this->bootstrapFile = config('module.registration_file', base_path('bootstrap') . '/modules.php');
     }
 
     /**
@@ -38,7 +41,7 @@ class ModuleServices
      */
     public function all(): array
     {
-        $bootstrapFile = config('module.registration_file');
+        $bootstrapFile = $this->bootstrapFile;
         if (File::exists($bootstrapFile)) {
             $bootstrapModule = include $bootstrapFile;
             return array_keys($bootstrapModule);
@@ -52,7 +55,7 @@ class ModuleServices
      */
     public function registeredModules(): array
     {
-        $bootstrapFile = config('module.registration_file');
+        $bootstrapFile = $this->bootstrapFile;
         if (File::exists($bootstrapFile)) {
             return include $bootstrapFile;
         }
@@ -65,7 +68,7 @@ class ModuleServices
      */
     public function enables(): array
     {
-        $bootstrapFile = config('module.registration_file');
+        $bootstrapFile = $this->bootstrapFile;
         $modules = [];
         if (File::exists($bootstrapFile)) {
             $bootstrapModule = include $bootstrapFile;
@@ -126,14 +129,14 @@ class ModuleServices
      */
     public function enable($moduleName): int
     {
-        $bootstrapFile = config('module.registration_file');
+        $bootstrapFile = $this->bootstrapFile;
 
         $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
 
-        if (array_key_exists($moduleName, $registeredModule) ) {
-           $inEnable=$registeredModule[$moduleName]['active'] ?? false;
-           if ($inEnable) return 1;
-            $registeredModule[$moduleName]['active']=true;
+        if (array_key_exists($moduleName, $registeredModule)) {
+            $inEnable = $registeredModule[$moduleName]['active'] ?? false;
+            if ($inEnable) return 1;
+            $registeredModule[$moduleName]['active'] = true;
 
             File::put(
                 $bootstrapFile,
@@ -152,14 +155,14 @@ class ModuleServices
      */
     public function disable($moduleName): int
     {
-        $bootstrapFile = config('module.registration_file');
+        $bootstrapFile = $this->bootstrapFile;
 
         $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
 
-        if (array_key_exists($moduleName, $registeredModule) ) {
-            $inEnable=$registeredModule[$moduleName]['active'] ?? false;
+        if (array_key_exists($moduleName, $registeredModule)) {
+            $inEnable = $registeredModule[$moduleName]['active'] ?? false;
             if (!$inEnable) return -1;
-            $registeredModule[$moduleName]['active']=false;
+            $registeredModule[$moduleName]['active'] = false;
 
             File::put(
                 $bootstrapFile,

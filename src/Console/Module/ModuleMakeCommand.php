@@ -231,7 +231,7 @@ class ModuleMakeCommand extends Command
 
     private function registerModule(string $moduleName): void
     {
-        $bootstrapFile =config('module.registration_file');
+        $bootstrapFile =config('module.registration_file' , base_path('bootstrap').'/module.php');
 
         $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : [];
 
