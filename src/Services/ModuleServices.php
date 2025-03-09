@@ -44,6 +44,19 @@ class ModuleServices
     }
 
     /**
+     * @return array|string[]
+     */
+    public function registeredModules(): array
+    {
+        $bootstrapModulePath = base_path('bootstrap/modules.php');
+        if (File::exists($bootstrapModulePath)) {
+            return include $bootstrapModulePath;
+        }
+
+        return [];
+    }
+
+    /**
      * @return array
      */
     public function enables(): array

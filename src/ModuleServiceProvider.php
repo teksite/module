@@ -43,6 +43,7 @@ use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Providers\EventServiceProvider;
+use Teksite\Module\Providers\ModuleManagerServiceProvider;
 use Teksite\Module\Services\ModuleServices;
 
 class ModuleServiceProvider extends ServiceProvider
@@ -74,6 +75,7 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function registerProviders(): void
     {
+        $this->app->register(ModuleManagerServiceProvider::class);
         $this->app->register(EventServiceProvider::class);
     }
 
