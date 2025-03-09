@@ -10,6 +10,7 @@ namespace Teksite\Module\Facade;
  * @method static array enables()
  * @method static bool isEnabled(string $moduleName)
  * @method static bool has(string $moduleName)
+ * @method static array info(string $moduleName)
  *
  * @see \Teksite\Module\Services\ModuleServices
  */

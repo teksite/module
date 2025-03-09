@@ -205,6 +205,18 @@ class ModuleMakeCommand extends Command
             "{$path}/Database/Seeders/{$moduleName}DatabaseSeeder.php"
         );
 
+        /* Register Seeder file file  */
+        $this->generateFile(
+            'basic/info.stub',
+            [
+                '{{ name }}' => $moduleName,
+                '{{ alias }}' => strtolower($moduleName),
+                '{{ providers }}' => str_replace('\\','\\\\',"$namespace\App\Providers\\".$moduleName."ServiceProvider"),
+            ],
+
+            "{$path}/info.json"
+        );
+
         $this->registerModule($moduleName);
 
     }

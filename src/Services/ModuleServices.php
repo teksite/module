@@ -91,4 +91,18 @@ class ModuleServices
     }
 
 
+    /**
+     * @param string $moduleName
+     * @return array
+     */
+    public function info(string $moduleName): array
+    {
+        $path=$this->modulePath($moduleName ,'info.json');
+        if(file_exists($path)){
+            return json_decode(file_get_contents($path), true);
+        }
+        return [];
+    }
+
+
 }
