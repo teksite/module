@@ -15,7 +15,8 @@ class ModuleManagerServiceProvider extends ServiceProvider
         foreach ($modules as $module) {
             if ($module['active']){
                 $providerClass = $module['provider'];
-                if (class_exists($providerClass)) $this->app->register($providerClass);
+                $type = $module['type'] ?? 'self';
+                if (class_exists($providerClass) && $type === 'self') $this->app->register($providerClass);
             }
         }
     }

@@ -12,8 +12,6 @@ use Teksite\Module\Facade\Module;
 
 class {{ class }} extends ServiceProvider
 {
-    public const TYPE='self-service';
-
     protected string $moduleName = '{{ module }}';
 
     protected string $lowerModuleName = '{{ moduleLowerName }}';

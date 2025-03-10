@@ -243,6 +243,7 @@ class ModuleMakeCommand extends Command
         if (!array_key_exists($moduleName, $registeredModule)) {
             $registeredModule[$moduleName]['provider'] = $providerClass;
             $registeredModule[$moduleName]['active'] = true;
+            $registeredModule[$moduleName]['type'] = $this->option('lareon') ? 'lareon' :'self';
 
             File::put(
                 $bootstrapFile,
