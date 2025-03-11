@@ -231,9 +231,9 @@ class ModuleMakeCommand extends Command
 
     private function registerModule(string $moduleName): void
     {
-        $bootstrapFile =config('module.registration_file' , base_path('bootstrap').'/module.php');
 
-        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : [];
+        $bootstrapFile = module_bootstrap_path();
+        $registeredModule = get_module_bootstrap();
 
 
         $namespace = Module::moduleNamespace($moduleName);
@@ -264,7 +264,5 @@ class ModuleMakeCommand extends Command
         Process::path(base_path())
             ->command('composer dump-autoload')
             ->run()->output();
-
     }
-
 }

@@ -131,7 +131,7 @@ class ModuleServices
     {
         $bootstrapFile = $this->bootstrapFile;
 
-        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
+        $registeredModule = get_module_bootstrap();
 
         if (array_key_exists($moduleName, $registeredModule)) {
             $inEnable = $registeredModule[$moduleName]['active'] ?? false;
@@ -157,7 +157,7 @@ class ModuleServices
     {
         $bootstrapFile = $this->bootstrapFile;
 
-        $registeredModule = File::exists($bootstrapFile) ? require $bootstrapFile : throw new \Exception('bootstrap/modules.php is not exist');
+        $registeredModule = get_module_bootstrap();
 
         if (array_key_exists($moduleName, $registeredModule)) {
             $inEnable = $registeredModule[$moduleName]['active'] ?? false;

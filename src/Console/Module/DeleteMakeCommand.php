@@ -73,16 +73,16 @@ class DeleteMakeCommand extends Command
 
     /**
      * Remove the module from config/modules.php if it exists.
-     */
+\     */
     private function updateModuleBootstrap(string $moduleName): void
     {
-        $bootstrapFile =config('module.registration_file');
+        $bootstrapFile = module_bootstrap_path();
         if (!File::exists($bootstrapFile)) {
             $this->error("The file bootstrap/modules.php does not exist!");
             return;
         }
 
-        $modules = require $bootstrapFile;
+        $modules = get_module_bootstrap();
 
         if (!in_array($moduleName, array_keys($modules))) {
             $this->warn("Module {$moduleName} was not found in bootstrap/modules.php");
