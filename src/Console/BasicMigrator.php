@@ -9,19 +9,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleCommandsTrait;
+use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class BasicMigrator extends Command
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+    use ModuleNameValidator , ModuleMigrationTrait;
 
     /**
      * @return array
      */
     public function getModules(): array
     {
-        $module = $this->argument('module');
+        $module = $this->option('module');
         return $module ? [$module] : Module::all();
     }
 
@@ -45,6 +45,8 @@ class BasicMigrator extends Command
 
     public function handle()
     {
+        $this->installMigrateTable();
+
         $modules = $this->getModules();
         if (count($modules)) {
             $mdls = [];
@@ -57,13 +59,12 @@ class BasicMigrator extends Command
                     $mdls[] = $correctedModule;
                 }
             }
-            $this->runTheCommand($mdls);
+            $this->runTheCommand();
         } else {
             $this->error("no module exist.");
             return 0;
         }
         $this->newLine();
-
     }
 
 
@@ -76,55 +77,21 @@ class BasicMigrator extends Command
         return class_exists($file) ? new $file : include $file;
     }
 
-
-    /**
-     * @param \Closure $closer
-     * @param string $first
-     * @param string $second
-     * @return void
-     */
-    public function runAndCalculate(\Closure $closer, string $first = '', string $second = ''): void
-    {
-        $startTime = Carbon::now();
-
-        $closer();
-
-        $endTime = Carbon::now();
-
-        $executionTime = $startTime->diffInMilliseconds($endTime);
-
-        $this->components->twoColumnDetail($first, "$executionTime <fg=green;options=bold>DONE</>");
-
-    }
-
-
     /**
      * @param string|array $module
      * @return void
      */
-    public function down(string|array $module): void
+    public function down(): void
     {
-        $module = is_array($module) ? $module : [$module];
-        $this->warn("Dropping all tables of module(s)");
-        foreach ($module as $mdl) {
-            $this->runAndCalculate(function () use ($mdl) {
-                foreach ($this->migrationFiles($mdl) as $migration) {
-                    $class = $this->resolve($migration['path']);
-                    $class->down();
-                    $this->removeFromMigrationTable($migration['name']);
-                }
-            }
-                , "$mdl tables");
-        }
+        $this->downModules();
     }
 
     /**
      * @param $module
      * @return void
      */
-    public function up($module): void
+    public function up(): void
     {
-        $this->installMigrateTable();
 
         $module = is_array($module) ? $module : [$module];
         $batch = DB::table('migrations')->max('batch') + 1;

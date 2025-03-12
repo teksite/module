@@ -18,8 +18,8 @@ class RollbackCommands extends BasicMigrator implements MigrationContract
     protected $description = 'Rollback the migrations for a specific module or all modules';
 
 
-    public function runTheCommand($module)
+    public function runTheCommand()
     {
-        $this->rollback($module , $this->option('step'));
+        $this->rollback($this->option('step'));
     }
 }

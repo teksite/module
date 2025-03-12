@@ -4,5 +4,5 @@ namespace Teksite\Module\Contract;
 
 interface MigrationContract
 {
-    public function runTheCommand($module);
+    public function runTheCommand();
 }

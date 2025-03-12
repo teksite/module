@@ -16,8 +16,8 @@ class ResetCommands extends BasicMigrator implements MigrationContract
 
     protected $description = 'Rollback migrations for a specific module or all modules';
 
-    public function runTheCommand($module): void
+    public function runTheCommand(): void
     {
-        $this->down($module);
+        $this->down();
     }
 }

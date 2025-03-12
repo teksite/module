@@ -19,9 +19,9 @@ class MigrateCommands extends BasicMigrator implements MigrationContract
 
     }
 
-    public function runTheCommand($module): void
+    public function runTheCommand(): void
     {
-        $this->up($module);
+        $this->up();
     }
 
 }
