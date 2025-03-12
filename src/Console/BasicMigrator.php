@@ -45,7 +45,6 @@ class BasicMigrator extends Command
 
     public function handle()
     {
-
         $modules = $this->getModules();
         if (count($modules)) {
             $mdls = [];
@@ -57,7 +56,6 @@ class BasicMigrator extends Command
                 } else {
                     $mdls[] = $correctedModule;
                 }
-
             }
             $this->runTheCommand($mdls);
         } else {
@@ -107,8 +105,8 @@ class BasicMigrator extends Command
     public function down(string|array $module): void
     {
         $module = is_array($module) ? $module : [$module];
+        $this->warn("Dropping all tables of module(s)");
         foreach ($module as $mdl) {
-            $this->info("Dropping all tables of module: " . $mdl);
             $this->runAndCalculate(function () use ($mdl) {
                 foreach ($this->migrationFiles($mdl) as $migration) {
                     $class = $this->resolve($migration['path']);
@@ -116,7 +114,7 @@ class BasicMigrator extends Command
                     $this->removeFromMigrationTable($migration['name']);
                 }
             }
-            ,'Dropping all tables');
+                , "$mdl tables");
         }
     }
 
@@ -133,7 +131,7 @@ class BasicMigrator extends Command
         $migrationsRecords = $this->migrationTableRecord();
 
         foreach ($module as $mdl) {
-            $this->info("migration all tables of module: " . $mdl);
+            $this->warn("migrating all tables of module: " . $mdl);
             foreach ($this->migrationFiles($mdl) as $migration) {
                 if (!in_array($migration['name'], $migrationsRecords)) {
                     $this->runAndCalculate(function () use ($batch, $migration) {
