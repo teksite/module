@@ -9,7 +9,7 @@ use Teksite\Module\Traits\ModuleNameValidator;
 
 class RollbackCommands extends BasicMigrator implements MigrationContract
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+    use ModuleCommandsTrait;
 
     protected $signature = 'module:migrate-rollback {module?}
         {--step=1}
