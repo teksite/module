@@ -33,6 +33,7 @@ use Teksite\Module\Console\Make\ScopeMakeCommand;
 use Teksite\Module\Console\Make\SeederMakeCommand;
 use Teksite\Module\Console\Make\TestMakeCommand;
 use Teksite\Module\Console\Make\TraitMakeCommand;
+use Teksite\Module\Console\Make\TrashControllerMakeCommand;
 use Teksite\Module\Console\Make\ViewMakeCommand;
 use Teksite\Module\Console\Migrate\FreshCommands;
 use Teksite\Module\Console\Migrate\MigrateCommands;
@@ -120,6 +121,7 @@ class ModuleServiceProvider extends ServiceProvider
             TestMakeCommand::class,
             TraitMakeCommand::class,
             ViewMakeCommand::class,
+            TrashControllerMakeCommand::class,
 
 
             /* Module -> Migration and Seeds */

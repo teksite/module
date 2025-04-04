@@ -10,7 +10,7 @@ if (!function_exists('module_path')) {
      * @param bool $absolute
      * @return string|null
      */
-    function module_path(string $moduleName = null, ?string $path = null, bool $absolute = true ): ?string
+    function module_path(?string $moduleName = null, ?string $path = null, bool $absolute = true ): ?string
     {
         $moduleName= Str::ucfirst($moduleName);
         $mainPath = config('module.main_path' ,'Lareon') . DIRECTORY_SEPARATOR .  config('module.module.path', 'Modules');

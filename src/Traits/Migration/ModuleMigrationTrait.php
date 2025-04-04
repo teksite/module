@@ -19,13 +19,12 @@ trait ModuleMigrationTrait
         $this->warn("Dropping all tables of module(s)");
         foreach ($this->getModules() as $mdl) {
             $this->runAndCalculate(function () use ($mdl) {
-                foreach ($this->moduleMigrationFiles($mdl) as $migration) {
+                foreach (array_reverse($this->moduleMigrationFiles($mdl)) as $migration) {
                     $class = $this->resolve($migration['path']);
                     $class->down();
                     $this->removeFromMigrationTable($migration['name']);
                 }
-            }
-                , "$mdl tables");
+            }, "$mdl tables");
         }
     }
 
@@ -41,21 +40,21 @@ trait ModuleMigrationTrait
 
         foreach ($this->getModules() as $mdl) {
             $this->warn("migrating all tables of module: " . $mdl);
-            $migrationModuleFiles=$this->moduleMigrationFiles($mdl);
-           if (count($migrationModuleFiles)) {
-               foreach ($migrationModuleFiles as $migration) {
-                   if (!in_array($migration['name'], $migrationsRecords)) {
-                       $this->runAndCalculate(function () use ($batch, $migration) {
-                           $class = $this->resolve($migration['path']);
-                           $class->up();
-                           $this->addToMigrationTable($migration['name'], $batch);
-                       }, $migration['name']);
-                   }
-               }
-           }else{
-               $this->components->info('Nothing to migrate.');
+            $migrationModuleFiles = $this->moduleMigrationFiles($mdl);
+            if (count($migrationModuleFiles)) {
+                foreach ($migrationModuleFiles as $migration) {
+                    if (!in_array($migration['name'], $migrationsRecords)) {
+                        $this->runAndCalculate(function () use ($batch, $migration) {
+                            $class = $this->resolve($migration['path']);
+                            $class->up();
+                            $this->addToMigrationTable($migration['name'], $batch);
+                        }, $migration['name']);
+                    }
+                }
+            } else {
+                $this->components->info('Nothing to migrate.');
 
-           }
+            }
         }
 
     }
@@ -67,19 +66,18 @@ trait ModuleMigrationTrait
     public function moduleMigrationFiles(?string $moduleName = null): array
     {
         $modules = is_string($moduleName) ? [$moduleName] : $this->getModules();
-        $migrations = [];
-        foreach ($modules as $module) {
-            $migrationsPath = module_path($module, 'Database/Migrations');
+
+            $migrationsPath = module_path($moduleName, 'Database/Migrations');
             $migration_list = File::allFiles($migrationsPath);
-            foreach ($migration_list as $migrateFile) {
+            foreach ($migration_list as $key=>$migrateFile) {
                 $absPath = $migrateFile->getPathname();
                 $fileName = $migrateFile->getFilename();
                 $migrationName = str_replace('.php', '', $fileName);
-                $migrations[$module]['path'] = $absPath;
-                $migrations[$module]['file'] = $fileName;
-                $migrations[$module]['name'] = $migrationName;
+                $migrations[$key]['path'] = $absPath;
+                $migrations[$key]['file'] = $fileName;
+                $migrations[$key]['name'] = $migrationName;
             }
-        }
+
         return $migrations;
     }
 
@@ -153,7 +151,6 @@ trait ModuleMigrationTrait
     {
         return DB::table('migrations')->orderBy('batch', 'desc')->pluck('migration')->toArray();
     }
-
 
 
     /**

@@ -36,11 +36,7 @@ class ControllerMakeCommand extends GeneratorCommand
 
     protected $type = 'Controller';
 
-    /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
+
     /**
      * Get the stub file for the generator.
      *

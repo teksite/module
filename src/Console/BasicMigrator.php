@@ -132,7 +132,7 @@ class BasicMigrator extends Command
      */
     public function seeding(): void
     {
-        $this->seedingModules();
+       $this->seedingModules();
     }
 
 }
