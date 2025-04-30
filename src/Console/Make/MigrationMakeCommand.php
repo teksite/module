@@ -69,7 +69,7 @@ class MigrationMakeCommand extends GeneratorCommand
 
     protected function getStub()
     {
-        // TODO: Implement getStub() method.
+
     }
 }
 

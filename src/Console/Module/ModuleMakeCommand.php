@@ -172,7 +172,7 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'basic/js.stub',
             [],
-            "{$path}/resources/js/scripts.js"
+            "{$path}/resources/js/app.js"
         );
         /* Register CSS file  */
         $this->generateFile(
