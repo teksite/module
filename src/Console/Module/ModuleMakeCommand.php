@@ -30,7 +30,7 @@ class ModuleMakeCommand extends Command
 
         $modulePath = $this->getModulePath($moduleName);
         if ($this->moduleExists($modulePath)) {
-            $this->error("a directory or a module with the same name name ($moduleName) already exists.");
+            $this->error("a directory or a module with the same name ($moduleName) already exists.");
             return;
         }
 

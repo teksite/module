@@ -42,6 +42,8 @@ use Teksite\Module\Console\Migrate\ResetCommands;
 use Teksite\Module\Console\Migrate\RollbackCommands;
 use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
+use Teksite\Module\Console\Module\ModuleDisableCommand;
+use Teksite\Module\Console\Module\ModuleEnableCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Providers\EventServiceProvider;
 use Teksite\Module\Providers\ModuleManagerServiceProvider;
@@ -136,6 +138,8 @@ class ModuleServiceProvider extends ServiceProvider
             /* Module -> Generator commands */
             ModuleMakeCommand::class,
             DeleteMakeCommand::class,
+            ModuleEnableCommand::class,
+            ModuleDisableCommand::class,
 
         ]);
     }
