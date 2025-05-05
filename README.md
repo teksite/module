@@ -1,70 +1,89 @@
+# Modular Laravel Package
 
-# Modular laravel Package
+A robust Laravel package designed to enable modularity, allowing you to organize your application into reusable, self-contained modules with commands similar to Laravel's native artisan commands.
+
+## Table of Contents
+- [About](#about)
+- [Author](#author)
+- [Contact](#contact)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Creating a Module](#creating-a-module)
+    - [Module Commands](#module-commands)
+    - [Changing Module Priority](#changing-module-priority)
+    - [Integration with Lareon](#integration-with-lareon)
+- [Credits](#credits)
+- [License](#license)
+- [Support](#support)
 
 ## About
-This package has been developed to enable modularity in Laravel. All its commands are similar to Laravel native commands, with the difference that you need to prepend ``module:`` to the commands. Additionally, the name of the created file and the target module should be specified at the beginning of the command, followed by the arguments and options.
+The **Modular Laravel Package** (teksite/module) brings modularity to Laravel applications, enabling developers to create self-contained modules with their own controllers, models, views, and more. It mirrors Laravel's native artisan commands but prepends `module:` to distinguish module-specific commands. Modules are stored in the `Lareon/Modules` directory, which replicates a miniature Laravel structure for each module.
 
-By default, teksite/lareon make a directories in the root of the application "``Lareon/Modules``" and generate small version of laravel directories and files, so you can deal with them as you do with Laravel
+### Example
+To create a controller in a specific module:
+```bash
+php artisan module:make-controller ExampleController ExampleModule --resource
+```
 
-### example
-``
-module:make-controller <ControllerName> <ModuleName> <--option>
-``
+## Author
+Developed by **Sina Zangiband**.
 
-### Author
-Sina Zangiband
-
-### Contact
-- Website: [laratek.ir](https://laratek.ir)
-- Alternate Website: [teksite.net](https://teksite.net)
-- email: [sina.zangiband@gmail.com](sina.zangiband@gmail.com)
----
+## Contact
+- Website: [teksite.net](https://teksite.net)
+- Email: [sina.zangiband@gmail.com](mailto:sina.zangiband@gmail.com)
 
 ## Installation
 
-| **Laravel** | **package** |
+### Compatibility
+| **Laravel** | **Package** |
 |-------------|-------------|
-| 11.0        | ^1.0        |
+| 11.x        | ^1.0        |
+| 12.x        | ^2.0        |
 
 ### Step 1: Install via Composer
-Run the following command in your CLI:
-
+Run the following command in your terminal:
 ```bash
-composer require teksite\module
+composer require teksite/module
 ```
-#### wikimedia/composer-merge-plugin
-if you face to ``Do you trust "wikimedia/composer-merge-plugin" to execute code and wish to enable it now? (writes "allow-plugins" to composer.json) [y,n,d,?]
-`` press ``y`` and enter. this package is used to recognize and merge composer.json files of modules. 
+
+#### Note on wikimedia/composer-merge-plugin
+If prompted with:
+```
+Do you trust "wikimedia/composer-merge-plugin" to execute code and wish to enable it now? (writes "allow-plugins" to composer.json) [y,n,d,?] 
+```
+Press `y` and Enter. This plugin is required to merge `composer.json` files from modules.
+
 ### Step 2: Register the Service Provider
-> **Note:** This step is not required for newer versions of Laravel (5.x and above) but in case:.
+> **Note**: Laravel 5.5 and above supports auto-discovery, so this step is optional for newer versions.
 
-#### Laravel 10 and 11
-Add the following line to the `bootstrap/providers` file:
-
+#### For Laravel 10 and 11
+Add the service provider to `bootstrap/providers.php`:
 ```php
-Teksite\Module\moduleServiceProvider::class,
+<?php
+
+return [
+    // Other providers
+    Teksite\Module\ModuleServiceProvider::class,
+];
 ```
 
-#### Laravel 5.x and earlier
-If you are using Laravel 5.x or earlier, register the service provider in the `config/app.php` file under the `providers` array:
-
+#### For Laravel 5.x and Earlier
+Add the service provider to `config/app.php` under the `providers` array:
 ```php
 'providers' => [
     // Other Service Providers
-    Teksite\Handler\ModuleServiceProvider::class,
-];
+    Teksite\Module\ModuleServiceProvider::class,
+],
 ```
-### Step 4: publish Service Provider (optional)
-Optionally, publish the package's configuration file by running:
 
+### Step 3: Publish Configuration (Optional)
+Publish the package's configuration file for customization:
 ```bash
-php artisan vendor:publish --provider="teksite\lareon\ModuleServiceProvider"
+php artisan vendor:publish --provider="Teksite\Module\ModuleServiceProvider"
 ```
 
-### Step 5: add to Composer.json
-By default, modules classes are not loaded automatically. You can autoload your modules by adding below codes:
-
-
+### Step 4: Update Composer.json
+To autoload module classes, add the following to your `composer.json`:
 ```json
 "extra": {
     "laravel": {
@@ -75,36 +94,83 @@ By default, modules classes are not loaded automatically. You can autoload your 
             "Lareon/Modules/*/composer.json"
         ]
     }
-},
+}
 ```
-### Step 6: publish Service Provider (optional)
-**Tip: do not forget: `composer dump-autoload` .**
 
+### Step 5: Refresh Autoloader
+Run the following command to refresh Composer's autoloader:
+```bash
+composer dump-autoload
+```
 
+## Usage
 
----
-
-## How to work with the package
-
-### make a module
-
+### Creating a Module
+Generate a new module with a structure similar to Laravel's:
 ```bash
 php artisan module:make Example
 ```
+This creates a new module in `Lareon/Modules/Example` with directories like `Controllers`, `Models`, `Views`, etc.
 
-### Change module priority
-To change priority of loading modules you can change the order of modules in the ``config/modules``.
+### Module Commands
+The package supports Laravel-like artisan commands prefixed with `module:`. Examples include:
+- Create a controller:
+  ```bash
+  php artisan module:make-controller ExampleController ExampleModule --resource
+  ```
+- Create a model:
+  ```bash
+  php artisan module:make-model ExampleModel ExampleModule --migration
+  ```
+- Create a middleware:
+  ```bash
+  php artisan module:make-middleware ExampleMiddleware ExampleModule
+  ```
 
+### Changing Module Priority
+To adjust the loading order of modules, modify the `bootstrap/modules.php` file. Reorder the modules array to prioritize specific modules:
+```php
+<?php
 
+return [
+    'Blog' => [
+        'provider' => 'Lareon\\Modules\\Blog\\App\\Providers\\BlogServiceProvider',
+        'active' => true,
+        'type' => 'lareon',
+    ],
+    'Page' => [
+        'provider' => 'Lareon\\Modules\\Page\\App\\Providers\\PageServiceProvider',
+        'active' => true,
+        'type' => 'self',
+    ],
+];
+```
 
----
+### Integration with Lareon
+If you use the [teksite/lareon](https://github.com/teksite/lareon) package, you can create modules controlled by Lareon using:
+```bash
+php artisan module:make Example --lareon
+```
+To switch an existing module between Lareon-controlled (`lareon`) and self-managed (`self`), update the `type` in `bootstrap/modules.php`:
+```php
+'Example' => [
+    'provider' => 'Lareon\\Modules\\Example\\App\\Providers\\ExampleServiceProvider',
+    'active' => true,
+    'type' => 'lareon', // or 'self'
+],
+```
+> **Warning**: Manually changing the `type` may cause issues. Ensure compatibility when switching.
+
 ## Credits
-
 - [Sina Zangiband](https://github.com/teksite)
 
-
 ## License
+This package is open-sourced under the [MIT License](LICENSE.md). See the [License File](LICENSE.md) for details.
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+## Support
+For questions, issues, or feature requests, please reach out via:
+- **Website**: [teksite.net](https://teksite.net)
+- **Email**: [sina.zangiband@gmail.com](mailto:sina.zangiband@gmail.com)
+- **GitHub Issues**: [teksite/module](https://github.com/teksite/module)
 
-Feel free to reach out if you have any questions or need assistance with this package!
+Contributions are welcome! Feel free to submit a pull request or open an issue on GitHub.
