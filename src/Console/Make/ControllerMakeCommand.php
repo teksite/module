@@ -24,22 +24,19 @@ class ControllerMakeCommand extends GeneratorCommand
      {--type= : Manually specify the controller stub file to use}
      {--i|invokable : Generate a single method, invokable controller class}
      {--m|model= : Generate a resource controller for the given model}
-     {--p|parent : Generate a nested resource controller class}
+     {--p|parent= : Generate a nested resource controller class}
      {--r|resource : Generate a resource controller class}
      {--s|singleton : Generate a singleton resource controller class}
      {--creatable : Indicate that a singleton resource should be creatable}
      {--R|requests : Generate FormRequest classes for store and update}
+     {--m|model= : Generate a resource controller for the given model}
     ';
 
     protected $description = 'Create a new controller class in the specific module';
 
     protected $type = 'Controller';
 
-    /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
+
     /**
      * Get the stub file for the generator.
      *
@@ -54,7 +51,7 @@ class ControllerMakeCommand extends GeneratorCommand
         } elseif ($this->option('parent')) {
             $stub = $this->option('singleton')
                 ? $this->resolveStubPath("/controller/controller.nested.singleton.stub")
-                : $this->resolveStubPath("/controller/ontroller.nested.stub");
+                : $this->resolveStubPath("/controller/controller.nested.stub");
         } elseif ($this->option('model')) {
             $stub = $this->resolveStubPath("/controller/controller.model.stub");
         } elseif ($this->option('invokable')) {
@@ -146,10 +143,13 @@ class ControllerMakeCommand extends GeneratorCommand
      */
     protected function buildParentReplacements()
     {
+
         $parentModelClass = $this->parseModel($this->option('parent'));
         if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {
-            $this->call('module:make-model', ['name' => $parentModelClass]);
+            $module = $this->argument('module');
+            $model = $this->option('parent');
+            $this->call('module:make-model', ['name' =>$model ,'module'=>$module]);
         }
 
         return [

@@ -3,6 +3,7 @@
 namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -62,9 +63,19 @@ class ObserverMakeCommand extends GeneratorCommand
     protected function buildClass($name)
     {
         $stub = parent::buildClass($name);
+        $module = $this->argument('module');
 
-        $model = $this->option('model');
-        return $model ? $this->replaceModel($stub, $model) : $stub;
+        $modelName = $this->option('model');
+        if ($modelName){
+            if (File::exists(module_path($module, "App/Modules/$modelName.php"))) {
+                $model = module_namespace($module, "App\\Modules\\$modelName");
+            } elseif (!File::exists(module_path($module, "App/Modules/$modelName.php")) && File::exists(app_path("Models/$modelName.php"))) {
+                $model = "App\\Modules\\$modelName";
+            } else {
+                $model = $modelName;
+            }
+        }
+        return $modelName ? $this->replaceModel($stub, $model) : $stub;
     }
 
 

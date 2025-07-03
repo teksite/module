@@ -15,8 +15,8 @@ class DeleteMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:delete {name}
-     {--y|yes : Delete without confirmation}
-     ';
+        {--y|yes : Delete without confirmation}
+    ';
     protected $description = 'Delete a specific module';
     protected string $type = 'Module';
 
@@ -25,9 +25,7 @@ class DeleteMakeCommand extends Command
      */
     public function handle()
     {
-        if ($this->option('yes') || $this->confirmDeletion() =='yes') {
-            $this->deleteModules();
-        }
+        if ($this->option('yes') || $this->confirmDeletion() == 'yes') $this->deleteModules();
     }
 
     /**
@@ -49,7 +47,8 @@ class DeleteMakeCommand extends Command
 
         foreach ($moduleNames as $moduleName) {
             if ($modulePath = Module::modulePath($moduleName)) {
-                $this->removeModule($moduleName, $modulePath);
+                $this->removeDirectory($moduleName, $modulePath);
+                $this->updateModuleBootstrap($moduleName);
                 $existingModules[] = $moduleName;
             } else {
                 $failedModules[] = $moduleName;
@@ -62,34 +61,38 @@ class DeleteMakeCommand extends Command
     /**
      * Remove the module directory and update configuration.
      */
-    private function removeModule(string $moduleName, string $modulePath): void
+    private function removeDirectory(string $moduleName, string $modulePath): void
     {
+        if (!File::isDirectory($modulePath)) {
+            $this->warn("Directory {$moduleName} was not found");
+            return;
+        }
         File::deleteDirectory($modulePath);
-        $this->line("{$moduleName} module directory deleted successfully.");
-        $this->updateModuleConfig($moduleName);
+        $this->components->twoColumnDetail("deleting directory: <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
     }
 
     /**
      * Remove the module from config/modules.php if it exists.
-     */
-    private function updateModuleConfig(string $moduleName): void
+\     */
+    private function updateModuleBootstrap(string $moduleName): void
     {
-        $configPath = config_path('modules.php');
-
-        if (!File::exists($configPath)) {
-            $this->error("Config file config/modules.php does not exist!");
+        $bootstrapFile = module_bootstrap_path();
+        if (!File::exists($bootstrapFile)) {
+            $this->error("The file bootstrap/modules.php does not exist!");
             return;
         }
 
-        $modules = require $configPath;
-        if (!isset($modules['modules'][$moduleName])) {
-            $this->warn("Module {$moduleName} was not found in config/modules.php.");
+        $modules = get_module_bootstrap();
+
+        if (!in_array($moduleName, array_keys($modules))) {
+            $this->warn("Module {$moduleName} was not found in bootstrap/modules.php");
             return;
         }
 
-        unset($modules['modules'][$moduleName]);
-        File::put($configPath, '<?php return ' . var_export_short($modules, true) . ';');
-        $this->line("Module {$moduleName} removed from config/modules.php.");
+        unset($modules[$moduleName]);
+        File::put($bootstrapFile, '<?php return ' . var_export_short($modules, true) . ';');
+        $this->components->twoColumnDetail("updating module bootstrap: remove <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
+
     }
 
     /**
@@ -103,7 +106,7 @@ class DeleteMakeCommand extends Command
 
         if (!empty($existingModules)) {
             $this->composerDumpAutoload();
-            $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('blue', null, ['bold']));
+            $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('red', null, ['bold']));
             $this->newLine();
             $this->info("<success>DELETED</success> Module(s) " . implode(", ", $existingModules) . " deleted successfully.");
         }

@@ -1,0 +1,10 @@
+{
+    "version":"1.0.0",
+    "id": "{{ name }}",
+    "title": "{{ name }}",
+    "alias": "{{ alias }}",
+    "description": "",
+    "keywords": [],
+    "providers": "{{ providers }}"
+}
+

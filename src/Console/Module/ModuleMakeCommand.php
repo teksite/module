@@ -17,12 +17,12 @@ class ModuleMakeCommand extends Command
     use ModuleGeneratorCommandTrait;
 
     protected $signature = 'module:make {name}
-          {--lareon : managed by cms (Lareon) }
+          {--lareon : if teksite/lareon in installed use this flag to the module be managed by lareon cms.}
       ';
 
     protected $description = 'Create a new module';
 
-    protected $type = 'Module';
+    protected string $type = 'Module';
 
     public function handle()
     {
@@ -30,18 +30,18 @@ class ModuleMakeCommand extends Command
 
         $modulePath = $this->getModulePath($moduleName);
         if ($this->moduleExists($modulePath)) {
-            $this->error("The module '{$moduleName}' already exists.");
+            $this->error("a directory or a module with the same name ($moduleName) already exists.");
             return;
         }
 
         $this->createDirectories($modulePath);
         $this->createFiles($modulePath, $moduleName);
-        $this->dumpngComposer();
+        $this->dumpingComposer();
 
         $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('black', 'blue', ['bold']));
         $this->newLine();
 
-        $this->info("<success>SUCCESS</success> Module {$moduleName} created successfully.");
+        $this->info("<success>SUCCESS</success> Module $moduleName created successfully.");
     }
 
     private function getModulePath(string $moduleName): string
@@ -51,17 +51,22 @@ class ModuleMakeCommand extends Command
 
     private function moduleExists(string $modulePath): bool
     {
-        return File::exists($modulePath);
+        if (File::exists($modulePath)) return true;
+        if (in_array($modulePath, Module::all())) return true;
+        return false;
     }
 
     private function createDirectories(string $path): void
     {
         $directories = [
             '',
+            'App',
+            'App/Http',
             'App/Http/Controllers',
             'App/Models',
             'App/Providers',
             'config',
+            'Database',
             'Database/Factories',
             'Database/Migrations',
             'Database/Seeders',
@@ -74,17 +79,17 @@ class ModuleMakeCommand extends Command
             'Tests/Feature',
             'Tests/Unit',
         ];
+        $module=$this->argument('name');
 
         foreach ($directories as $directory) {
             File::makeDirectory("{$path}/{$directory}", 0755, true);
-            $this->line("Directory: {$path}/{$directory} is generated");
-
+            $this->components->twoColumnDetail("Directory: <fg=white;options=bold>$module/$directory</>" ,'<fg=green;options=bold>DONE</>' );
         }
     }
 
     private function createFiles(string $path, string $moduleName): void
     {
-        $namespace = config('moduleconfigs.module.namespace') . '\\' . $moduleName;
+        $namespace = Module::moduleNamespace($moduleName);
 
         $modulePath = Module::modulePath($moduleName, absolute: false);
 
@@ -94,7 +99,6 @@ class ModuleMakeCommand extends Command
             [
                 '{{ moduleLowerName }}' => strtolower($moduleName),
                 '{{ moduleName }}' => $moduleName,
-
                 '{{ modulePath }}' => str_replace("\\", '/', $modulePath),
                 '{{ namespace }}' => str_replace("\\", '\\\\', $namespace),
             ],
@@ -168,7 +172,7 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'basic/js.stub',
             [],
-            "{$path}/resources/js/scripts.js"
+            "{$path}/resources/js/app.js"
         );
         /* Register CSS file  */
         $this->generateFile(
@@ -201,49 +205,64 @@ class ModuleMakeCommand extends Command
             "{$path}/Database/Seeders/{$moduleName}DatabaseSeeder.php"
         );
 
-        $this->addModuleToConfig($moduleName);
+        /* Register Seeder file file  */
+        $this->generateFile(
+            'basic/info.stub',
+            [
+                '{{ name }}' => $moduleName,
+                '{{ alias }}' => strtolower($moduleName),
+                '{{ providers }}' => str_replace('\\','\\\\',"$namespace\App\Providers\\".$moduleName."ServiceProvider"),
+            ],
+
+            "{$path}/info.json"
+        );
+
+        $this->registerModule($moduleName);
 
     }
 
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
-        $this->line("File: $destination is generated");
+        $relativePath=str_replace(base_path(), '' , $destination);
+        $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>" ,'<fg=green;options=bold>DONE</>' );
+
     }
 
-    private function addModuleToConfig(string $moduleName): void
+    private function registerModule(string $moduleName): void
     {
-        $configPath = config_path('modules.php');
-        $modules = File::exists($configPath) ? require $configPath : [
-            'modules' => [],
-        ];
+
+        $bootstrapFile = module_bootstrap_path();
+        $registeredModule = get_module_bootstrap();
+
 
         $namespace = Module::moduleNamespace($moduleName);
+
         $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
-        if (!array_key_exists($moduleName, $modules['modules'])) {
-            $modules['modules'][$moduleName] = $providerClass;
+        if (!array_key_exists($moduleName, $registeredModule)) {
+            $registeredModule[$moduleName]['provider'] = $providerClass;
+            $registeredModule[$moduleName]['active'] = true;
+            $registeredModule[$moduleName]['type'] = $this->option('lareon') ? 'lareon' :'self';
 
             File::put(
-                $configPath,
-                '<?php return ' . var_export_short($modules, true) . ';'
+                $bootstrapFile,
+                '<?php return ' . var_export_short($registeredModule, true) . ';'
             );
-
-            $this->info("Module {$moduleName} added to config/modules.php.");
-
+            $this->newLine();
+            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php" ,'<fg=green;options=bold>DONE</>' );
         } else {
-            $this->info("Module {$moduleName} is already in config/modules.php.");
+            $this->newLine();
+            $this->error("Module $moduleName is already in bootstrap/modules.php");
         }
     }
 
-    private function dumpngComposer()
+    private function dumpingComposer(): void
     {
-        $this->info("now wait to dump autoload of composer, it may take a while ...");
+        $this->info("wait to dump autoload of composer, it may take a while ...");
 
         Process::path(base_path())
             ->command('composer dump-autoload')
             ->run()->output();
-
     }
-
 }

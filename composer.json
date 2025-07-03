@@ -55,9 +55,7 @@
 
         }
     },
-    "branch-alias": {
-        "dev": "0.0.1"
-    },
+  
     "config": {
         "allow-plugins": {
             "wikimedia/composer-merge-plugin": true

@@ -63,21 +63,5 @@ trait ModuleNameValidator
         return collect($allModules)->filter(function ($module) use ($moduleName) {
             return strtolower($module) === strtolower($moduleName);
         })->values()->first();
-
     }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
-    }
-
 }

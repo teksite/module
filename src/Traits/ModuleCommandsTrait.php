@@ -31,7 +31,7 @@ trait ModuleCommandsTrait
 
     protected function setNamespace($module, $name, $relative): string
     {
-        $namespace = Module::moduleNamespace($module, $relative);
+        $namespace = Module::moduleNamespace($module, ltrim($relative, '\\'));
         return $namespace . '\\' . str_replace('/', '\\', $name);
     }
 
@@ -50,7 +50,7 @@ trait ModuleCommandsTrait
     protected function viewPath($path= '')
     {
         $module = $this->argument('module');
-        return Module::ModuleViewPath($module , $path);
+        return Module::modulePath($module , "resources/views/$path");
 
     }
 

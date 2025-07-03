@@ -12,8 +12,6 @@ use Teksite\Module\Facade\Module;
 
 class {{ class }} extends ServiceProvider
 {
-    public const TYPE='self-service';
-
     protected string $moduleName = '{{ module }}';
 
     protected string $lowerModuleName = '{{ moduleLowerName }}';
@@ -44,10 +42,10 @@ class {{ class }} extends ServiceProvider
 
      private function loadModuleMigrations(): void
      {
-        $migrationPath=Module::modulePath($this->moduleName , config('moduleconfigs.module.database.migration_path' , 'Database/Migrations'));
+        $migrationPath=Module::modulePath($this->moduleName , 'Database/Migrations');
 
         if (is_dir($migrationPath)) {
-            $this->loadMigrationsFrom(module_path($this->moduleName, config('moduleconfigs.module.database.migration_path' , 'Database/Migrations')));
+            $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
         }
 
      }
@@ -75,7 +73,7 @@ class {{ class }} extends ServiceProvider
      */
     public function registerTranslations(): void
     {
-        $langPath = module_path($this->moduleName , config('moduleconfigs.module.lang_path' , 'lang'));
+        $langPath = module_path($this->moduleName , 'lang');
 
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, $this->lowerModuleName);
@@ -88,8 +86,8 @@ class {{ class }} extends ServiceProvider
      */
     protected function registerConfig(): void
     {
-        $this->publishes([module_path($this->moduleName, 'config/config.php') => config_path($this->lowerModuleName.'.php')], 'config');
-        $this->mergeConfigFrom(module_path($this->moduleName, 'config/config.php'),  'config'.$this->lowerModuleName);
+        $this->publishes([module_path($this->moduleName, 'config/config.php') => config_path($this->lowerModuleName.'.php')], 'modules');
+        $this->mergeConfigFrom(module_path($this->moduleName, 'config/config.php'),  'modules.'.$this->lowerModuleName);
     }
 
     /**

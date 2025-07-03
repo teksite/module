@@ -31,7 +31,7 @@ class ListenerMakeCommand extends GeneratorCommand
      *
      * @return string
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         if ($this->option('queued')) {
             return $this->option('event')
@@ -66,7 +66,6 @@ class ListenerMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $module = $this->argument('module');
-
         return $this->setNamespace($module, $name, '\\App\\Listeners');
     }
 
@@ -74,13 +73,12 @@ class ListenerMakeCommand extends GeneratorCommand
     {
         $module=$this->argument('module');
         $event = $this->option('event') ?? '';
-
         if (!Str::startsWith($event, [
             $this->moduleNamespace(),
             $this->moduleNamespace($module),
             $this->moduleNamespace($module ,'App\\Events\\'),
         ])) {
-            $event = $this->moduleNamespace($module , 'App\\Events\\') .'\\' . str_replace('/', '\\', $event);
+            $event = $this->moduleNamespace($module , 'App\\Events\\')  . str_replace('/', '\\', $event);
         }
 
         $stub = str_replace(
