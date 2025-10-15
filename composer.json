@@ -9,16 +9,15 @@
         "modularity"
     ],
     "authors": [
-
         {
             "name": "sina zangibadn",
             "email": "teksite.design@gmail.com"
         }
     ],
+    "version": "2.0.3",
     "minimum-stability": "dev",
     "license": "MIT",
     "prefer-stable": true,
-
     "autoload": {
         "psr-4": {
             "Teksite\\Module\\": "src/"
@@ -28,8 +27,8 @@
         ]
     },
     "require": {
-        "php": "^8.2",
-        "illuminate/support": "~11.0",
+        "php": ">=8.2",
+        "illuminate/support": "~12.0",
         "teksite/handler": "*",
         "teksite/extralaravel": "*",
         "ext-dom": "*",
@@ -37,25 +36,17 @@
         "ext-simplexml": "*",
         "wikimedia/composer-merge-plugin": "^2.1"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^11.0",
-        "mockery/mockery": "^1.6",
-        "orchestra/testbench": "^v9.0",
+	  "require-dev": {
         "friendsofphp/php-cs-fixer": "^v3.52",
-        "laravel/framework": "^v11.0",
-        "laravel/pint": "^1.16",
         "spatie/phpunit-snapshot-assertions": "^5.0",
-        "phpstan/phpstan": "^1.4"
     },
     "extra": {
         "laravel": {
             "providers": [
-              "Teksite\\Module\\ModuleServiceProvider"
+                "Teksite\\Module\\ModuleServiceProvider"
             ]
-
         }
     },
-  
     "config": {
         "allow-plugins": {
             "wikimedia/composer-merge-plugin": true
