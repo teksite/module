@@ -36,9 +36,9 @@
         "ext-simplexml": "*",
         "wikimedia/composer-merge-plugin": "^2.1"
     },
-	  "require-dev": {
+	"require-dev": {
         "friendsofphp/php-cs-fixer": "^v3.52",
-        "spatie/phpunit-snapshot-assertions": "^5.0",
+        "spatie/phpunit-snapshot-assertions": "^5.0"
     },
     "extra": {
         "laravel": {
