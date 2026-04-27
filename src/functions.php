@@ -108,4 +108,32 @@ if (!function_exists('get_disabled_modules')) {
     }
 }
 
+if (!function_exists('steward_namespace')) {
+    /**
+     *  get namespace steward
+     *
+     * @return string
+     */
+    function steward_namespace(): string
+    {
+        return config('modules.steward.namespace', 'Lareon\Modules');
+    }
+}
 
+if (!function_exists('steward_path')) {
+    /**
+     * @param string|null $path desired path
+     * @param bool $absolute absolut or relevant from project path
+     * @return string|null
+     */
+    function steward_path(?string $path = null, bool $absolute = true): ?string
+    {
+        $stewardRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.steward.directory', 'steward');
+
+        $finalPath =  $stewardRootPath . ($path ? DIRECTORY_SEPARATOR . $path : '');
+        $normalized =normalizeSlashPath($finalPath);
+
+        return $absolute ? base_path($normalized) : $normalized;
+    }
+
+}
