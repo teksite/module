@@ -16,6 +16,8 @@ class {{ class }} extends ServiceProvider
 
     protected string $lowerModuleName = '{{ moduleLowerName }}';
 
+    protected string $type= "self"
+
     /**
      * Register the service provider.
      */
@@ -42,11 +44,9 @@ class {{ class }} extends ServiceProvider
 
      private function loadModuleMigrations(): void
      {
-        $migrationPath=Module::modulePath($this->moduleName , 'Database/Migrations');
+        $migrationPath=Module::modulePath($this->moduleName , 'database/migrations');
 
-        if (is_dir($migrationPath)) {
-            $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        }
+        if (is_dir($migrationPath)) $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
 
      }
     /**

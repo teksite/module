@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
@@ -16,21 +17,30 @@ class ModuleMakeCommand extends Command
 
     use ModuleGeneratorCommandTrait;
 
-    protected $signature = 'module:make {name}
-          {--lareon : if teksite/lareon in installed use this flag to the module be managed by lareon cms.}
-      ';
+    protected $name = 'module:make';
 
     protected $description = 'Create a new module';
 
     protected string $type = 'Module';
 
-    public function handle()
+    public function handle(): void
     {
         $moduleName = Str::studly($this->argument('name'));
 
         $modulePath = $this->getModulePath($moduleName);
-        if ($this->moduleExists($modulePath)) {
-            $this->error("a directory or a module with the same name ($moduleName) already exists.");
+
+        if (!$this->isAllowedName($moduleName)) {
+            $this->error("$moduleName is not allowed to create module, choose another name.");
+            return;
+        }
+
+        if ($this->isModuleDirectoryExists($modulePath)) {
+            $this->error("a directory with the same name ($moduleName) already exists.");
+            return;
+        }
+
+        if ($this->isModuleRegistered($moduleName)) {
+            $this->error("a module with the same name ($moduleName) already exists in bootstrap module file.");
             return;
         }
 
@@ -49,36 +59,56 @@ class ModuleMakeCommand extends Command
         return Module::modulePath($moduleName);
     }
 
-    private function moduleExists(string $modulePath): bool
+    private function isModuleDirectoryExists(string $modulePath): bool
     {
         if (File::exists($modulePath)) return true;
         if (in_array($modulePath, Module::all())) return true;
         return false;
     }
 
+    private function isModuleRegistered(string $module): bool
+    {
+        return Module::isRegistered($module);
+
+    }
+
+    private function notAllowedModuleName(): array
+    {
+        return [
+            'steward',
+            'Steward',
+        ];
+    }
+
+    private function isAllowedName(string $moduleName): bool
+    {
+        return !in_array($moduleName, $this->notAllowedModuleName());
+    }
+
     private function createDirectories(string $path): void
     {
         $directories = [
             '',
-            'App',
-            'App/Http',
-            'App/Http/Controllers',
-            'App/Models',
-            'App/Providers',
+            'app',
+            'app/Http',
+            'app/Http/Controllers',
+            'app/Models',
+            'app/Providers',
             'config',
-            'Database',
-            'Database/Factories',
-            'Database/Migrations',
-            'Database/Seeders',
+            'database',
+            'database/factories',
+            'database/migrations',
+            'database/seeders',
             'lang',
             'resources/views',
             'resources/js',
             'resources/css',
             'routes',
-            'Tests',
-            'Tests/Feature',
-            'Tests/Unit',
+            'tests',
+            'tests/Feature',
+            'tests/Unit',
         ];
+
         $module=$this->argument('name');
 
         foreach ($directories as $directory) {
@@ -106,59 +136,60 @@ class ModuleMakeCommand extends Command
         );
 
         /* Register ServiceProvider file  */
-        if ($this->option('lareon')) {
+        if ($this->option('steward')) {
+            #TODO think and change scenario - steward and self provider processes
             $this->generateFile(
                 'basic/provider.stub',
                 [
-                    '{{ namespace }}' => "{$namespace}\\App\\Providers",
+                    '{{ namespace }}' => "{$namespace}\\Providers",
                     '{{ class }}' => "{$moduleName}ServiceProvider",
                     '{{ module }}' => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
 
                 ],
-                "{$path}/App/Providers/{$moduleName}ServiceProvider.php"
+                "{$path}/app/Providers/{$moduleName}ServiceProvider.php"
             );
         } else {
             $this->generateFile(
                 'basic/provider-service.stub',
                 [
-                    '{{ namespace }}' => "{$namespace}\\App\\Providers",
+                    '{{ namespace }}' => "{$namespace}\\Providers",
                     '{{ class }}' => "{$moduleName}ServiceProvider",
                     '{{ module }}' => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
                 ],
-                "{$path}/App/Providers/{$moduleName}ServiceProvider.php"
+                "{$path}/app/Providers/{$moduleName}ServiceProvider.php"
             );
         }
         /* Register Event ServiceProvider file  */
         $this->generateFile(
             'basic/provider-event.stub',
             [
-                '{{ namespace }}' => "{$namespace}\\App\\Providers",
+                '{{ namespace }}' => "{$namespace}\\Providers",
                 '{{ class }}' => "EventServiceProvider",
                 '{{ moduleLowerName }}' => strtolower($moduleName),
                 '{{ module }}' => $moduleName,
             ],
-            "{$path}/App/Providers/EventServiceProvider.php"
+            "{$path}/app/Providers/EventServiceProvider.php"
         );
         /* Register Route ServiceProvider file  */
         $this->generateFile(
             'basic/provider-route.stub',
             [
-                '{{ namespace }}' => "{$namespace}\\App\\Providers",
+                '{{ namespace }}' => "{$namespace}\\Providers",
                 '{{ class }}' => "RouteServiceProvider",
                 '{{ moduleLowerName }}' => strtolower($moduleName),
                 '{{ module }}' => $moduleName,
             ],
-            "{$path}/App/Providers/RouteServiceProvider.php"
+            "{$path}/app/Providers/RouteServiceProvider.php"
         );
         /* Register Abstract controller file  */
         $this->generateFile(
             'basic/controller-abstract.stub',
             [
-                '{{$namespace}}' => "{$namespace}\\App\\Http\\Controllers",
+                '{{$namespace}}' => "{$namespace}\\Http\\Controllers",
             ],
-            "{$path}/App/Http/Controllers/Controller.php"
+            "{$path}/app/Http/Controllers/Controller.php"
         );
         /* Register config file  */
         $this->generateFile(
@@ -192,8 +223,7 @@ class ModuleMakeCommand extends Command
             ['{{ module }}' => strtolower($moduleName)],
             "{$path}/routes/web.php"
         );
-
-        /* Register Seeder file file  */
+        /* Register Seeder file */
         $this->generateFile(
             'basic/seeder.stub',
             [
@@ -202,10 +232,9 @@ class ModuleMakeCommand extends Command
                 '{{ class }}' => "{$moduleName}DatabaseSeeder",
             ],
 
-            "{$path}/Database/Seeders/{$moduleName}DatabaseSeeder.php"
+            "{$path}/database/Seeders/{$moduleName}DatabaseSeeder.php"
         );
-
-        /* Register Seeder file file  */
+        /* Register Seeder file  */
         $this->generateFile(
             'basic/info.stub',
             [
@@ -218,32 +247,29 @@ class ModuleMakeCommand extends Command
         );
 
         $this->registerModule($moduleName);
-
     }
 
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
-        $relativePath=str_replace(base_path(), '' , $destination);
+        $relativePath=normalizeSlashPath(str_replace(base_path(), '' , $destination));
         $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>" ,'<fg=green;options=bold>DONE</>' );
 
     }
 
     private function registerModule(string $moduleName): void
     {
-
         $bootstrapFile = module_bootstrap_path();
         $registeredModule = get_module_bootstrap();
 
-
         $namespace = Module::moduleNamespace($moduleName);
 
-        $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
+        $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $registeredModule)) {
             $registeredModule[$moduleName]['provider'] = $providerClass;
             $registeredModule[$moduleName]['active'] = true;
-            $registeredModule[$moduleName]['type'] = $this->option('lareon') ? 'lareon' :'self';
+            $registeredModule[$moduleName]['type'] = $this->option('steward') ? 'steward' :'self';
 
             File::put(
                 $bootstrapFile,
@@ -264,5 +290,14 @@ class ModuleMakeCommand extends Command
         Process::path(base_path())
             ->command('composer dump-autoload')
             ->run()->output();
+    }
+
+
+
+    protected function getOptions(): array
+    {
+        return [
+            ['steward', 's', InputOption::VALUE_OPTIONAL, 'to be managed by steward'],
+        ];
     }
 }

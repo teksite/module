@@ -4,13 +4,15 @@ namespace Teksite\Module\Traits;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\InputArgument;
 
 trait ModuleGeneratorCommandTrait
 {
-    public function replaceStub(string $stub, array $replace, string $destination)
+    public function replaceStub(string $stub, array $replace, string $destination): void
     {
         $stubPath = $this->getStubFile($stub);
         $replacedContent = $this->getStubContent($stubPath, $replace);
+
         if (!File::exists(dirname($destination))) {
             File::makeDirectory(dirname($destination), 0755, true);
         }
@@ -19,12 +21,12 @@ trait ModuleGeneratorCommandTrait
         try {
             File::put($destination, $replacedContent);
         } catch (\Exception $e) {
-            dd("Error writing to file: " . $e->getMessage());
+            $this->error("Error writing to file: " . $e->getMessage());
         }
 
     }
 
-    protected function getStubFile($path)
+    protected function getStubFile($path): string
     {
         return app('modules.stubs') . trim($path, '\/');
     }
@@ -32,7 +34,7 @@ trait ModuleGeneratorCommandTrait
     private function getStubContent(string $stubPath, array $replacements = []): string
     {
         if (!File::exists($stubPath)) {
-            $this->error('there is not ant stub at ' . $stubPath);
+            $this->error("$stubPath is not exists!");
             return '';
         }
 
@@ -46,5 +48,12 @@ trait ModuleGeneratorCommandTrait
         return $content;
     }
 
+
+    protected function getArguments(): array
+    {
+        return [
+            ['name', InputArgument::REQUIRED, 'The name of the '.strtolower($this->type)],
+        ];
+    }
 
 }
