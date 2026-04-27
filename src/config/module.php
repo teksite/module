@@ -9,7 +9,7 @@ return [
    | Main path where modules folder placed there.
    |
    */
-   "main_path"=>'Lareon',
+    "main_path"         => 'lareon',
 
 
     /*
@@ -21,7 +21,7 @@ return [
    | CAUTION: if you don,t have enough information DO NOT CHANGE it.
    |
    */
-    "registration_file"=>base_path('bootstrap').'/modules.php',
+    "registration_file" => base_path('bootstrap') . '/modules.php',
 
 
     /*
@@ -30,14 +30,14 @@ return [
    |--------------------------------------------------------------------------
    |
    */
-   'module'=>[
-       "directory"=>"Modules",
+    'module'            => [
+        "directory" => "modules",
 
-       'namespace'=>'Lareon\Modules',
-   ],
+        'namespace' => 'Lareon\Modules',
+    ],
 
-    'manager'=>[
-        "provider"=>''
-    ]
+    'manager' => [
+        "provider" => '',
+    ],
 ];
 
