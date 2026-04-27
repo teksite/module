@@ -11,7 +11,7 @@ class ModuleServices
 
     public function __construct()
     {
-        $this->bootstrapFile = config('module.registration_file', base_path('bootstrap') . '/modules.php');
+        $this->bootstrapFile = config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
     }
 
     /**

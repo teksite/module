@@ -5,57 +5,56 @@ use Illuminate\Support\Str;
 
 if (!function_exists('module_path')) {
     /**
-     * @param string|null $moduleName
-     * @param string|null $path
-     * @param bool $absolute
+     * @param string|null $moduleName name of the module or module root path
+     * @param string|null $path desired path
+     * @param bool $absolute absolut or relevant from project path
      * @return string|null
      */
-    function module_path(?string $moduleName = null, ?string $path = null, bool $absolute = true ): ?string
+    function module_path(?string $moduleName = null, ?string $path = null, bool $absolute = true): ?string
     {
-        $moduleName= Str::ucfirst($moduleName);
-        $mainPath = config('module.main_path' ,'Lareon') . DIRECTORY_SEPARATOR .  config('module.module.path', 'Modules');
+        $modulesRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.module.directory', 'modules');
 
-        $relativePath = $moduleName ? normalizePath($mainPath . '/' . $moduleName . ($path ? '/' . $path : '')) : $mainPath;
-        return $absolute ? base_path($relativePath) : $relativePath;
+        $moduleName = $moduleName ? Str::ucfirst($moduleName) : null;
+
+        $modulePath = $modulesRootPath . ($moduleName ? DIRECTORY_SEPARATOR . $moduleName : '');
+
+        $finalPath =  $modulePath . ($path ? DIRECTORY_SEPARATOR . $path : '');
+        $normalized =normalizeSlashPath($finalPath);
+
+        return $absolute ? base_path($normalized) : $normalized;
     }
 
 }
-
 
 if (!function_exists('module_namespace')) {
-
     /**
+     *  get namespace of module(s)
+     *
      * @param string|null $moduleName
-     * @param string|null $path
      * @return string
      */
-    function module_namespace(?string $moduleName, ?string $path = null): string
+    function module_namespace(?string $moduleName): string
     {
-        $moduleBaseNamespace = config('module.module.namespace' ,'Lareon\Modules') . '\\'. ($moduleName ? Str::ucfirst($moduleName): '');
-
-        $path=$path ? str_replace('/', '\\', $path) :null;
-
-        return $path
-            ? $moduleBaseNamespace .'\\'. $path
-            : $moduleBaseNamespace;
+        return config('modules.module.namespace', 'Lareon\Modules') . '\\' . ($moduleName ? Str::ucfirst($moduleName) : '');
     }
 }
-
-
 
 if (!function_exists('module_bootstrap_path')) {
     /**
+     * get path of modules registration files
+     *
      * @return string
      */
     function module_bootstrap_path(): string
     {
-        return config('module.registration_file' , base_path('bootstrap').'/modules.php');
+        return config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
     }
 }
 
 if (!function_exists('get_module_bootstrap')) {
-
     /**
+     * get arrays of installed modules
+     *
      * @param string|array $modules
      * @return array
      */
@@ -65,14 +64,48 @@ if (!function_exists('get_module_bootstrap')) {
 
         $modules = is_array($modules) ? $modules : [$modules];
 
-        if(in_array('*', $modules)) return $bootstrapContent;
-        $moduleArray=[];
-        foreach ($modules as $module) {
-            if(in_array($module, array_keys($bootstrapContent))) {
-                $moduleArray[$module] = $bootstrapContent[$module];
-            }
-        }
-        return $moduleArray;
+        if (in_array('*', $modules)) return $bootstrapContent;
 
+        return collect($bootstrapContent)
+            ->filter(fn($data, $key) => in_array($key, $modules))
+            ->toArray();
     }
 }
+
+if (!function_exists('get_enabled_modules')) {
+    /**
+     * get arrays of installed and enabled modules
+     *
+     * @param bool $steward
+     * @return array
+     */
+    function get_enabled_modules(bool $steward = false): array
+    {
+        return collect(get_module_bootstrap())
+            ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
+            ->when($steward, function ($collection) {
+                $collection->filter(fn($data, $key) => isset($data['steward']) && $data['steward'] === true);
+            })
+            ->toArray();
+    }
+}
+
+if (!function_exists('get_disabled_modules')) {
+    /**
+     * get arrays of installed and disabled modules
+     *
+     * @param bool $steward
+     * @return array
+     */
+    function get_enabled_modules(bool $steward = false): array
+    {
+        return collect(get_module_bootstrap())
+            ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)
+            ->when($steward, function ($collection) {
+                $collection->filter(fn($data, $key) => isset($data['steward']) && $data['steward'] === true);
+            })
+            ->toArray();
+    }
+}
+
+
