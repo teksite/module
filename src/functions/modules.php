@@ -97,7 +97,7 @@ if (!function_exists('get_disabled_modules')) {
      * @param bool $steward
      * @return array
      */
-    function get_enabled_modules(bool $steward = false): array
+    function get_disabled_modules(bool $steward = false): array
     {
         return collect(get_module_bootstrap())
             ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)

@@ -14,7 +14,7 @@
             "email": "teksite.design@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "license": "MIT",
     "prefer-stable": true,
     "autoload": {
@@ -22,8 +22,8 @@
             "Teksite\\Module\\": "src/"
         },
         "files": [
-            "src/helpers.php",
-            "src/functions.php"
+            "src/functions/helpers.php",
+            "src/functions/functions.php"
         ]
     },
     "require": {
