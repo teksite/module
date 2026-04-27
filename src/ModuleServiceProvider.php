@@ -67,8 +67,8 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function registerConfig(): void
     {
-        $configPath = config_path('module.php');
-        $this->mergeConfigFrom(file_exists($configPath) ? $configPath : __DIR__ . '/config/module.php', 'module');
+        $configPath = config_path('modules.php');
+        $this->mergeConfigFrom(file_exists($configPath) ? $configPath : __DIR__ . '/config/modules.php', 'modules');
     }
 
     public function registerFacades(): void
@@ -84,7 +84,7 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function registerStubPath(): void
     {
-        $this->app->bind('module.stubs', function () {
+        $this->app->bind('modules.stubs', function () {
             return __DIR__ . DIRECTORY_SEPARATOR . "stubs" . DIRECTORY_SEPARATOR;
         });
     }
@@ -147,7 +147,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function publish(): void
     {
         $this->publishes([
-            __DIR__ . '/config/module.php' => config_path('module.php')
-        ], 'module');
+            __DIR__ . '/config/modules.php' => config_path('modules.php')
+        ], 'modules');
     }
 }

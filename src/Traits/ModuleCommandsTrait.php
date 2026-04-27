@@ -15,8 +15,7 @@ trait ModuleCommandsTrait
      */
     protected function resolveStubPath($stub)
     {
-        $path = app('module.stubs') . $stub;
-
+        $path = app('modules.stubs') . $stub;
         return file_exists($path) ? $path : throw new \Exception ($stub . 'isn not exist in the path: ', $path);
     }
 
@@ -44,12 +43,12 @@ trait ModuleCommandsTrait
 
     protected function getLowerNameModule(?string $module = null): string
     {
-        return Str::lower($module ?? $this->argument('module'));
+        return Str::lower($this->argument('module') ?? 'Steward');
     }
 
     protected function viewPath($path= '')
     {
-        $module = $this->argument('module');
+        $module = "modules/".$this->argument('module') ?? 'Steward';
         return Module::modulePath($module , "resources/views/$path");
 
     }
@@ -81,7 +80,7 @@ trait ModuleCommandsTrait
 
     protected function rootNamespace()
     {
-        $module = $this->argument('module');
+        $module = $this->argument('module') ?? 'Steward';
 
         return Module::moduleNamespace($module , 'App');
     }
