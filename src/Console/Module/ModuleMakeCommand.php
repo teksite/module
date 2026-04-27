@@ -247,7 +247,7 @@ class ModuleMakeCommand extends Command
 
             File::put(
                 $bootstrapFile,
-                '<?php return ' . var_export_short($registeredModule, true) . ';'
+                '<?php return ' . humanReadableVarExport($registeredModule, true) . ';'
             );
             $this->newLine();
             $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php" ,'<fg=green;options=bold>DONE</>' );

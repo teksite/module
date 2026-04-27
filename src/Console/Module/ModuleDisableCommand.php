@@ -63,7 +63,7 @@ class ModuleDisableCommand extends Command
             $registeredModules[$moduleName]['active'] = false;
             File::put(
                 $bootstrapFile,
-                '<?php return ' . var_export_short($registeredModules, true) . ';'
+                '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
             );
             $this->newLine();
             $this->components->twoColumnDetail("disabling: module <fg=cyan;options=bold>$moduleName</> is enabled" ,'<fg=green;options=bold>DONE</>' );

@@ -56,19 +56,33 @@ if (!function_exists('get_module_bootstrap')) {
      * get arrays of installed modules
      *
      * @param string|array $modules
-     * @return array
+     * @return array|null
      */
-    function get_module_bootstrap(string|array $modules = ['*']): array
+    function get_module_bootstrap(string|array $modules = ['*']): null|array
     {
         $bootstrapContent = File::exists(module_bootstrap_path()) ? require module_bootstrap_path() : [];
 
-        $modules = is_array($modules) ? $modules : [$modules];
+        $modulesArray = is_array($modules) ? $modules : [$modules];
 
-        if (in_array('*', $modules)) return $bootstrapContent;
+        if (in_array('*', $modulesArray)) return $bootstrapContent;
 
-        return collect($bootstrapContent)
-            ->filter(fn($data, $key) => in_array($key, $modules))
+        $filteredModules= collect($bootstrapContent)
+            ->filter(fn($data, $key) => in_array($key, $modulesArray))
             ->toArray();
+        return is_array($modules) ? $filteredModules : array_first($filteredModules ?? []);
+    }
+}
+
+if (!function_exists('get_modules')) {
+    /**
+     * get arrays of installed modules
+     *
+     * @param string|array $modules
+     * @return array
+     */
+    function get_modules(string|array $modules = ['*']): array
+    {
+       return get_module_bootstrap($modules);
     }
 }
 
@@ -76,16 +90,12 @@ if (!function_exists('get_enabled_modules')) {
     /**
      * get arrays of installed and enabled modules
      *
-     * @param bool $steward
      * @return array
      */
-    function get_enabled_modules(bool $steward = false): array
+    function get_enabled_modules(): array
     {
         return collect(get_module_bootstrap())
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
-            ->when($steward, function ($collection) {
-                $collection->filter(fn($data, $key) => isset($data['steward']) && $data['steward'] === true);
-            })
             ->toArray();
     }
 }
@@ -94,17 +104,26 @@ if (!function_exists('get_disabled_modules')) {
     /**
      * get arrays of installed and disabled modules
      *
-     * @param bool $steward
      * @return array
      */
-    function get_disabled_modules(bool $steward = false): array
+    function get_disabled_modules(): array
     {
         return collect(get_module_bootstrap())
             ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)
-            ->when($steward, function ($collection) {
-                $collection->filter(fn($data, $key) => isset($data['steward']) && $data['steward'] === true);
-            })
             ->toArray();
+    }
+}
+
+if (!function_exists('get_module_type')) {
+    /**
+     *
+     *
+     * @param string $modules
+     * @return string|null return self|steward|null , null means not registered in modules bootstrap file
+     */
+    function get_module_type(string $modules): null|string
+    {
+        return (get_module_bootstrap($modules))['type'] ?? null;
     }
 }
 

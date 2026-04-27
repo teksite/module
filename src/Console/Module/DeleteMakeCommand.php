@@ -90,7 +90,7 @@ class DeleteMakeCommand extends Command
         }
 
         unset($modules[$moduleName]);
-        File::put($bootstrapFile, '<?php return ' . var_export_short($modules, true) . ';');
+        File::put($bootstrapFile, '<?php return ' . humanReadableVarExport($modules, true) . ';');
         $this->components->twoColumnDetail("updating module bootstrap: remove <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
 
     }

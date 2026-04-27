@@ -26,7 +26,7 @@ trait ModuleGeneratorCommandTrait
 
     protected function getStubFile($path)
     {
-        return app('module.stubs') . trim($path, '\/');
+        return app('modules.stubs') . trim($path, '\/');
     }
 
     private function getStubContent(string $stubPath, array $replacements = []): string

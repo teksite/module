@@ -7,11 +7,13 @@ use Illuminate\Support\Facades\File;
 
 class ModuleServices
 {
-    private string $bootstrapFile;
+    private string $bootstrapFilePath;
+    private array $bootstrapFile;
 
     public function __construct()
     {
-        $this->bootstrapFile = config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
+        $this->bootstrapFilePath = config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
+        $this->bootstrapFile =file_exists($this->bootstrapFilePath) ? require $this->bootstrapFilePath : [];
     }
 
     /**
@@ -27,27 +29,21 @@ class ModuleServices
 
     /**
      * @param string|null $moduleName
-     * @param string|null $path
      * @return string
      */
-    public function moduleNamespace(string $moduleName = null, ?string $path = null): string
+    public function moduleNamespace(string $moduleName = null): string
     {
-        return module_namespace($moduleName, $path);
+        return module_namespace($moduleName);
     }
 
-
     /**
+     * get all modules in bootstrap modules file
+     *
      * @return array|string[]
      */
     public function all(): array
     {
-        $bootstrapFile = $this->bootstrapFile;
-        if (File::exists($bootstrapFile)) {
-            $bootstrapModule = include $bootstrapFile;
-            return array_keys($bootstrapModule);
-        }
-
-        return [];
+        return array_keys(get_modules());
     }
 
     /**
@@ -55,12 +51,19 @@ class ModuleServices
      */
     public function registeredModules(): array
     {
-        $bootstrapFile = $this->bootstrapFile;
-        if (File::exists($bootstrapFile)) {
-            return include $bootstrapFile;
-        }
+        return get_modules();
 
-        return [];
+    }
+
+
+    /**
+     * @param $moduleName
+     * @return bool
+     */
+    public function isRegistered($moduleName): bool
+    {
+        return in_array($moduleName, array_keys(get_modules()));
+
     }
 
     /**
@@ -68,24 +71,35 @@ class ModuleServices
      */
     public function enables(): array
     {
-        $bootstrapFile = $this->bootstrapFile;
-        $modules = [];
-        if (File::exists($bootstrapFile)) {
-            $bootstrapModule = include $bootstrapFile;
-            foreach ($bootstrapModule as $name => $data) {
-                if ($data['active']) $modules[] = $name;
-            }
-        }
-        return $modules;
+        return get_enabled_modules();
+    }
+
+    /**
+     * @return array
+     */
+    public function disables(): array
+    {
+        return get_disabled_modules();
     }
 
     /**
      * @param string $moduleName
-     * @return bool
+     * @return bool|null
      */
-    public function isEnabled(string $moduleName): bool
+    public function isEnabled(string $moduleName): null|bool
     {
-        return in_array($moduleName, $this->enables());
+        if (!$this->isRegistered($moduleName)) return null;
+        return in_array($moduleName, array_keys($this->enables()));
+    }
+
+    /**
+     * @param string $moduleName
+     * @return bool|null
+     */
+    public function isDisable(string $moduleName): null|bool
+    {
+        if (!$this->isRegistered($moduleName)) return null;
+        return in_array($moduleName, array_keys($this->disables()));
     }
 
     /**
@@ -100,18 +114,29 @@ class ModuleServices
 
     /**
      * @param string $moduleName
+     * @return string|null
+     */
+    public function getType(string $moduleName): ?string
+    {
+        return get_module_type($moduleName);
+    }
+
+
+    /**
+     * @param string $moduleName
      * @param string|array $key
      * @return mixed
      */
     public function info(string $moduleName, string|array $key = ['*']): mixed
     {
-
         $key = is_array($key) ? $key : [$key];
 
         $path = $this->modulePath($moduleName, 'info.json');
+
         if (file_exists($path)) {
             $info = json_decode(file_get_contents($path), true);
             $info['isEnabled'] = $this->isEnabled($moduleName);
+            $info['type'] = $this->getType($moduleName);
         } else {
             $info = [];
         }
@@ -129,23 +154,18 @@ class ModuleServices
      */
     public function enable($moduleName): int
     {
-        $bootstrapFile = $this->bootstrapFile;
+        if (!$this->isRegistered($moduleName)) return throw new \Exception('the module is not registered or installed');
 
-        $registeredModule = get_module_bootstrap();
+        if ($this->isEnabled($moduleName)) return 1;
 
-        if (array_key_exists($moduleName, $registeredModule)) {
-            $inEnable = $registeredModule[$moduleName]['active'] ?? false;
-            if ($inEnable) return 1;
-            $registeredModule[$moduleName]['active'] = true;
+        $registeredModules = $this->bootstrapFile;
+        $registeredModules[$moduleName]['active'] = true;
 
-            File::put(
-                $bootstrapFile,
-                '<?php return ' . var_export_short($registeredModule, true) . ';'
-            );
-            return 1;
-        } else {
-            return 0;
-        }
+        File::put(
+            $this->bootstrapFilePath,
+            '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
+        );
+        return 1;
     }
 
     /**
@@ -155,23 +175,18 @@ class ModuleServices
      */
     public function disable($moduleName): int
     {
-        $bootstrapFile = $this->bootstrapFile;
+        if (!$this->isRegistered($moduleName)) return throw new \Exception('the module is not registered or installed');
 
-        $registeredModule = get_module_bootstrap();
+        if ($this->isDisable($moduleName)) return 0;
 
-        if (array_key_exists($moduleName, $registeredModule)) {
-            $inEnable = $registeredModule[$moduleName]['active'] ?? false;
-            if (!$inEnable) return -1;
-            $registeredModule[$moduleName]['active'] = false;
+        $registeredModules = $this->bootstrapFile;
+        $registeredModules[$moduleName]['active'] = false;
 
-            File::put(
-                $bootstrapFile,
-                '<?php return ' . var_export_short($registeredModule, true) . ';'
-            );
-            return -1;
-        } else {
-            return 0;
-        }
+        File::put(
+            $this->bootstrapFilePath,
+            '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
+        );
+        return 0;
     }
 
 }
