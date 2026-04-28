@@ -298,7 +298,7 @@ class ModuleMakeCommand extends Command
     protected function getOptions(): array
     {
         return [
-            ['steward', 's', InputOption::VALUE_OPTIONAL, 'to be managed by steward'],
+            ['steward', 's', InputOption::VALUE_NONE, 'to be managed by steward'],
         ];
     }
 }

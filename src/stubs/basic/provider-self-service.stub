@@ -4,6 +4,8 @@ namespace {{ namespace }};
 
 use Illuminate\Console\Scheduling\Schedule;
 use Teksite\Module\Providers\Support\SelfModuleServiceProvider as ServiceProvider;
+//use Teksite\Module\Providers\Support\StewardMangedModuleServiceProvider as ServiceProvider;
+
 
 class {{ class }} extends ServiceProvider
 {
