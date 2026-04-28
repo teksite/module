@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-class SelfModuleServiceProvider extends ServiceProvider
+class StewardMangedModuleServiceProvider extends ServiceProvider
 {
 
     /**
@@ -31,7 +31,7 @@ class SelfModuleServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected string $type = "self";
+    protected string $type = "steward";
 
     /**
      * Command classes to register.
@@ -55,10 +55,6 @@ class SelfModuleServiceProvider extends ServiceProvider
 
         $this->bootCommands();
         $this->bootCommandSchedules();
-        $this->bootTranslations();
-        $this->bootConfig();
-        $this->bootViews();
-        $this->bootMigrations();
     }
 
     /**
@@ -122,7 +118,7 @@ class SelfModuleServiceProvider extends ServiceProvider
      */
     protected function bootConfig(): void
     {
-        $configPath = module_path($this->moduleName, config('modules.module.config_path' ,'config'));
+        $configPath = module_path($this->moduleName, config('modules.paths.generator.config.path'));
 
         if (is_dir($configPath)) {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($configPath));
@@ -175,7 +171,7 @@ class SelfModuleServiceProvider extends ServiceProvider
     {
 
         $viewPath = resource_path('views/modules/' . $this->lowerModuleName);
-        $sourcePath = module_path($this->moduleName, config('modules.module.view_path'));
+        $sourcePath = module_path($this->moduleName, config('modules.paths.generator.views.path'));
 
         $this->publishes([$sourcePath => $viewPath], ['views', $this->lowerModuleName . '-module-views']);
         $this->loadViewsFrom(array_merge($this->publishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
@@ -196,16 +192,5 @@ class SelfModuleServiceProvider extends ServiceProvider
             }
         }
         return $paths;
-    }
-
-    /**
-     * boot migration file
-     *
-     * @return void
-     */
-    private function bootMigrations(): void
-    {
-        $generatorMigrationPath = config('modules.module.migration_path') ?? 'database/migrations';
-        $this->loadMigrationsFrom(module_path($this->lowerModuleName, $generatorMigrationPath));
     }
 }

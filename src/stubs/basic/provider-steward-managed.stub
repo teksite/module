@@ -1,46 +1,73 @@
 <?php
 
 namespace {{ namespace }};
-
-use Illuminate\Support\ServiceProvider;
+use Teksite\Module\Providers\Support\StewardMangedModuleServiceProvider as ServiceProvider
 
 class {{ class }} extends ServiceProvider
 {
-    /*
-     * Register services.
+    /**
+     * The name of the module.
+     *
+     * @var string
      */
-    public function register(): void
+    protected string $moduleName = "{{ module }}";
+
+    /**
+     * The lowercase version of the module name.
+     *
+     * @var string
+     */
+    protected string $lowerModuleName = ""{{ moduleLowerName }}";
+
+    /**
+     * Module type (self|steward)
+     *
+     * @var string
+     */
+    protected string $type = "steward";
+
+
+    /**
+     * Command classes to register.
+     *
+     * @var string[]
+     */
+    protected array $commands = [];
+
+    /**
+     * Provider classes to register.
+     *
+     * @var string[]
+     */
+    protected array $providers = [
+        EventServiceProvider::class,
+        //RouteServiceProvider::class,
+    ];
+
+
+    /**
+     * Define module schedules.
+     */
+    protected function configureSchedules(Schedule $schedule): void
     {
-       $this->app->register(EventServiceProvider::class);
-       // $this->app->register(RouteServiceProvider::class);
+        // $schedule->command('inspire')->hourly();
+        // ...
     }
 
-    /*
-     * Bootstrap services.
+
+    /**
+     * Boot the application events.
      */
     public function boot(): void
     {
-         $this->registerCommands();
-         $this->registerCommandSchedules();
+        parent::boot();
     }
 
-
-    /*
-     * Register commands in the format of Command::class
+    /**
+     * register the application events.
      */
-    protected function registerCommands(): void
+    public function register(): void
     {
-        // $this->commands([]);
-    }
-
-    /*
-     * Register command Schedules.
-     */
-    protected function registerCommandSchedules(): void
-    {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        parent::register();
     }
 }

@@ -109,11 +109,11 @@ class ModuleMakeCommand extends Command
             'tests/Unit',
         ];
 
-        $module=$this->argument('name');
+        $module = $this->argument('name');
 
         foreach ($directories as $directory) {
             File::makeDirectory("{$path}/{$directory}", 0755, true);
-            $this->components->twoColumnDetail("Directory: <fg=white;options=bold>$module/$directory</>" ,'<fg=green;options=bold>DONE</>' );
+            $this->components->twoColumnDetail("Directory: <fg=white;options=bold>$module/$directory</>", '<fg=green;options=bold>DONE</>');
         }
     }
 
@@ -128,9 +128,9 @@ class ModuleMakeCommand extends Command
             'basic/composer.stub',
             [
                 '{{ moduleLowerName }}' => strtolower($moduleName),
-                '{{ moduleName }}' => $moduleName,
-                '{{ modulePath }}' => str_replace("\\", '/', $modulePath),
-                '{{ namespace }}' => str_replace("\\", '\\\\', $namespace),
+                '{{ moduleName }}'      => $moduleName,
+                '{{ modulePath }}'      => str_replace("\\", '/', $modulePath),
+                '{{ namespace }}'       => str_replace("\\", '\\\\', $namespace),
             ],
             "{$path}/composer.json"
         );
@@ -141,9 +141,9 @@ class ModuleMakeCommand extends Command
             $this->generateFile(
                 'basic/provider-steward-managed.stub',
                 [
-                    '{{ namespace }}' => "{$namespace}\\Providers",
-                    '{{ class }}' => "{$moduleName}ServiceProvider",
-                    '{{ module }}' => $moduleName,
+                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ class }}'           => "{$moduleName}ServiceProvider",
+                    '{{ module }}'          => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
 
                 ],
@@ -153,9 +153,9 @@ class ModuleMakeCommand extends Command
             $this->generateFile(
                 'basic/provider-self-service.stub',
                 [
-                    '{{ namespace }}' => "{$namespace}\\Providers",
-                    '{{ class }}' => "{$moduleName}ServiceProvider",
-                    '{{ module }}' => $moduleName,
+                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ class }}'           => "{$moduleName}ServiceProvider",
+                    '{{ module }}'          => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
                 ],
                 "{$path}/app/Providers/{$moduleName}ServiceProvider.php"
@@ -165,24 +165,26 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'basic/provider-event.stub',
             [
-                '{{ namespace }}' => "{$namespace}\\Providers",
-                '{{ class }}' => "EventServiceProvider",
+                '{{ namespace }}'       => "{$namespace}\\Providers",
+                '{{ class }}'           => "EventServiceProvider",
                 '{{ moduleLowerName }}' => strtolower($moduleName),
-                '{{ module }}' => $moduleName,
+                '{{ module }}'          => $moduleName,
             ],
             "{$path}/app/Providers/EventServiceProvider.php"
         );
         /* Register Route ServiceProvider file  */
-        $this->generateFile(
-            'basic/provider-route.stub',
-            [
-                '{{ namespace }}' => "{$namespace}\\Providers",
-                '{{ class }}' => "RouteServiceProvider",
-                '{{ moduleLowerName }}' => strtolower($moduleName),
-                '{{ module }}' => $moduleName,
-            ],
-            "{$path}/app/Providers/RouteServiceProvider.php"
-        );
+        if (!$this->option('steward')) {
+            $this->generateFile(
+                'basic/provider-route.stub',
+                [
+                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ class }}'           => "RouteServiceProvider",
+                    '{{ moduleLowerName }}' => strtolower($moduleName),
+                    '{{ module }}'          => $moduleName,
+                ],
+                "{$path}/app/Providers/RouteServiceProvider.php"
+            );
+        }
         /* Register Abstract controller file  */
         $this->generateFile(
             'basic/controller-abstract.stub',
@@ -227,9 +229,9 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'basic/seeder.stub',
             [
-                '{{ module }}' => strtolower($moduleName),
+                '{{ module }}'    => strtolower($moduleName),
                 '{{ namespace }}' => "{$namespace}\\Database\\Seeders",
-                '{{ class }}' => "{$moduleName}DatabaseSeeder",
+                '{{ class }}'     => "{$moduleName}DatabaseSeeder",
             ],
 
             "{$path}/database/Seeders/{$moduleName}DatabaseSeeder.php"
@@ -238,9 +240,9 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'basic/info.stub',
             [
-                '{{ name }}' => $moduleName,
-                '{{ alias }}' => strtolower($moduleName),
-                '{{ providers }}' => str_replace('\\','\\\\',"$namespace\App\Providers\\".$moduleName."ServiceProvider"),
+                '{{ name }}'      => $moduleName,
+                '{{ alias }}'     => strtolower($moduleName),
+                '{{ providers }}' => str_replace('\\', '\\\\', "$namespace\App\Providers\\" . $moduleName . "ServiceProvider"),
             ],
 
             "{$path}/info.json"
@@ -252,8 +254,8 @@ class ModuleMakeCommand extends Command
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
-        $relativePath=normalizeSlashPath(str_replace(base_path(), '' , $destination));
-        $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>" ,'<fg=green;options=bold>DONE</>' );
+        $relativePath = normalizeSlashPath(str_replace(base_path(), '', $destination));
+        $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>", '<fg=green;options=bold>DONE</>');
 
     }
 
@@ -269,14 +271,14 @@ class ModuleMakeCommand extends Command
         if (!array_key_exists($moduleName, $registeredModule)) {
             $registeredModule[$moduleName]['provider'] = $providerClass;
             $registeredModule[$moduleName]['active'] = true;
-            $registeredModule[$moduleName]['type'] = $this->option('steward') ? 'steward' :'self';
+            $registeredModule[$moduleName]['type'] = $this->option('steward') ? 'steward' : 'self';
 
             File::put(
                 $bootstrapFile,
                 '<?php return ' . humanReadableVarExport($registeredModule, true) . ';'
             );
             $this->newLine();
-            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php" ,'<fg=green;options=bold>DONE</>' );
+            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php", '<fg=green;options=bold>DONE</>');
         } else {
             $this->newLine();
             $this->error("Module $moduleName is already in bootstrap/modules.php");
@@ -288,10 +290,9 @@ class ModuleMakeCommand extends Command
         $this->info("wait to dump autoload of composer, it may take a while ...");
 
         Process::path(base_path())
-            ->command('composer dump-autoload')
-            ->run()->output();
+               ->command('composer dump-autoload')
+               ->run()->output();
     }
-
 
 
     protected function getOptions(): array
