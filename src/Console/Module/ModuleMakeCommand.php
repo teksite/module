@@ -137,7 +137,7 @@ class ModuleMakeCommand extends Command
 
         /* Register ServiceProvider file  */
         if ($this->option('steward')) {
-            #TODO think and change scenario - steward and self provider processes
+
             $this->generateFile(
                 'basic/provider.stub',
                 [
@@ -151,7 +151,7 @@ class ModuleMakeCommand extends Command
             );
         } else {
             $this->generateFile(
-                'basic/provider-service.stub',
+                'basic/provider-self-service.stub',
                 [
                     '{{ namespace }}' => "{$namespace}\\Providers",
                     '{{ class }}' => "{$moduleName}ServiceProvider",
