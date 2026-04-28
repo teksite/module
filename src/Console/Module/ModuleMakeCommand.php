@@ -26,26 +26,14 @@ class ModuleMakeCommand extends Command
     public function handle(): void
     {
         $moduleName = Str::studly($this->argument('name'));
-
         $modulePath = $this->getModulePath($moduleName);
 
-        if (!$this->isAllowedName($moduleName)) {
-            $this->error("$moduleName is not allowed to create module, choose another name.");
-            return;
-        }
-
-        if ($this->isModuleDirectoryExists($modulePath)) {
-            $this->error("a directory with the same name ($moduleName) already exists.");
-            return;
-        }
-
-        if ($this->isModuleRegistered($moduleName)) {
-            $this->error("a module with the same name ($moduleName) already exists in bootstrap module file.");
-            return;
-        }
+        if (!$this->validating($modulePath, $modulePath)) return;
 
         $this->createDirectories($modulePath);
         $this->createFiles($modulePath, $moduleName);
+
+        $this->newLine();
         $this->dumpingComposer();
 
         $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('black', 'blue', ['bold']));
@@ -54,36 +42,26 @@ class ModuleMakeCommand extends Command
         $this->info("<success>SUCCESS</success> Module $moduleName created successfully.");
     }
 
-    private function getModulePath(string $moduleName): string
+
+    private function validating(string $moduleName, $modulePath): bool
     {
-        return Module::modulePath($moduleName);
+        if (!$this->isAllowedName($moduleName)) {
+            $this->error("$moduleName is not allowed");
+            return false;
+        }
+
+        if ($this->isModuleDirectoryExists($modulePath)) {
+            $this->error("a directory with the same name ($moduleName) already exists.");
+            return false;
+        }
+
+        if ($this->isModuleRegistered($moduleName)) {
+            $this->error("a module with the same name ($moduleName) already exists in bootstrap module file.");
+            return false;
+        }
+        return true;
     }
 
-    private function isModuleDirectoryExists(string $modulePath): bool
-    {
-        if (File::exists($modulePath)) return true;
-        if (in_array($modulePath, Module::all())) return true;
-        return false;
-    }
-
-    private function isModuleRegistered(string $module): bool
-    {
-        return Module::isRegistered($module);
-
-    }
-
-    private function notAllowedModuleName(): array
-    {
-        return [
-            'steward',
-            'Steward',
-        ];
-    }
-
-    private function isAllowedName(string $moduleName): bool
-    {
-        return !in_array($moduleName, $this->notAllowedModuleName());
-    }
 
     private function createDirectories(string $path): void
     {
@@ -283,15 +261,6 @@ class ModuleMakeCommand extends Command
             $this->newLine();
             $this->error("Module $moduleName is already in bootstrap/modules.php");
         }
-    }
-
-    private function dumpingComposer(): void
-    {
-        $this->info("wait to dump autoload of composer, it may take a while ...");
-
-        Process::path(base_path())
-               ->command('composer dump-autoload')
-               ->run()->output();
     }
 
 
