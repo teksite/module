@@ -16,14 +16,14 @@ class SelfModuleServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected string $moduleName = '{{ module }}';
+    protected string $moduleName;
 
     /**
      * The lowercase version of the module name.
      *
      * @var string
      */
-    protected string $lowerModuleName = '{{ moduleLowerName }}';
+    protected string $lowerModuleName;
 
 
     /**
