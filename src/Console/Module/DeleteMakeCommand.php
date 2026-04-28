@@ -7,117 +7,136 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class DeleteMakeCommand extends Command
 {
+
     use ModuleGeneratorCommandTrait;
 
-    protected $signature = 'module:delete {name}
-        {--y|yes : Delete without confirmation}
-    ';
-    protected $description = 'Delete a specific module';
+    protected $name = 'module:delete';
+
+    protected $description = 'delete a module';
+
     protected string $type = 'Module';
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
-        if ($this->option('yes') || $this->confirmDeletion() == 'yes') $this->deleteModules();
+
+        $modulesName = $this->argument('name');
+        $bootstrapFile = module_bootstrap_path();
+
+        if (!$this->validating($modulesName, $bootstrapFile)) return;
+
+        $this->deleteModules($modulesName, $bootstrapFile);
+
     }
 
     /**
      * Ask for confirmation before deleting.
      */
-    private function confirmDeletion(): bool
+
+    private function validating(array $modulesName, $bootstrapFile): bool
     {
-        return $this->confirm('Are you sure you want to delete the module?', "no");
+        if (!File::exists($bootstrapFile)) {
+            $this->error("The file bootstrap/modules.php does not exist!");
+            return false;
+        }
+        foreach ($modulesName as $module) {
+            if (!$this->isAllowedName($module)) {
+                $this->error("$module is not allowed");
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    private function deleteConfirmation($moduleName): bool
+    {
+        if ($this->option('all')) return true;
+        return $this->confirm("Are you sure you want to delete the module ($moduleName)? [y|n]?", "n");
     }
 
     /**
      * Handle the deletion process for the given modules.
      */
-    private function deleteModules(): void
+    private function deleteModules(array $modulesName, string $bootstrapFile): void
     {
-        $moduleNames = array_map(fn($name) => Str::studly(trim($name)), explode(',', $this->argument('name')));
-        $existingModules = [];
-        $failedModules = [];
+        $modulesName = array_map(fn($module) => Str::studly(trim($module)), $modulesName);
 
-        foreach ($moduleNames as $moduleName) {
-            if ($modulePath = Module::modulePath($moduleName)) {
-                $this->removeDirectory($moduleName, $modulePath);
-                $this->updateModuleBootstrap($moduleName);
-                $existingModules[] = $moduleName;
+        foreach ($modulesName as $module) {
+            $isRegistered = (in_array($module, Module::all()));
+            $pathExist = is_dir(Module::modulePath($module)) ? Module::modulePath($module) : false;
+            if (!!$pathExist) {
+                $this->removeDirectory($pathExist);
+                $dirMSg = "<fg=green;options=bold>✔ deleted successfully!</>";
+
             } else {
-                $failedModules[] = $moduleName;
+                $dirMSg = "<fg=red;options=bold>✘ directory not found!</>";
             }
+
+            if (!!$isRegistered) {
+                $this->updateModuleBootstrap($module, $bootstrapFile);
+                $regMSg = "<fg=green;options=bold>✔ unregistered successfully!</>";
+
+            } else {
+                $regMSg = "<fg=red;options=bold>✘ not found in bootstrap/modules.php!</>";
+            }
+
+            $this->components->twoColumnDetail("$module| $regMSg", "<fg=green;options=bold>$dirMSg</>");
+
         }
 
-        $this->displayResults($existingModules, $failedModules);
+        $this->dumpingComposer();
+
     }
 
     /**
      * Remove the module directory and update configuration.
      */
-    private function removeDirectory(string $moduleName, string $modulePath): void
+    private function removeDirectory(string $path): void
     {
-        if (!File::isDirectory($modulePath)) {
-            $this->warn("Directory {$moduleName} was not found");
-            return;
-        }
-        File::deleteDirectory($modulePath);
-        $this->components->twoColumnDetail("deleting directory: <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
+        File::deleteDirectory($path);
     }
 
     /**
      * Remove the module from config/modules.php if it exists.
-\     */
-    private function updateModuleBootstrap(string $moduleName): void
+     */
+    private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): void
     {
-        $bootstrapFile = module_bootstrap_path();
-        if (!File::exists($bootstrapFile)) {
-            $this->error("The file bootstrap/modules.php does not exist!");
-            return;
-        }
-
         $modules = get_module_bootstrap();
 
-        if (!in_array($moduleName, array_keys($modules))) {
-            $this->warn("Module {$moduleName} was not found in bootstrap/modules.php");
-            return;
-        }
+        if (!in_array($moduleName, array_keys($modules))) return;
+
 
         unset($modules[$moduleName]);
         File::put($bootstrapFile, '<?php return ' . humanReadableVarExport($modules, true) . ';');
-        $this->components->twoColumnDetail("updating module bootstrap: remove <fg=cyan;options=bold>$moduleName</>", '<fg=green;options=bold>DONE</>');
 
     }
 
-    /**
-     * Display deletion results and trigger composer dump-autoload.
-     */
-    private function displayResults(array $existingModules, array $failedModules): void
+    protected function getArguments(): array
     {
-        if (!empty($failedModules)) {
-            $this->error("The following module(s) were not found: " . implode(", ", $failedModules));
-        }
-
-        if (!empty($existingModules)) {
-            $this->composerDumpAutoload();
-            $this->output->getFormatter()->setStyle('success', new OutputFormatterStyle('red', null, ['bold']));
-            $this->newLine();
-            $this->info("<success>DELETED</success> Module(s) " . implode(", ", $existingModules) . " deleted successfully.");
-        }
+        return [
+            ['name', InputArgument::IS_ARRAY, 'module(s) to be deleted'],
+        ];
     }
 
-    /**
-     * Run composer dump-autoload.
-     */
-    private function composerDumpAutoload(): void
+    protected function getOptions(): array
     {
-        $this->info("Running composer dump-autoload, please wait...");
-        Process::path(base_path())->command('composer dump-autoload')->run()->output();
+        //TODO rollback in deleting module(s)
+        return [
+            ['all', 'a', InputOption::VALUE_NONE, 'delete all modules without confirmation'],
+            ['rollback', 'r', InputOption::VALUE_NONE, 'rollback module(s)'],
+        ];
     }
+
+
 }
