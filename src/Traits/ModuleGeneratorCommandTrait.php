@@ -10,7 +10,8 @@ use Teksite\Module\Facade\Module;
 
 trait ModuleGeneratorCommandTrait
 {
-    protected function getModulePath(string $moduleName): string
+
+    private function getModulePath(string $moduleName): string
     {
         return Module::modulePath($moduleName);
     }

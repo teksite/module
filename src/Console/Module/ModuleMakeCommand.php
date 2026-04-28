@@ -263,7 +263,6 @@ class ModuleMakeCommand extends Command
         }
     }
 
-
     protected function getOptions(): array
     {
         return [

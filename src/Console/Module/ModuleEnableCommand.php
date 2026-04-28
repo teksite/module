@@ -59,12 +59,6 @@ class ModuleEnableCommand extends Command
         return true;
     }
 
-
-    private function getModulePath(string $moduleName): string
-    {
-        return Module::modulePath($moduleName);
-    }
-
     private function enableModule(string $moduleName): void
     {
         try {
@@ -78,6 +72,4 @@ class ModuleEnableCommand extends Command
             return;
         }
     }
-
-
 }
