@@ -12,14 +12,14 @@ class {{ class }} extends ServiceProvider
      *
      * @var string
      */
-    protected string $moduleName = 'Course';
+    protected string $moduleName = {{ module }};
 
     /**
      * The lowercase version of the module name.
      *
      * @var string
      */
-    protected string $lowerModuleName = 'course';
+    protected string $lowerModuleName = {{ moduleLowerName }};
 
     /**
      * Module type (self|steward)

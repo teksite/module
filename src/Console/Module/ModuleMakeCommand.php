@@ -139,7 +139,7 @@ class ModuleMakeCommand extends Command
         if ($this->option('steward')) {
 
             $this->generateFile(
-                'basic/provider.stub',
+                'basic/provider-steward-managed.stub',
                 [
                     '{{ namespace }}' => "{$namespace}\\Providers",
                     '{{ class }}' => "{$moduleName}ServiceProvider",
