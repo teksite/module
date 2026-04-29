@@ -50,7 +50,7 @@ class ModuleScanCommand extends Command
 
             $this->registerModule($module, $type);
 
-            $this->line("<fg=yellow>$module</>is registered");
+            $this->info("$module is registered");
 
         }
     }
@@ -74,9 +74,16 @@ class ModuleScanCommand extends Command
             $this->error("$serviceProviderNameNamespace doesn't exist in $serviceProviderPath file");
             return false;
         }
-        $refClass = new ReflectionClass($serviceProviderNameNamespace);
-        $props= $refClass->getProperties();
-dd($props);
+        $ref = new ReflectionClass($serviceProviderNameNamespace);
+
+        $defaultProperties = $ref->getDefaultProperties();
+
+        $type = $defaultProperties['type'] ?? false;
+        if (!(bool)$type) {
+            $this->error("type property doesn't set in $serviceProviderNameNamespace, set steward or self ");
+            return false;
+        }
+        return $type;
     }
 
     private function getWidowModules(): array
