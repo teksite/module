@@ -57,6 +57,22 @@ class BaseModuleServiceProvider extends ServiceProvider
         }
     }
 
+
+    public function boot(): void
+    {
+        if ($this->type === 'self') {
+            $this->bootCommands();
+            $this->bootCommandSchedules();
+            $this->bootTranslations();
+            $this->bootConfig();
+            $this->bootViews();
+            $this->bootMigrations();
+        }elseif($this->type === 'steward'){
+            $this->bootCommands();
+            $this->bootCommandSchedules();
+        }
+    }
+
     /**
      * Register commands in the format of Command::class
      */

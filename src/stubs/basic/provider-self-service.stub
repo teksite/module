@@ -3,8 +3,7 @@
 namespace {{ namespace }};
 
 use Illuminate\Console\Scheduling\Schedule;
-use Teksite\Module\Providers\Support\SelfModuleServiceProvider as ServiceProvider;
-//use Teksite\Module\Providers\Support\StewardMangedModuleServiceProvider as ServiceProvider;
+use Teksite\Module\Providers\Support\BaseModuleServiceProvider as ServiceProvider;
 
 
 class {{ class }} extends ServiceProvider
@@ -43,7 +42,10 @@ class {{ class }} extends ServiceProvider
      *
      * @var string[]
      */
-    protected array $providers = [];
+    protected array $providers = [
+        EventServiceProvider::class,
+        RouteServiceProvider::class,
+    ];
 
 
     /**
