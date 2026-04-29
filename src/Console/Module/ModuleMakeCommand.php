@@ -101,6 +101,8 @@ class ModuleMakeCommand extends Command
 
         $modulePath = Module::modulePath($moduleName, absolute: false);
 
+        $moduleType= $this->option('steward') ? 'steward' : 'self';
+
         /* Register Composer file  */
         $this->generateFile(
             'basic/composer.stub',
@@ -226,7 +228,7 @@ class ModuleMakeCommand extends Command
             "{$path}/info.json"
         );
 
-        $this->registerModule($moduleName);
+        $this->registerModule($moduleName , $moduleType);
     }
 
     private function generateFile(string $stub, array $replacements, string $destination): void
@@ -235,32 +237,6 @@ class ModuleMakeCommand extends Command
         $relativePath = normalizeSlashPath(str_replace(base_path(), '', $destination));
         $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>", '<fg=green;options=bold>DONE</>');
 
-    }
-
-    private function registerModule(string $moduleName): void
-    {
-        $bootstrapFile = module_bootstrap_path();
-        $registeredModule = get_module_bootstrap();
-
-        $namespace = Module::moduleNamespace($moduleName);
-
-        $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
-
-        if (!array_key_exists($moduleName, $registeredModule)) {
-            $registeredModule[$moduleName]['provider'] = $providerClass;
-            $registeredModule[$moduleName]['active'] = true;
-            $registeredModule[$moduleName]['type'] = $this->option('steward') ? 'steward' : 'self';
-
-            File::put(
-                $bootstrapFile,
-                '<?php return ' . humanReadableVarExport($registeredModule, true) . ';'
-            );
-            $this->newLine();
-            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php", '<fg=green;options=bold>DONE</>');
-        } else {
-            $this->newLine();
-            $this->error("Module $moduleName is already in bootstrap/modules.php");
-        }
     }
 
     protected function getOptions(): array

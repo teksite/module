@@ -45,6 +45,7 @@ use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleDisableCommand;
 use Teksite\Module\Console\Module\ModuleEnableCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
+use Teksite\Module\Console\Module\ModuleScanCommand;
 use Teksite\Module\Providers\EventServiceProvider;
 use Teksite\Module\Providers\ModuleManagerServiceProvider;
 use Teksite\Module\Services\ModuleServices;
@@ -140,6 +141,7 @@ class ModuleServiceProvider extends ServiceProvider
             DeleteMakeCommand::class,
             ModuleEnableCommand::class,
             ModuleDisableCommand::class,
+            ModuleScanCommand::class,
 
         ]);
     }

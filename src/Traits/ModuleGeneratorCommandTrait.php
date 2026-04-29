@@ -10,7 +10,6 @@ use Teksite\Module\Facade\Module;
 
 trait ModuleGeneratorCommandTrait
 {
-
     private function getModulePath(string $moduleName): string
     {
         return Module::modulePath($moduleName);
@@ -41,6 +40,35 @@ trait ModuleGeneratorCommandTrait
     {
         return !in_array($moduleName, $this->notAllowedModuleName());
     }
+
+
+    private function registerModule(string $moduleName , string $type): void
+    {
+        $bootstrapFile = module_bootstrap_path();
+        $registeredModule = get_module_bootstrap();
+
+        $namespace = Module::moduleNamespace($moduleName);
+
+        $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
+
+        if (!array_key_exists($moduleName, $registeredModule)) {
+            $registeredModule[$moduleName]['provider'] = $providerClass;
+            $registeredModule[$moduleName]['active'] = true;
+            $registeredModule[$moduleName]['type'] = $type;
+
+            File::put(
+                $bootstrapFile,
+                '<?php return ' . humanReadableVarExport($registeredModule, true) . ';'
+            );
+            $this->newLine();
+            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php", '<fg=green;options=bold>DONE</>');
+        } else {
+            $this->newLine();
+            $this->error("Module $moduleName is already in bootstrap/modules.php");
+        }
+    }
+
+
 
     protected function replaceStub(string $stub, array $replace, string $destination): void
     {

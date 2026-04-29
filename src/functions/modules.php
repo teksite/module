@@ -86,6 +86,18 @@ if (!function_exists('get_modules')) {
     }
 }
 
+if (!function_exists('get_modules_name')) {
+    /**
+     * get arrays of registered modules name
+     *
+     * @return array
+     */
+    function get_modules_name(): array
+    {
+        return array_keys(get_modules() ?? []);
+    }
+}
+
 if (!function_exists('get_enabled_modules')) {
     /**
      * get arrays of installed and enabled modules
