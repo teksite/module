@@ -5,21 +5,35 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
 use Teksite\Module\Traits\ModuleCommandsTrait;
+use Teksite\Module\Traits\ModuleGeneratorTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
-class CastMakeCommand extends GeneratorCommand
+class CastMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator , ModuleCommandsTrait;
+    use ModuleNameValidator , ModuleGeneratorTrait;
 
-    protected $signature = 'module:make-cast {name} {module}
-         {--f|force : Create the class even if the cast already exists }
-         {--inbound : Generate an inbound cast class }
-        ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'make:cast';
 
-    protected $description = 'Create a new cast class in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new custom Eloquent cast class in modules or steward';
 
-    protected $type = 'Cast';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Cast';
 
     /**
      * Get the stub file for the generator.
@@ -27,51 +41,41 @@ class CastMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         return $this->option('inbound')
-            ? $this->resolveStubPath('/cast.inbound.stub')
-            : $this->resolveStubPath('/cast.stub');
+            ? $this->resolveStubPath('cast.inbound.stub')
+            : $this->resolveStubPath('cast.stub');
     }
 
     /**
-     * Get the destination class path.
+     * Resolve the fully-qualified path to the stub.
      *
-     * @param string $name
+     * @param  string  $stub
      * @return string
      */
-    protected function getPath($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
 
     /**
      * Get the default namespace for the class.
      *
-     * @param string $name
+     * @param  string  $rootNamespace
      * @return string
      */
-    protected function qualifyClass($name): string
+    protected function getDefaultNamespace($rootNamespace): string
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Cast');
+        return $rootNamespace.'\Casts';
     }
 
-    public function handle(): bool|int|null
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the cast already exists'],
+            ['inbound', null, InputOption::VALUE_NONE, 'Generate an inbound cast class'],
+        ];
     }
 }

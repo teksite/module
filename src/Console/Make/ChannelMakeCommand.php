@@ -4,6 +4,7 @@ namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
@@ -33,8 +34,9 @@ class ChannelMakeCommand extends GeneratorCommand
     /**
      * Build the class with the given name.
      *
-     * @param  string  $name
+     * @param string $name
      * @return string
+     * @throws FileNotFoundException
      */
     protected function buildClass($name)
     {

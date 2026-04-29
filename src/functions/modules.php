@@ -18,7 +18,7 @@ if (!function_exists('module_path')) {
 
         $modulePath = $modulesRootPath . ($moduleName ? DIRECTORY_SEPARATOR . $moduleName : '');
 
-        $finalPath =  $modulePath . ($path ? DIRECTORY_SEPARATOR . $path : '');
+        $finalPath =  $modulePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
         $normalized =normalizeSlashPath($finalPath);
 
         return $absolute ? base_path($normalized) : $normalized;
@@ -85,6 +85,26 @@ if (!function_exists('get_modules')) {
        return get_module_bootstrap($modules);
     }
 }
+
+if (!function_exists('get_modules_status')) {
+    /**
+     * get arrays of modules and their activation status
+     *
+     * @param bool $steward
+     * @return array
+     */
+    function get_modules_status( bool $steward = false): array
+    {
+       $modules = get_module_bootstrap();
+       return collect($modules)
+           ->map(fn($module) => $module['active'] ?? false)
+           ->when($steward, function ($collection) {
+               return $collection->merge(['steward' => true]);
+           })
+           ->toArray();
+    }
+}
+
 
 if (!function_exists('get_modules_name')) {
     /**
@@ -161,7 +181,7 @@ if (!function_exists('steward_path')) {
     {
         $stewardRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.steward.directory', 'steward');
 
-        $finalPath =  $stewardRootPath . ($path ? DIRECTORY_SEPARATOR . $path : '');
+        $finalPath =  $stewardRootPath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
         $normalized =normalizeSlashPath($finalPath);
 
         return $absolute ? base_path($normalized) : $normalized;

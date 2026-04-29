@@ -16,7 +16,7 @@ trait ModuleCommandsTrait
     protected function resolveStubPath($stub)
     {
         $path = app('modules.stubs') . $stub;
-        return file_exists($path) ? $path : throw new \Exception ($stub . 'isn not exist in the path: ', $path);
+        return file_exists($path) ? $path : throw new \Exception ($stub . "doesn't exist in the path: ", $path);
     }
 
     protected function setPath($relativePath, string $format = 'php'): string
@@ -36,9 +36,8 @@ trait ModuleCommandsTrait
 
     protected function existOrCreate(string $path): void
     {
-        if (!dirname($path)) {
-            mkdir(dirname($path), 0755, true, true);
-        }
+        if (!dirname($path)) mkdir(dirname($path), 0755, true, true);
+
     }
 
     protected function getLowerNameModule(?string $module = null): string
@@ -46,10 +45,10 @@ trait ModuleCommandsTrait
         return Str::lower($this->argument('module') ?? 'Steward');
     }
 
-    protected function viewPath($path= '')
+    protected function viewPath($path = '')
     {
-        $module = "modules/".$this->argument('module') ?? 'Steward';
-        return Module::modulePath($module , "resources/views/$path");
+        $module = "modules/" . $this->argument('module') ?? 'Steward';
+        return Module::modulePath($module, "resources/views/$path");
 
     }
 
@@ -59,7 +58,7 @@ trait ModuleCommandsTrait
 
         $model = str_replace('/', '\\', $model);
 
-        $thisNamespace = Str::finish($this->rootNamespace() ,'\\');
+        $thisNamespace = Str::finish($this->rootNamespace(), '\\');
         $appNamespace = app()->getNamespace();
         $moduleNamespace = Module::moduleNamespace();
 
@@ -72,8 +71,7 @@ trait ModuleCommandsTrait
         if (Str::startsWith($model, $moduleNamespace)) {
             return $model;
         }
-        return Module::moduleNamespace($this->argument('module') , 'App\\Models\\'.$model);
-
+        return Module::moduleNamespace($this->argument('module'), 'App\\Models\\' . $model);
 
 
     }
@@ -82,12 +80,12 @@ trait ModuleCommandsTrait
     {
         $module = $this->argument('module') ?? 'Steward';
 
-        return Module::moduleNamespace($module , 'App');
+        return Module::moduleNamespace($module, 'App');
     }
 
-    public function moduleNamespace(?string $module =null, string $path=null)
+    public function moduleNamespace(?string $module = null, string $path = null)
     {
-       return Module::moduleNamespace($module , $path);
+        return Module::moduleNamespace($module, $path);
 
     }
 
