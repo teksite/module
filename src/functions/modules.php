@@ -105,7 +105,6 @@ if (!function_exists('get_modules_status')) {
     }
 }
 
-
 if (!function_exists('get_modules_name')) {
     /**
      * get arrays of registered modules name
@@ -158,6 +157,8 @@ if (!function_exists('get_module_type')) {
         return (get_module_bootstrap($modules))['type'] ?? null;
     }
 }
+
+
 
 if (!function_exists('steward_namespace')) {
     /**

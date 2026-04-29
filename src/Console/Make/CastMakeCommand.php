@@ -12,14 +12,14 @@ use Teksite\Module\Traits\ModuleNameValidator;
 
 class CastMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator , ModuleGeneratorTrait;
+    use ModuleNameValidator, ModuleGeneratorTrait;
 
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $name = 'make:cast';
+    protected $name = 'module:make-cast';
 
     /**
      * The console command description.
@@ -48,22 +48,20 @@ class CastMakeCommand extends GeneratorModuleCommand
             : $this->resolveStubPath('cast.stub');
     }
 
-    /**
-     * Resolve the fully-qualified path to the stub.
-     *
-     * @param  string  $stub
-     * @return string
-     */
+    protected function path(): string
+    {
+       return  'app/Casts';
+    }
 
     /**
      * Get the default namespace for the class.
      *
-     * @param  string  $rootNamespace
+     * @param string $rootNamespace
      * @return string
      */
     protected function getDefaultNamespace($rootNamespace): string
     {
-        return $rootNamespace.'\Casts';
+        return $rootNamespace . '\Casts';
     }
 
     /**
