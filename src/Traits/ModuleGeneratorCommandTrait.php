@@ -42,7 +42,7 @@ trait ModuleGeneratorCommandTrait
     }
 
 
-    private function registerModule(string $moduleName , string $type): void
+    private function registerModule(string $moduleName , string $type , bool $active= true): void
     {
         $bootstrapFile = module_bootstrap_path();
         $registeredModule = get_module_bootstrap();
@@ -53,7 +53,7 @@ trait ModuleGeneratorCommandTrait
 
         if (!array_key_exists($moduleName, $registeredModule)) {
             $registeredModule[$moduleName]['provider'] = $providerClass;
-            $registeredModule[$moduleName]['active'] = true;
+            $registeredModule[$moduleName]['active'] = $active;
             $registeredModule[$moduleName]['type'] = $type;
 
             File::put(

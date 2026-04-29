@@ -48,11 +48,12 @@ class ModuleScanCommand extends Command
             $type = $this->getModuleType($serviceProviderPath, $serviceProviderNameNamespace);
             if (!$type) continue;
 
-            $this->registerModule($module, $type);
+            $this->registerModule($module, $type , false);
 
             $this->info("$module is registered");
 
         }
+        $this->dumpingComposer();
     }
 
     private function getServiceProviderPath(string $moduleName, string $serviceProviderFileName): false|string
