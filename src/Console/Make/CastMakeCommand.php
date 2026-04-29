@@ -54,7 +54,7 @@ class CastMakeCommand extends GeneratorModuleCommand
     }
 
     /**
-     * set the path of the file.
+     * set replacements
      *
      * @return array [string $searchable , string $replace ]
      */

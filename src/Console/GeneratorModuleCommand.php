@@ -79,9 +79,9 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 
 
     /**
-     * set the path of the file.
+     * set replacements
      *
-     * @return array [string $searchable , string $replace ]
+     * @return array [string $searchable , string $replace]
      */
     protected abstract function replacements(): array;
 
