@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Console\Concerns\FindsAvailableModels;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -30,6 +31,9 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 {
     use ModuleGeneratorTrait, ModuleValidationGeneratorTrait;
 
+
+    protected string $namespace;
+
     /**
      * The filesystem instance.
      *
@@ -44,96 +48,6 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
      */
     protected string $type;
 
-    /**
-     * Reserved names that cannot be used for generation.
-     *
-     * @var string[]
-     */
-    protected array $reservedNames = [
-        '__halt_compiler',
-        'abstract',
-        'and',
-        'array',
-        'as',
-        'break',
-        'callable',
-        'case',
-        'catch',
-        'class',
-        'clone',
-        'const',
-        'continue',
-        'declare',
-        'default',
-        'die',
-        'do',
-        'echo',
-        'else',
-        'elseif',
-        'empty',
-        'enddeclare',
-        'endfor',
-        'endforeach',
-        'endif',
-        'endswitch',
-        'endwhile',
-        'enum',
-        'eval',
-        'exit',
-        'extends',
-        'false',
-        'final',
-        'finally',
-        'fn',
-        'for',
-        'foreach',
-        'function',
-        'global',
-        'goto',
-        'if',
-        'implements',
-        'include',
-        'include_once',
-        'instanceof',
-        'insteadof',
-        'interface',
-        'isset',
-        'list',
-        'match',
-        'namespace',
-        'new',
-        'or',
-        'parent',
-        'print',
-        'private',
-        'protected',
-        'public',
-        'readonly',
-        'require',
-        'require_once',
-        'return',
-        'self',
-        'static',
-        'switch',
-        'throw',
-        'trait',
-        'true',
-        'try',
-        'unset',
-        'use',
-        'var',
-        'while',
-        'xor',
-        'yield',
-        '__CLASS__',
-        '__DIR__',
-        '__FILE__',
-        '__FUNCTION__',
-        '__LINE__',
-        '__METHOD__',
-        '__NAMESPACE__',
-        '__TRAIT__',
-    ];
 
     /**
      * Create a new generator command instance.
@@ -156,6 +70,21 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
      */
     abstract protected function getStub(): string;
 
+    /**
+     * set the path of the file.
+     *
+     * @return string
+     */
+    protected abstract function path(): string;
+
+
+    /**
+     * set the path of the file.
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected abstract function replacements(): array;
+
 
     public function handle(): void
     {
@@ -166,16 +95,18 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
         }
         $module = $this->getModuleInput();
         if (!$this->isModuleExist($module)) {
-            $this->components->error('The module "' .$module . 'is not registered or does not exist.');
+            $this->components->error('The module "' . $module . 'is not registered or does not exist.');
             $this->components->error("use steward work instead of module name to make {$this->type} in steward");
             return;
         }
 
-        $this->getModuleNamespace($module , $this->path());
 
-        $path = $this->getPath($name , $module);
-        dd($this->namespace ,$path);
+        $namespace = $this->getNamespace($module, $name);
+        $path = $this->getPath($name, $module);
+        if (!$this->checkForce($path)) return;
 
+        $contentClass = $this->buildClass($module, $name);
+        $this->makeFile($contentClass, $path , $module);
 
 
     }
@@ -190,38 +121,51 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 
     protected function getPath(string $name, string $module): string
     {
-        $path = $module === 'steward' ? steward_path() : module_path($module);
-        return normalizeSlashPath("$path/$name.php");
+        $path = $module === 'steward' ? steward_path($this->path() . '/' . $name , false) : module_path($module, $this->path() . '/' . $name , false);
+        $this->makeDirectory($path);
+        return normalizeSlashPath("$path.php");
     }
-
-    protected abstract function path() :string;
 
 
     /**
      * Build the directory for the class if necessary.
      *
      * @param string $path
-     * @return string
+     * @return void
      */
-    protected function makeDirectory(string $path): string
+    protected function makeDirectory(string $path): void
     {
         if (!$this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0777, true, true);
         }
-
-        return $path;
     }
 
+    /**
+     * check if the file is existed or not
+     *
+     * @param $path
+     * @return bool
+     */
+    protected function alreadyExists($path): bool
+    {
+        return $this->files->exists($path);
+
+    }
 
     /**
      * Get the full namespace for a given class, without the class name.
      *
+     * @param string $module
      * @param string $name
      * @return string
      */
-    protected function getNamespace($name): string
+    protected function getNamespace(string $module, string $name): string
     {
-        return trim(implode('\\', array_slice(explode('\\', $name), 0, -1)), '\\');
+        $fullNamespace = $this->getModuleNamespace($module, $this->path()) . '\\' . $name;
+        $namespace = trim(implode('\\', array_slice(explode('\\', $fullNamespace), 0, -1)), '\\');
+
+        $this->namespace = $namespace;
+        return $namespace;
     }
 
     /**
@@ -237,7 +181,18 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
             return Str::substr($name, 0, -4);
         }
 
-        return $name;
+        return normalizeSlashPath($name);
+    }
+
+    /**
+     * Get name of the class from the input.
+     *
+     * @return string
+     */
+    protected function getClassName(): string
+    {
+        $name = $this->getNameInput();
+        return array_last(explode('\\', $name));
     }
 
     /**
@@ -249,6 +204,16 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
     {
         return trim($this->argument('module'));
 
+    }
+
+    /**
+     * return lowercase of the name of the module
+     *
+     * @return string
+     */
+    protected function getLowerNameModule(): string
+    {
+        return Str::lower($this->getModuleInput());
     }
 
 
@@ -263,6 +228,46 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
         $views = $this->laravel['config']['view.paths'][0] ?? resource_path('views');
 
         return $views . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function buildClass($module, $name): string
+    {
+        $stub = $this->files->get($this->getStub());
+        array_merge($this->replacements());
+        $replacements = collect([
+            '{{ namespace }}' => $this->namespace,
+            '{{namespace}}'   => $this->namespace,
+            '{{ class }}'     => $this->getClassName(),
+            '{{class}}'       => $this->getClassName(),
+        ])->merge($this->replacements())
+          ->merge($this->replacements ?? [])
+          ->unique()
+          ->toArray();
+
+        return str_replace(array_keys($replacements), array_values($replacements), $stub);
+
+
+    }
+
+    /**
+     * make class file
+     *
+     * @param string $contentClass
+     * @param string $path
+     * @param string $module
+     * @return void
+     */
+    public function makeFile(string $contentClass, string $path , string $module): void
+    {
+        $this->files->put($path, $contentClass);
+
+        $this->components->twoColumnDetail("<info>$module| the {$this->type} file has been created.</info>", $path);
+
+
     }
 
     /**

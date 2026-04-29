@@ -11,7 +11,7 @@ use Teksite\Module\Services\ModuleServices;
 
 trait ModuleGeneratorTrait
 {
-    protected $namespace;
+    protected $base_namespace;
 
     /**
      * Get the application namespace.
@@ -37,7 +37,7 @@ trait ModuleGeneratorTrait
             if (str_starts_with($relativePath, $baseDir)) {
                 $namespace = preg_replace($baseDir, $namespacePrefix, $path, 1);
                 $namespace = normalizeSlashNamespace($namespace);
-                $this->namespace = $namespace;
+                $this->base_namespace = $namespace;
                 return $namespace;
 
             }
@@ -45,4 +45,5 @@ trait ModuleGeneratorTrait
 
         throw new RuntimeException('Unable to detect application namespace.');
     }
+
 }

@@ -11,6 +11,98 @@ use Teksite\Module\Services\ModuleServices;
 
 trait ModuleValidationGeneratorTrait
 {
+
+    /**
+     * Reserved names that cannot be used for generation.
+     *
+     * @var string[]
+     */
+    protected array $reservedNames = [
+        '__halt_compiler',
+        'abstract',
+        'and',
+        'array',
+        'as',
+        'break',
+        'callable',
+        'case',
+        'catch',
+        'class',
+        'clone',
+        'const',
+        'continue',
+        'declare',
+        'default',
+        'die',
+        'do',
+        'echo',
+        'else',
+        'elseif',
+        'empty',
+        'enddeclare',
+        'endfor',
+        'endforeach',
+        'endif',
+        'endswitch',
+        'endwhile',
+        'enum',
+        'eval',
+        'exit',
+        'extends',
+        'false',
+        'final',
+        'finally',
+        'fn',
+        'for',
+        'foreach',
+        'function',
+        'global',
+        'goto',
+        'if',
+        'implements',
+        'include',
+        'include_once',
+        'instanceof',
+        'insteadof',
+        'interface',
+        'isset',
+        'list',
+        'match',
+        'namespace',
+        'new',
+        'or',
+        'parent',
+        'print',
+        'private',
+        'protected',
+        'public',
+        'readonly',
+        'require',
+        'require_once',
+        'return',
+        'self',
+        'static',
+        'switch',
+        'throw',
+        'trait',
+        'true',
+        'try',
+        'unset',
+        'use',
+        'var',
+        'while',
+        'xor',
+        'yield',
+        '__CLASS__',
+        '__DIR__',
+        '__FILE__',
+        '__FUNCTION__',
+        '__LINE__',
+        '__METHOD__',
+        '__NAMESPACE__',
+        '__TRAIT__',
+    ];
+
     /**
      * Checks whether the given name is reserved.
      *
@@ -42,6 +134,21 @@ trait ModuleValidationGeneratorTrait
         );
     }
 
-
+    /**
+     * handling rewrite if the final file exit or not,
+     *
+     * @param string $path
+     * @return bool
+     */
+    protected function checkForce(string $path)
+    {
+        if ($this->alreadyExists($path)) {
+            if ( !$this->option('force')){
+                $this->components->error($this->type . ' already exists in ' . $path . '.');
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

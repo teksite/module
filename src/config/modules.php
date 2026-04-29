@@ -38,6 +38,8 @@ return [
         "directory"      => "steward",
         'namespace'      => 'Lareon\Steward',
         'module_manager' => '\\Lareon\\CMS\\App\\Providers\\ModulesManagerServiceProvider',
+
+        'view_path' => 'resources/views',
     ],
 
 ];

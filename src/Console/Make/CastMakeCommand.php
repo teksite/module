@@ -54,14 +54,14 @@ class CastMakeCommand extends GeneratorModuleCommand
     }
 
     /**
-     * Get the default namespace for the class.
+     * set the path of the file.
      *
-     * @param string $rootNamespace
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getDefaultNamespace($rootNamespace): string
+    protected function replacements(): array
     {
-        return $rootNamespace . '\Casts';
+        return [];
+
     }
 
     /**
@@ -76,4 +76,6 @@ class CastMakeCommand extends GeneratorModuleCommand
             ['inbound', null, InputOption::VALUE_NONE, 'Generate an inbound cast class'],
         ];
     }
+
+
 }
