@@ -2,80 +2,91 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 use function Laravel\Prompts\confirm;
 
-class ExceptionMakeCommand extends GeneratorCommand
+
+class ExceptionMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+    use CreatesModuleMatchingTest;
 
-    protected $signature = 'module:make-exception {name} {module}
-        {--f|force : Create the class even if the event already exists }
-        {--render : Create the exception with an empty render method}
-        {--report : Create the exception with an empty report method}
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-exception';
 
-    protected $description = 'Create a new exception in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new custom exception class in modules or steward';
 
-    protected $type = 'Exception';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Exception';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         if ($this->option('render')) {
             return $this->option('report')
-                ? $this->resolveStubPath('/exception-render-report.stub')
-                : $this->resolveStubPath('/exception-render.stub');
+            ? $this->resolveStubPath('stubs/exception-render-report.stub')
+            : $this->resolveStubPath('stubs/exception-render.stub');
         }
+
         return $this->option('report')
-            ? $this->resolveStubPath('/exception-report.stub')
-            : $this->resolveStubPath('/exception.stub');
+            ? $this->resolveStubPath('stubs/exception-report.stub')
+            : $this->resolveStubPath('stubs/exception.stub');
     }
 
-
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return 'app/Exceptions';
     }
 
-
     /**
-     * Get the default namespace for the class.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function qualifyClass($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setNamespace($module,$name , '\\App\\Exceptions');
+        return [];
 
     }
 
     /**
-     * Interact further with the user if they were prompted for missing arguments.
+     * Get the console command arguments.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
+     * @return array
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function getOptions(): array
+    {
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the exception already exists'],
+            ['render', null, InputOption::VALUE_NONE, 'Create the exception with an empty render method'],
+            ['report', null, InputOption::VALUE_NONE, 'Create the exception with an empty report method'],
+        ];
+    }
+
+
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
         if ($this->didReceiveOptions($input)) {
             return;
@@ -86,17 +97,4 @@ class ExceptionMakeCommand extends GeneratorCommand
     }
 
 
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 }

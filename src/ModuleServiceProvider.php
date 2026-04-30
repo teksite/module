@@ -104,7 +104,7 @@ class ModuleServiceProvider extends ServiceProvider
             // ControllerMakeCommand::class,
              EnumMakeCommand::class,
             // EventMakeCommand::class,
-            // ExceptionMakeCommand::class,
+             ExceptionMakeCommand::class,
             // FactoryMakeCommand::class,
             // InterfaceMakeCommand::class,
             // JobMakeCommand::class,
