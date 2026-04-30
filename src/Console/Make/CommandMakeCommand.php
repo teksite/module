@@ -2,85 +2,78 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleCommandTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 
-class CommandMakeCommand extends GeneratorCommand
+class CommandMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator , ModuleCommandsTrait;
+    use CreatesModuleMatchingTest;
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-command';
 
-    protected $signature = 'module:make-command {name} {module}
-         {--f|force : Create the class even if the console command already exists }
-         {--command : he terminal command that will be used to invoke the class }
-         ';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new Artisan command in modules or steward';
 
-    protected $description = 'Create a new custom command class in the specific module';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Console command';
 
-    protected $type = 'Command';
-
-    protected function getStub()
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/console.stub');
+        return $this->resolveStubPath('console.stub');
+    }
+
+    protected function path(): string
+    {
+        return  'app/Console/Commands';
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        $command = $this->option('command') ?: 'app:'.(new Stringable($this->getNameInput()))->classBasename()->kebab()->value();
+
+        return [
+            '{{ command }}' => $command,
+        ];
+
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Console\\Command');
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class even if the {$this->type} already exists"],
+            ['command', null, InputOption::VALUE_OPTIONAL, 'The terminal command that will be used to invoke the class'],
+        ];
     }
 
-    /**
-     * Replace the class name for the given stub.
-     *
-     * @param  string  $stub
-     * @param  string  $name
-     * @return string
-     */
-    protected function replaceClass($stub, $name)
-    {
-        $stub = parent::replaceClass($stub, $name);
-
-        $command = $this->option('command') ?: 'app:'.(new Stringable($name))->classBasename()->kebab()->value();
-
-        return str_replace(['dummy:command', '{{ command }}'], $command, $stub);
-    }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
-    }
 
 }
