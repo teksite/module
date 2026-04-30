@@ -140,7 +140,7 @@ trait ModuleValidationGeneratorTrait
      * @param string $path
      * @return bool
      */
-    protected function checkForce(string $path)
+    protected function checkForce(string $path): bool
     {
         if ($this->alreadyExists($path)) {
             if ( !$this->option('force')){

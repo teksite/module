@@ -3,14 +3,11 @@
 namespace Teksite\Module\Console\Module;
 
 use Illuminate\Console\Command;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
 use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleEnableCommand extends Command
 {

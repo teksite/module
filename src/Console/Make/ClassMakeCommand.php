@@ -3,33 +3,34 @@
 namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\Command;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Illuminate\Support\Stringable;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Traits\CreatesModuleMatchingTest;
 
-class ClassMakeCommand extends GeneratorCommand
+class ClassMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleCommandsTrait, ModuleNameValidator;
-
+    use CreatesModuleMatchingTest;
     /**
-     * The name and signature of the console command.
+     * The console command name.
      *
      * @var string
      */
-    protected $signature = 'module:make-class {name} {module}
-        {--f|force : Create the class even if the cast already exists }
-        {--i|invokable : Generate a single method, invokable class }
-        ';
+    protected $name = 'module:make-command';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new class in a specific module';
+    protected $description = 'Create a new Artisan command in modules or steward';
 
-    protected $type = 'Class';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Console command';
 
     /**
      * Get the stub file for the generator.
@@ -37,50 +38,42 @@ class ClassMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->option('invokable')
-            ? $this->resolveStubPath('/class.invokable.stub')
-            : $this->resolveStubPath('/class.stub');
+        return $this->resolveStubPath('console.stub');
     }
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
+
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return  'app/Console/Commands';
     }
 
     /**
-     * Get the default namespace for the class.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function qualifyClass($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
+        $command = $this->option('command') ?: 'app:'.(new Stringable($this->getNameInput()))->classBasename()->kebab()->value();
 
-        return $this->setNamespace($module,$name , '\\App');
+        return [
+            '{{ command }}' => $command,
+        ];
+
     }
-    public function handle(): bool|int|null
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class even if the {$this->type} already exists"],
+            ['command', null, InputOption::VALUE_OPTIONAL, 'The terminal command that will be used to invoke the class'],
+        ];
     }
 
 

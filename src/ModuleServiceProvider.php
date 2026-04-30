@@ -88,13 +88,16 @@ class ModuleServiceProvider extends ServiceProvider
         $this->app->bind('modules.stubs', function () {
             return __DIR__ . DIRECTORY_SEPARATOR . "stubs" . DIRECTORY_SEPARATOR;
         });
+        $this->app->bind('make-module.stubs', function () {
+            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR  . "Module" . DIRECTORY_SEPARATOR;
+        });
     }
 
     public function bootCommands(): void
     {
         $this->commands([
             CastMakeCommand::class,
-            ChannelMakeCommand::class,
+           // ChannelMakeCommand::class,
            // ClassMakeCommand::class,
            // CommandMakeCommand::class,
            // ComponentMakeCommand::class,
@@ -125,8 +128,8 @@ class ModuleServiceProvider extends ServiceProvider
            // TraitMakeCommand::class,
            // ViewMakeCommand::class,
            // TrashControllerMakeCommand::class,
-
-
+//
+//
            // /* Module -> Migration and Seeds */
            // SeedCommand::class,
            // MigrateCommands::class,
@@ -134,14 +137,14 @@ class ModuleServiceProvider extends ServiceProvider
            // FreshCommands::class,
            // RefreshCommands::class,
            // ResetCommands::class,
-
-
-           // /* Module -> Generator commands */
-           // ModuleMakeCommand::class,
-           // DeleteMakeCommand::class,
-           // ModuleEnableCommand::class,
-           // ModuleDisableCommand::class,
-           // ModuleScanCommand::class,
+//
+//
+           /* Module -> Generator commands */
+           ModuleMakeCommand::class,
+           DeleteMakeCommand::class,
+           ModuleEnableCommand::class,
+           ModuleDisableCommand::class,
+           ModuleScanCommand::class,
 
         ]);
     }

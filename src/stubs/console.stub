@@ -11,7 +11,7 @@ class {{ class }} extends Command
      *
      * @var string
      */
-    protected $signature = 'example {arg} {arg2} {--opt1} {opt2}';
+    protected $signature = '{{ command }} {arg} {arg2} {--opt1} {opt2}';
 
     /**
      * The console command description.

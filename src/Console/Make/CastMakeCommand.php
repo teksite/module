@@ -4,8 +4,6 @@ namespace Teksite\Module\Console\Make;
 
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
-use Teksite\Module\Traits\ModuleGeneratorTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
 
 class CastMakeCommand extends GeneratorModuleCommand
 {
@@ -68,7 +66,7 @@ class CastMakeCommand extends GeneratorModuleCommand
     protected function getOptions(): array
     {
         return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the cast already exists'],
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
             ['inbound', null, InputOption::VALUE_NONE, 'Generate an inbound cast class'],
         ];
     }

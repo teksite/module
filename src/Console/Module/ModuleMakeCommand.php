@@ -5,12 +5,11 @@ namespace Teksite\Module\Console\Module;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
 use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class ModuleMakeCommand extends Command
 {
@@ -105,7 +104,7 @@ class ModuleMakeCommand extends Command
 
         /* Register Composer file  */
         $this->generateFile(
-            'basic/composer.stub',
+            'stubs/composer.stub',
             [
                 '{{ moduleLowerName }}' => strtolower($moduleName),
                 '{{ moduleName }}'      => $moduleName,
@@ -119,7 +118,7 @@ class ModuleMakeCommand extends Command
         if ($this->option('steward')) {
 
             $this->generateFile(
-                'basic/provider-steward-managed.stub',
+                'stubs/provider-steward-managed.stub',
                 [
                     '{{ namespace }}'       => "{$namespace}\\Providers",
                     '{{ class }}'           => "{$moduleName}ServiceProvider",
@@ -131,7 +130,7 @@ class ModuleMakeCommand extends Command
             );
         } else {
             $this->generateFile(
-                'basic/provider-self-service.stub',
+                'stubs/provider-self-service.stub',
                 [
                     '{{ namespace }}'       => "{$namespace}\\Providers",
                     '{{ class }}'           => "{$moduleName}ServiceProvider",
@@ -143,7 +142,7 @@ class ModuleMakeCommand extends Command
         }
         /* Register Event ServiceProvider file  */
         $this->generateFile(
-            'basic/provider-event.stub',
+            'stubs/provider-event.stub',
             [
                 '{{ namespace }}'       => "{$namespace}\\Providers",
                 '{{ class }}'           => "EventServiceProvider",
@@ -155,7 +154,7 @@ class ModuleMakeCommand extends Command
         /* Register Route ServiceProvider file  */
         if (!$this->option('steward')) {
             $this->generateFile(
-                'basic/provider-route.stub',
+                'stubs/provider-route.stub',
                 [
                     '{{ namespace }}'       => "{$namespace}\\Providers",
                     '{{ class }}'           => "RouteServiceProvider",
@@ -167,7 +166,7 @@ class ModuleMakeCommand extends Command
         }
         /* Register Abstract controller file  */
         $this->generateFile(
-            'basic/controller-abstract.stub',
+            'stubs/controller-abstract.stub',
             [
                 '{{$namespace}}' => "{$namespace}\\Http\\Controllers",
             ],
@@ -175,7 +174,7 @@ class ModuleMakeCommand extends Command
         );
         /* Register config file  */
         $this->generateFile(
-            'basic/config.stub',
+            'stubs/config.stub',
             [
                 '{{ module }}' => $moduleName,
             ],
@@ -183,31 +182,31 @@ class ModuleMakeCommand extends Command
         );
         /* Register JS file  */
         $this->generateFile(
-            'basic/js.stub',
+            'stubs/js.stub',
             [],
             "{$path}/resources/js/app.js"
         );
         /* Register CSS file  */
         $this->generateFile(
-            'basic/css.stub',
+            'stubs/css.stub',
             [],
             "{$path}/resources/css/app.css"
         );
         /* Register master blade file  */
         $this->generateFile(
-            'basic/view.stub',
+            'stubs/view.stub',
             ['{{ quote }}' => Inspiring::quote()],
             "{$path}/resources/views/master.blade.php"
         );
         /* Register web route file  */
         $this->generateFile(
-            'basic/route-web.stub',
+            'stubs/route-web.stub',
             ['{{ module }}' => strtolower($moduleName)],
             "{$path}/routes/web.php"
         );
         /* Register Seeder file */
         $this->generateFile(
-            'basic/seeder.stub',
+            'stubs/seeder.stub',
             [
                 '{{ module }}'    => strtolower($moduleName),
                 '{{ namespace }}' => "{$namespace}\\Database\\Seeders",
@@ -218,7 +217,7 @@ class ModuleMakeCommand extends Command
         );
         /* Register Seeder file  */
         $this->generateFile(
-            'basic/info.stub',
+            'stubs/info.stub',
             [
                 '{{ name }}'      => $moduleName,
                 '{{ alias }}'     => strtolower($moduleName),

@@ -1,10 +1,9 @@
 <?php
 
-namespace Teksite\Module\Traits;
+namespace Teksite\Module\Console\Module\traits;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputArgument;
 use Teksite\Module\Facade\Module;
 
@@ -90,7 +89,7 @@ trait ModuleGeneratorCommandTrait
 
     protected function getStubFile($path): string
     {
-        return app('modules.stubs') . trim($path, '\/');
+        return app('make-module.stubs') . trim($path, '\/');
     }
 
     protected function getStubContent(string $stubPath, array $replacements = []): string

@@ -63,7 +63,7 @@ class ChannelMakeCommand extends GeneratorModuleCommand
     protected function getOptions(): array
     {
         return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the cast already exists'],
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
         ];
     }
 

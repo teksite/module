@@ -4,13 +4,11 @@ namespace Teksite\Module\Console\Module;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
 use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
 
 class DeleteMakeCommand extends Command
 {

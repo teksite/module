@@ -2,16 +2,11 @@
 
 namespace Teksite\Module\Traits;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use RuntimeException;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Services\ModuleServices;
 
 trait ModuleGeneratorTrait
 {
-    protected $base_namespace;
+    protected string $base_namespace;
 
     /**
      * Get the application namespace.

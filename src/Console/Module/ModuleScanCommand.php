@@ -3,17 +3,9 @@
 namespace Teksite\Module\Console\Module;
 
 use Illuminate\Console\Command;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
-use Lareon\Modules\Service\Providers\ServiceServiceProvider;
 use ReflectionClass;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleGeneratorCommandTrait;
+use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
 
 class ModuleScanCommand extends Command
 {
