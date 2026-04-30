@@ -96,7 +96,7 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
         if (!$this->checkForce($path)) return;
 
         $contentClass = $this->buildClass($module, $name);
-        $this->makeFile($contentClass, $path , $module);
+        $this->makeFile($contentClass, $path, $module);
 
 
     }
@@ -111,7 +111,7 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 
     protected function getPath(string $name, string $module): string
     {
-        $path = $module === 'steward' ? steward_path($this->path() . '/' . $name , false) : module_path($module, $this->path() . '/' . $name , false);
+        $path = $module === 'steward' ? steward_path($this->path() . '/' . $name, false) : module_path($module, $this->path() . '/' . $name, false);
         $this->makeDirectory($path);
         return normalizeSlashPath("$path.php");
     }
@@ -251,11 +251,12 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
      * @param string $module
      * @return void
      */
-    public function makeFile(string $contentClass, string $path , string $module): void
+    public function makeFile(string $contentClass, string $path, string $module): void
     {
         $this->files->put($path, $contentClass);
-
-        $this->components->twoColumnDetail("<info>$module| the {$this->type} file has been created.</info>", $path);
+        $this->newLine();
+        $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $path);
+        $this->newLine();
 
 
     }
