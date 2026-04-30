@@ -27,8 +27,9 @@ trait ModuleGeneratorTrait
 
         $path = str_replace('\\', '/', $path);
         $relativePath = '/' . trim($this->path(), '/\\');
+
         foreach ($autoload as $namespacePrefix => $baseDir) {
-            $baseDir = rtrim(str_replace('\\', '/', $baseDir), '/') . '/';
+            $baseDir ='/'. rtrim(str_replace('\\', '/', $baseDir), '/') . '/';
             if (str_starts_with($relativePath, $baseDir)) {
                 $namespace = preg_replace($baseDir, $namespacePrefix, $path, 1);
                 $namespace = normalizeSlashNamespace($namespace);
