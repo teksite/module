@@ -2,17 +2,13 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
-use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleGeneratorTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
 class CastMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleGeneratorTrait;
 
     /**
      * The console command name.

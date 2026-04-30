@@ -2,50 +2,31 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Command;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class ChannelMakeCommand extends GeneratorCommand
+class ChannelMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleCommandsTrait, ModuleNameValidator;
-
     /**
-     * The name and signature of the console command.
+     * The console command name.
      *
      * @var string
      */
-    protected $signature = 'module:make-channel {name} {module}
-        --f|force : Create the class even if the cast already exists }
-        ';
+    protected $name = 'module:make-channel';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new migration file in a specific module';
-
-    protected $type = 'Migration';
+    protected $description = 'Create a new channel class in modules or steward';
 
     /**
-     * Build the class with the given name.
+     * The type of class being generated.
      *
-     * @param string $name
-     * @return string
-     * @throws FileNotFoundException
+     * @var string
      */
-    protected function buildClass($name)
-    {
-        return str_replace(
-            ['DummyUser', '{{ userModel }}'],
-            class_basename($this->userProviderModel()),
-            parent::buildClass($name)
-        );
-    }
+    protected string $type = 'Channel';
 
     /**
      * Get the stub file for the generator.
@@ -53,49 +34,40 @@ class ChannelMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/channel.stub');
+        return $this->resolveStubPath('channel.stub');
     }
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
+
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return  'app/Channels';
     }
 
     /**
-     * Get the default namespace for the class.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function qualifyClass($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
+        return [];
 
-        return $this->setNamespace($module,$name , '\\App\\Broadcasting');
     }
-    public function handle(): bool|int|null
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the cast already exists'],
+        ];
     }
+
+
 
 
 }
