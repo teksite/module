@@ -36,7 +36,7 @@ class ChannelMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        return $this->resolveStubPath('channel.stub');
+        return $this->resolveStubPath('stubs/channel.stub');
     }
 
     protected function path(): string

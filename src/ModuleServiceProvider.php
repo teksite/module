@@ -86,10 +86,10 @@ class ModuleServiceProvider extends ServiceProvider
     public function registerStubPath(): void
     {
         $this->app->bind('modules.stubs', function () {
-            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR  . "Make" . DIRECTORY_SEPARATOR;
+            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR . "Make" . DIRECTORY_SEPARATOR;
         });
         $this->app->bind('make-module.stubs', function () {
-            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR  . "Module" . DIRECTORY_SEPARATOR;
+            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR . "Module" . DIRECTORY_SEPARATOR;
         });
     }
 
@@ -97,54 +97,54 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $this->commands([
             CastMakeCommand::class,
-           // ChannelMakeCommand::class,
-           // ClassMakeCommand::class,
-           // CommandMakeCommand::class,
-           // ComponentMakeCommand::class,
-           // ControllerMakeCommand::class,
-           // EnumMakeCommand::class,
-           // EventMakeCommand::class,
-           // ExceptionMakeCommand::class,
-           // FactoryMakeCommand::class,
-           // InterfaceMakeCommand::class,
-           // JobMakeCommand::class,
-           // JobMiddlewareMakeCommand::class,
-           // ListenerMakeCommand::class,
-           // LogicMakeCommand::class,
-           // MailMakeCommand::class,
-           // MiddlewareMakeCommand::class,
-           // MigrationMakeCommand::class,
-           // ModelMakeCommand::class,
-           // NotificationMakeCommand::class,
-           // ObserverMakeCommand::class,
-           // PolicyMakeCommand::class,
-           // ProviderMakeCommand::class,
-           // RequestMakeCommand::class,
-           // ResourceMakeCommand::class,
-           // RuleMakeCommand::class,
-           // ScopeMakeCommand::class,
-           // SeederMakeCommand::class,
-           // TestMakeCommand::class,
-           // TraitMakeCommand::class,
-           // ViewMakeCommand::class,
-           // TrashControllerMakeCommand::class,
+            ChannelMakeCommand::class,
+            ClassMakeCommand::class,
+            // CommandMakeCommand::class,
+            // ComponentMakeCommand::class,
+            // ControllerMakeCommand::class,
+            // EnumMakeCommand::class,
+            // EventMakeCommand::class,
+            // ExceptionMakeCommand::class,
+            // FactoryMakeCommand::class,
+            // InterfaceMakeCommand::class,
+            // JobMakeCommand::class,
+            // JobMiddlewareMakeCommand::class,
+            // ListenerMakeCommand::class,
+            // LogicMakeCommand::class,
+            // MailMakeCommand::class,
+            // MiddlewareMakeCommand::class,
+            // MigrationMakeCommand::class,
+            // ModelMakeCommand::class,
+            // NotificationMakeCommand::class,
+            // ObserverMakeCommand::class,
+            // PolicyMakeCommand::class,
+            // ProviderMakeCommand::class,
+            // RequestMakeCommand::class,
+            // ResourceMakeCommand::class,
+            // RuleMakeCommand::class,
+            // ScopeMakeCommand::class,
+            // SeederMakeCommand::class,
+            // TestMakeCommand::class,
+            // TraitMakeCommand::class,
+            // ViewMakeCommand::class,
+            // TrashControllerMakeCommand::class,
 //
 //
-           // /* Module -> Migration and Seeds */
-           // SeedCommand::class,
-           // MigrateCommands::class,
-           // RollbackCommands::class,
-           // FreshCommands::class,
-           // RefreshCommands::class,
-           // ResetCommands::class,
+            // /* Module -> Migration and Seeds */
+            // SeedCommand::class,
+            // MigrateCommands::class,
+            // RollbackCommands::class,
+            // FreshCommands::class,
+            // RefreshCommands::class,
+            // ResetCommands::class,
 //
 //
-           /* Module -> Generator commands */
-           ModuleMakeCommand::class,
-           DeleteMakeCommand::class,
-           ModuleEnableCommand::class,
-           ModuleDisableCommand::class,
-           ModuleScanCommand::class,
+            /* Module -> Generator commands */
+            ModuleMakeCommand::class,
+            DeleteMakeCommand::class,
+            ModuleEnableCommand::class,
+            ModuleDisableCommand::class,
+            ModuleScanCommand::class,
 
         ]);
     }
@@ -152,7 +152,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function publish(): void
     {
         $this->publishes([
-            __DIR__ . '/config/modules.php' => config_path('modules.php')
+            __DIR__ . '/config/modules.php' => config_path('modules.php'),
         ], 'modules');
     }
 }

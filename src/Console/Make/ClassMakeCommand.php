@@ -10,19 +10,20 @@ use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 class ClassMakeCommand extends GeneratorModuleCommand
 {
     use CreatesModuleMatchingTest;
+
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $name = 'module:make-command';
+    protected $name = 'module:make-class';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new Artisan command in modules or steward';
+    protected $description = 'Create a new class in modules or steward';
 
     /**
      * The type of class being generated.
@@ -39,12 +40,14 @@ class ClassMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        return $this->resolveStubPath('console.stub');
+        return $this->option('invokable')
+            ? $this->resolveStubPath('stubs/class.invokable.stub')
+            : $this->resolveStubPath('stubs/class.stub');
     }
 
     protected function path(): string
     {
-        return  'app/Console/Commands';
+        return 'app';
     }
 
     /**
@@ -54,11 +57,7 @@ class ClassMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $command = $this->option('command') ?: 'app:'.(new Stringable($this->getNameInput()))->classBasename()->kebab()->value();
-
-        return [
-            '{{ command }}' => $command,
-        ];
+       return [];
 
     }
 
@@ -67,11 +66,11 @@ class ClassMakeCommand extends GeneratorModuleCommand
      *
      * @return array
      */
-    protected function getOptions(): array
+    protected function getOptions()
     {
         return [
-            ['force', 'f', InputOption::VALUE_NONE, "Create the class even if the {$this->type} already exists"],
-            ['command', null, InputOption::VALUE_OPTIONAL, 'The terminal command that will be used to invoke the class'],
+            ['invokable', 'i', InputOption::VALUE_NONE, 'Generate a single method, invokable class'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the class already exists'],
         ];
     }
 
