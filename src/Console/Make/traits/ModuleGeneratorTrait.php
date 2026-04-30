@@ -26,7 +26,7 @@ trait ModuleGeneratorTrait
         $autoload = data_get($composer, 'autoload.psr-4', []);
 
         $path = str_replace('\\', '/', $path);
-        $relativePath = '/' . trim($this->path(), '/\\');
+        $relativePath = '/' . trim($this->path(), '/\\') . '/' ;
 
         foreach ($autoload as $namespacePrefix => $baseDir) {
             $baseDir ='/'. rtrim(str_replace('\\', '/', $baseDir), '/') . '/';
