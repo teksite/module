@@ -2,11 +2,10 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Command;
 use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
-use Teksite\Module\Traits\CreatesModuleMatchingTest;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 
 class ClassMakeCommand extends GeneratorModuleCommand
 {

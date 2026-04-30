@@ -4,28 +4,18 @@ namespace Teksite\Module\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\Concerns\FindsAvailableModels;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Completion\CompletionSuggestions;
 use Symfony\Component\Console\Completion\Suggestion;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
-use Teksite\Module\Traits\ModuleGeneratorTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
-use Teksite\Module\Traits\ModuleValidationGeneratorTrait;
+use Teksite\Module\Console\Make\traits\ModuleGeneratorTrait;
+use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
 
 abstract class GeneratorModuleCommand extends Command implements PromptsForMissingInput
 {

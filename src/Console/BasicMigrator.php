@@ -3,15 +3,10 @@
 namespace Teksite\Module\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use Symfony\Component\Console\Output\OutputInterface;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
 
 class BasicMigrator extends Command
 {

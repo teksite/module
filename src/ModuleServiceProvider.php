@@ -86,7 +86,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function registerStubPath(): void
     {
         $this->app->bind('modules.stubs', function () {
-            return __DIR__ . DIRECTORY_SEPARATOR . "stubs" . DIRECTORY_SEPARATOR;
+            return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR  . "Make" . DIRECTORY_SEPARATOR;
         });
         $this->app->bind('make-module.stubs', function () {
             return __DIR__ . DIRECTORY_SEPARATOR . "Console" . DIRECTORY_SEPARATOR  . "Module" . DIRECTORY_SEPARATOR;

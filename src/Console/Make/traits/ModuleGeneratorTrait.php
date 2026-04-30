@@ -1,6 +1,6 @@
 <?php
 
-namespace Teksite\Module\Traits;
+namespace Teksite\Module\Console\Make\traits;
 
 use RuntimeException;
 

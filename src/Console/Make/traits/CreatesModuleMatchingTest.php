@@ -1,9 +1,8 @@
 <?php
 
-namespace Teksite\Module\Traits;
+namespace Teksite\Module\Console\Make\traits;
 
 use Illuminate\Support\Stringable;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputOption;
 
 trait CreatesModuleMatchingTest
