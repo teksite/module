@@ -39,7 +39,7 @@ class CommandMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        return $this->resolveStubPath('console.stub');
+        return $this->resolveStubPath('stubs/console.stub');
     }
 
     protected function path(): string

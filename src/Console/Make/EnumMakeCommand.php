@@ -2,48 +2,35 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
 use function Laravel\Prompts\select;
 
-
-class EnumMakeCommand extends GeneratorCommand
+class EnumMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
     /**
-     * The console command signature.
+     * The console command name.
      *
      * @var string
      */
-    protected $signature = 'module:make-enum {name} {module}
-         {--f|force : Create the class even if the cast already exists }
-         {--s|string : Generate a string backed enum. }
-         {--i|int : Generate an integer backed enum. }
-         ';
+    protected $name = 'module:make-enum';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new view enum in the specific module';
+    protected $description = 'Create a new enum in modules or steward';
 
     /**
      * The type of class being generated.
      *
      * @var string
      */
-    protected $type = 'Enum';
+    protected string $type = 'Enum';
 
 
     /**
@@ -52,82 +39,61 @@ class EnumMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         if ($this->option('string') || $this->option('int')) {
-            return $this->resolveStubPath('/enum.backed.stub');
+            return $this->resolveStubPath('stubs/enum.backed.stub');
         }
-        return $this->resolveStubPath('/enum.stub');
+        return $this->resolveStubPath('stubs/enum.stub');
     }
 
 
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-
         return match (true) {
-            !!module_path($module ,'App\Enums') => $this->setNamespace($module,$name , '\\App\\Enums'),
-            !!module_path($module ,'App\Enumerations') => $this->setNamespace($module,$name , '\\App\\Enumerations'),
-            default => $this->setNamespace($module,$name , '\\App\\Enums'),
+            is_dir(module_path($this->getModuleInput(), 'app/Enums'))        => 'app/Enums',
+            is_dir(module_path($this->getModuleInput(), 'app/Enumerations')) => 'app/Enumerations',
+            default                                                          => 'app/Enums',
         };
     }
 
-
-    /**
-     * Build the class with the given name.
-     *
-     * @param  string  $name
-     * @return string
-     *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     */
-    protected function buildClass($name)
+    protected function replacements(): array
     {
-        if ($this->option('string') || $this->option('int')) {
-            return str_replace(
-                ['{{ type }}'],
-                $this->option('string') ? 'string' : 'int',
-                parent::buildClass($name)
-            );
-        }
+        $type = ($this->option('string') || $this->option('int'))
+            ? $this->option('string') ? 'string' : 'int'
+            : '';
 
-        return parent::buildClass($name);
+
+        return ['{{ type }}' => $type];
+    }
+
+
+    protected function getOptions(): array
+    {
+        return [
+            ['string', 's', InputOption::VALUE_NONE, 'Generate a string backed enum.'],
+            ['int', 'i', InputOption::VALUE_NONE, 'Generate an integer backed enum.'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the enum even if the enum already exists'],
+        ];
     }
 
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
         if ($this->didReceiveOptions($input)) {
             return;
         }
 
         $type = select('Which type of enum would you like?', [
-            'pure' => 'Pure enum',
+            'pure'   => 'Pure enum',
             'string' => 'Backed enum (String)',
-            'int' => 'Backed enum (Integer)',
+            'int'    => 'Backed enum (Integer)',
         ]);
 
         if ($type !== 'pure') {
@@ -135,17 +101,5 @@ class EnumMakeCommand extends GeneratorCommand
         }
     }
 
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
 
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 }
