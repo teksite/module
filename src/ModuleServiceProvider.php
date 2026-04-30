@@ -106,7 +106,7 @@ class ModuleServiceProvider extends ServiceProvider
             // EventMakeCommand::class,
              ExceptionMakeCommand::class,
             // FactoryMakeCommand::class,
-            // InterfaceMakeCommand::class,
+             InterfaceMakeCommand::class,
             // JobMakeCommand::class,
             // JobMiddlewareMakeCommand::class,
             // ListenerMakeCommand::class,

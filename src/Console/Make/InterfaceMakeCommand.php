@@ -2,73 +2,77 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 
-class InterfaceMakeCommand extends GeneratorCommand
+class InterfaceMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+    use CreatesModuleMatchingTest;
 
-    protected $signature = 'module:make-interface {name} {module}
-         {--f|force : Create the class even if the cast already exists }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-interface';
 
-    protected $description = 'Create a new interface in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new interface in modules or steward';
 
-    protected $type = 'Interface';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Interface';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return  $this->resolveStubPath('/interface.stub');
+        return $this->resolveStubPath('stubs/interface.stub');
     }
 
+    protected function path(): string
+    {
+        return match (true) {
+            is_dir(module_path($this->getModuleInput(), 'Contracts'))  => 'app/Contracts',
+            is_dir(module_path($this->getModuleInput(), 'Interfaces')) => 'app/Interfaces',
+            default => 'app/Contracts',
+        };
+    }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
+        return [];
 
+    }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Interfaces');
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the exception already exists'],
+        ];
     }
 
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 
 }
