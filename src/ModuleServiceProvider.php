@@ -8,6 +8,7 @@ use Teksite\Module\Console\Make\ChannelMakeCommand;
 use Teksite\Module\Console\Make\ClassMakeCommand;
 use Teksite\Module\Console\Make\CommandMakeCommand;
 use Teksite\Module\Console\Make\ComponentMakeCommand;
+use Teksite\Module\Console\Make\ConfigMakeCommand;
 use Teksite\Module\Console\Make\ControllerMakeCommand;
 use Teksite\Module\Console\Make\EnumMakeCommand;
 use Teksite\Module\Console\Make\EventMakeCommand;
@@ -97,6 +98,7 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $this->commands([
             CastMakeCommand::class,
+            ConfigMakeCommand::class,
             ChannelMakeCommand::class,
             ClassMakeCommand::class,
             CommandMakeCommand::class,

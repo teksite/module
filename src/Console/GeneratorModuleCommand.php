@@ -21,8 +21,9 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 {
     use ModuleGeneratorTrait, ModuleValidationGeneratorTrait;
 
+    protected string $generatorType = 'class';
 
-    protected string $namespace;
+    protected null|string $namespace = null;
 
     /**
      * The filesystem instance.
@@ -90,8 +91,10 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
             return;
         }
 
+        if ($this->generatorType === 'class') {
+            $this->getNamespace($module, $name);
 
-        $namespace = $this->getNamespace($module, $name);
+        }
         $path = $this->getPath($name, $module);
         if (!$this->checkForce($path)) return;
 
