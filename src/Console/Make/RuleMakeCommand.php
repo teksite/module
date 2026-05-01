@@ -2,76 +2,77 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class RuleMakeCommand extends GeneratorCommand
+class RuleMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-rule {name} {module}
-     {--f|force : Create the class even if the resource already exists },
-     {--i|implicit : Generate an implicit rule },
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-rule';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new validation rule class in modules or steward';
 
-    protected $description = 'Create a new rule in the specific module';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Rule';
 
-    protected $type = 'Rule';
-
-    protected function getStub()
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub(): string
     {
         return $this->option('implicit')
-            ? $this->resolveStubPath('/rule.implicit.stub')
-            : $this->resolveStubPath('/rule.stub');
+            ?  $this->resolveStubPath('stubs/rule.implicit.stub')
+            :  $this->resolveStubPath('stubs/rule.stub');
+
     }
 
-
-    protected function getPath($name)
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return  'app/Rules';
     }
 
     /**
-     * تنظیمات نام‌گذاری کلاس.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function qualifyClass($name)
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
+        return [
+            '{{ ruleType }}'=> $this->option('implicit') ? 'ImplicitRule' : 'Rule'
+        ];
 
-        return $this->setNamespace($module,$name , '\\App\\Rules');
     }
 
-    protected function buildClass($name)
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        return str_replace(
-            '{{ ruleType }}',
-            $this->option('implicit') ? 'ImplicitRule' : 'Rule',
-            parent::buildClass($name)
-        );
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
+            ['implicit', 'i', InputOption::VALUE_NONE, 'Generate an implicit rule'],
+        ];
     }
 
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 
 }
