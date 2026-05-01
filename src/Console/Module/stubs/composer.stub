@@ -30,7 +30,7 @@
     },
     "autoload": {
         "psr-4": {
-            "{{ namespace }}\\": "app/",
+            "{{ namespace }}\\App\\": "app/",
             "{{ namespace }}\\Database\\Factories\\": "database/factories/",
             "{{ namespace }}\\Database\\Seeders\\": "database/seeders/"
         },

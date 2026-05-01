@@ -120,7 +120,7 @@ class ModuleMakeCommand extends Command
             $this->generateFile(
                 'stubs/provider-steward-managed.stub',
                 [
-                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                     '{{ class }}'           => "{$moduleName}ServiceProvider",
                     '{{ module }}'          => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
@@ -132,7 +132,7 @@ class ModuleMakeCommand extends Command
             $this->generateFile(
                 'stubs/provider-self-service.stub',
                 [
-                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                     '{{ class }}'           => "{$moduleName}ServiceProvider",
                     '{{ module }}'          => $moduleName,
                     '{{ moduleLowerName }}' => strtolower($moduleName),
@@ -144,7 +144,7 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'stubs/provider-event.stub',
             [
-                '{{ namespace }}'       => "{$namespace}\\Providers",
+                '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                 '{{ class }}'           => "EventServiceProvider",
                 '{{ moduleLowerName }}' => strtolower($moduleName),
                 '{{ module }}'          => $moduleName,
@@ -156,7 +156,7 @@ class ModuleMakeCommand extends Command
             $this->generateFile(
                 'stubs/provider-route.stub',
                 [
-                    '{{ namespace }}'       => "{$namespace}\\Providers",
+                    '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                     '{{ class }}'           => "RouteServiceProvider",
                     '{{ moduleLowerName }}' => strtolower($moduleName),
                     '{{ module }}'          => $moduleName,
@@ -168,7 +168,7 @@ class ModuleMakeCommand extends Command
         $this->generateFile(
             'stubs/controller-abstract.stub',
             [
-                '{{$namespace}}' => "{$namespace}\\Http\\Controllers",
+                '{{$namespace}}' => "{$namespace}\\App\\Http\\Controllers",
             ],
             "{$path}/app/Http/Controllers/Controller.php"
         );

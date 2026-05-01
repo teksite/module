@@ -44,7 +44,7 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'app/HTTP/Controllers';
+        return 'app/HTTP/Controllers';
     }
 
     /**
@@ -54,9 +54,13 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $defaultController = file_exists(module_path('app/HTTP/Controllers/Controller.php'))
-            ? module_namespace($this->getModuleInput()) . '\App\Http\Controllers\Controller'
-        : 'App\Http\Controllers';
+        $defaultControllerPath = module_path($this->getModuleInput() , 'app\Http\Controllers\Controller.php');
+        if (file_exists($defaultControllerPath)) {
+            $defaultController = $this->defaultNamespaceController($defaultControllerPath);
+        } else {
+            $defaultController = 'App\Http\Controllers';
+        }
+
         return ['{{ defaultController }}' => $defaultController];
 
     }
@@ -72,5 +76,15 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
             ['api', null, InputOption::VALUE_NONE, 'Generate an api controller class'],
         ];
+    }
+
+    private function defaultNamespaceController(string $path): string
+    {
+        $contents = file_get_contents($path);
+
+        preg_match('/^namespace\s+(.+?);/m', $contents, $nsMatch);
+        preg_match('/^abstract class\s+(\w+)/m', $contents, $classMatch);
+        return $nsMatch[1] . '\\' . $classMatch[1];
+
     }
 }
