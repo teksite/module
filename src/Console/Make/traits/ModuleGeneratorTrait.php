@@ -30,8 +30,6 @@ trait ModuleGeneratorTrait
 
         $normalizedInputPath = trim(str_replace('\\', '/', $path), '/');
 
-        $path = str_replace('\\', '/', $path);
-
         foreach ($autoloadPsr4 as $namespacePrefix => $baseDir) {
             $normalizedBaseDir = trim(str_replace('\\', '/', $baseDir), '/');
 
