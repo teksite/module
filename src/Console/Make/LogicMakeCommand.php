@@ -27,7 +27,7 @@ class LogicMakeCommand extends GeneratorModuleCommand
      *
      * @var string
      */
-    protected $description = 'Create a new logic class in modules or steward';
+    protected $description = 'Create a new logic/repository-pattern class in modules or steward';
 
     /**
      * The type of class being generated.
@@ -77,6 +77,7 @@ class LogicMakeCommand extends GeneratorModuleCommand
     {
         return [
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the job already exists'],
+            ['crud', null, InputOption::VALUE_NONE, 'contain crud methods'],
         ];
     }
 
