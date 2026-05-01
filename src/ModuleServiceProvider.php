@@ -112,7 +112,7 @@ class ModuleServiceProvider extends ServiceProvider
             // ListenerMakeCommand::class,
              LogicMakeCommand::class,
             // MailMakeCommand::class,
-            // MiddlewareMakeCommand::class,
+             MiddlewareMakeCommand::class,
             // MigrationMakeCommand::class,
             // ModelMakeCommand::class,
             // NotificationMakeCommand::class,
