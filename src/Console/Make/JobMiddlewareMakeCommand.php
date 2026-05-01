@@ -2,23 +2,34 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 
-class JobMiddlewareMakeCommand extends GeneratorCommand
+class JobMiddlewareMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
+    use CreatesModuleMatchingTest;
 
-    protected $signature = 'module:make-job-middleware {name} {module}
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-job-middleware';
 
-    protected $description = 'Create a new middleware for jobs in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new job middleware class in modules or steward';
 
-    protected $type = 'Middleware';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Middleware';
 
     /**
      * Get the stub file for the generator.
@@ -26,49 +37,38 @@ class JobMiddlewareMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/job.middleware.stub');
+        return $this->resolveStubPath('stubs/job.middleware.stub');
+    }
+
+    protected function path(): string
+    {
+        return 'app/Jobs/Middleware';
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name, 'php');
+        return [];
+
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions()
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module, $name, '\\App\\Jobs\\Middleware');
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the job middleware already exists'],
+        ];
     }
 
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 
 }
