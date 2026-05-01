@@ -1,0 +1,52 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ defaultController }};
+use Illuminate\Http\JsonResponse;
+
+class {{ class }} extends Controller
+{
+
+    /**
+     * Display  a list of the resource.
+     */
+    public function index(): JsonResponse
+    {
+        //
+    }
+
+    /**
+     * restore one instance from trash
+     */
+    public function reinstate($id): JsonResponse
+    {
+        //
+    }
+
+    /**
+     * delete one instance from DB forever
+     */
+    public function prune($id): JsonResponse
+    {
+      //;
+    }
+
+    /**
+     *  restore all instances.
+     */
+    public function restore(): JsonResponse
+    {
+       //
+    }
+
+    /**
+     * delete all instances forever.
+     */
+    public function flush(): JsonResponse
+    {
+        //
+    }
+
+
+}

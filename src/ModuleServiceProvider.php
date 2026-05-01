@@ -129,7 +129,7 @@ class ModuleServiceProvider extends ServiceProvider
             // TestMakeCommand::class,
             // TraitMakeCommand::class,
             // ViewMakeCommand::class,
-            // TrashControllerMakeCommand::class,
+             TrashControllerMakeCommand::class,
 //
 //
             // /* Module -> Migration and Seeds */

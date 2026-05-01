@@ -2,85 +2,75 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class TrashControllerMakeCommand extends GeneratorCommand
+class TrashControllerMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-trash-controller {name} {module}
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-trash';
 
-    protected $description = 'Create a new Trash controller in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new trash controller class in modules or steward';
 
-    protected $type = 'Controller';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Controller';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/trash-resource-controller.stub');
+        return $this->option('api')
+            ? $this->resolveStubPath('stubs/trash.controller.api.stub')
+            : $this->resolveStubPath('stubs/trash.controller.stub');
     }
 
-
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , 'App\\Http\\Controllers');
-    }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
+        return  'app/HTTP/Controllers';
     }
 
     /**
-     * Build the class with the given name.
+     * set replacements
      *
-     * @param  string  $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function buildClass($name){
-    $defController= module_namespace($this->argument('module') ,'App\\Http\\Controllers\\Controller'); ;
-        return str_replace(
-            ['{{ defaultController }}'],
-            $defController,
-            parent::buildClass($name)
-        );
+    protected function replacements(): array
+    {
+        $defaultController = file_exists(module_path('app/HTTP/Controllers/Controller.php'))
+            ? module_namespace($this->getModuleInput()) . '\App\Http\Controllers\Controller'
+        : 'App\Http\Controllers';
+        return ['{{ defaultController }}' => $defaultController];
+
     }
 
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
+            ['api', null, InputOption::VALUE_NONE, 'Generate an api controller class'],
+        ];
+    }
 }
