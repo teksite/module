@@ -2,73 +2,70 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class ProviderMakeCommand extends GeneratorCommand
+class ProviderMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-provider {name} {module}
-        {--f|force : Create the class even if the cast already exists }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-provider';
 
-    protected $description = 'Create a new provider in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new provider class in modules or steward';
 
-    protected $type = 'Provider';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Provider';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/provider.stub');
+        return $this->resolveStubPath('stubs/provider.stub');
+    }
+
+    protected function path(): string
+    {
+        return  'app/Providers';
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return [];
+
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Providers');
-    }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
+        ];
     }
 
 
