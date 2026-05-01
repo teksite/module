@@ -2,25 +2,34 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 
-class JobMakeCommand extends GeneratorCommand
+class JobMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
+    use CreatesModuleMatchingTest;
 
-    protected $signature = 'module:make-job {name} {module}
-     {--f|force : Create the class even if the job already exists }
-     {--sync : Indicates that job should be synchronous }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-job';
 
-    protected $description = 'Create a new job in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new job class in modules or steward';
 
-    protected $type = 'Job';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Job';
 
     /**
      * Get the stub file for the generator.
@@ -28,51 +37,46 @@ class JobMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->option('sync')
-            ? $this->resolveStubPath('/job.stub')
-            : $this->resolveStubPath('/job.queued.stub');
-    }
-
-    /**
-     * Get the destination class path.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function getPath($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Jobs');
-    }
-
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
+        if ($this->option('batched')) {
+            return $this->resolveStubPath('stubs/job.batched.queued.stub');
         }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
+
+        return $this->option('sync')
+            ? $this->resolveStubPath('stubs/job.stub')
+            : $this->resolveStubPath('stubs/job.queued.stub');
     }
+
+    protected function path(): string
+    {
+        return 'app/Jobs';
+    }
+
+    /**
+     * set replacements
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected function replacements(): array
+    {
+        return [];
+
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the job already exists'],
+            ['sync', null, InputOption::VALUE_NONE, 'Indicates that the job should be synchronous'],
+            ['batched', null, InputOption::VALUE_NONE, 'Indicates that the job should be batchable'],
+        ];
+    }
+
 
 }
