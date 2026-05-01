@@ -70,6 +70,4 @@ class CastMakeCommand extends GeneratorModuleCommand
             ['inbound', null, InputOption::VALUE_NONE, 'Generate an inbound cast class'],
         ];
     }
-
-
 }

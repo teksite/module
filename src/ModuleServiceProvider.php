@@ -122,7 +122,7 @@ class ModuleServiceProvider extends ServiceProvider
             // RequestMakeCommand::class,
             ResourceMakeCommand::class,
             RuleMakeCommand::class,
-            // ScopeMakeCommand::class,
+            ScopeMakeCommand::class,
             // SeederMakeCommand::class,
             // TestMakeCommand::class,
             // TraitMakeCommand::class,
