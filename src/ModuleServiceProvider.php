@@ -110,7 +110,7 @@ class ModuleServiceProvider extends ServiceProvider
             JobMakeCommand::class,
              JobMiddlewareMakeCommand::class,
             // ListenerMakeCommand::class,
-            // LogicMakeCommand::class,
+             LogicMakeCommand::class,
             // MailMakeCommand::class,
             // MiddlewareMakeCommand::class,
             // MigrationMakeCommand::class,

@@ -5,66 +5,80 @@ namespace Teksite\Module\Console\Make;
 use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 use Teksite\Module\Traits\ModuleCommandsTrait;
 use Teksite\Module\Traits\ModuleNameValidator;
 
-class LogicMakeCommand extends GeneratorCommand
+class LogicMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
+    use CreatesModuleMatchingTest;
 
-    protected $signature = 'module:make-logic {name} {module}';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-logic';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new logic class in modules or steward';
 
-    protected $description = 'Create a new logic class (repository and logic layer) in the specific module';
-
-    protected $type = 'Logic';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Logic';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/logic-class.stub');
+        if ($this->hasOption('crud')) return  $this->resolveStubPath('stubs/logic.crud.stub');
+        return $this->resolveStubPath('stubs/logic.stub');
+    }
+
+    protected function path(): string
+    {
+        return match (true) {
+            is_dir(module_path($this->getModuleInput(), 'Repository'))  => 'app/Repository',
+            is_dir(module_path($this->getModuleInput(), 'Logic')) => 'app/Logics',
+            default => 'app/Logics',
+        };
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name, 'php');
+        return [];
+
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module, $name, '\\App\\Logic');
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the job already exists'],
+        ];
     }
 
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
 
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
 }

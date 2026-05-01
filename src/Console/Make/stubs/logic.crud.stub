@@ -1,0 +1,37 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Arr;
+use Illuminate\Database\Eloquent\Model;
+
+
+class {{ class }}
+{
+   public function all(mixed $fetchData = [])
+   {
+
+   }
+
+   public function first(array $inputs =[])
+   {
+
+   }
+
+   public function create(array $inputs =[])
+   {
+
+   }
+
+   public function update(Module $model ,array $inputs=[])
+   {
+
+   }
+
+   public function delete(Module $model)
+   {
+
+   }
+
+}
+
