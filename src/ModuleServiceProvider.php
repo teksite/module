@@ -121,7 +121,7 @@ class ModuleServiceProvider extends ServiceProvider
             // ObserverMakeCommand::class,
             // PolicyMakeCommand::class,
             ProviderMakeCommand::class,
-            /////////////////   RequestMakeCommand::class,
+            RequestMakeCommand::class,
             ResourceMakeCommand::class,
             RuleMakeCommand::class,
             ScopeMakeCommand::class,

@@ -1,7 +1,7 @@
 <?php
 namespace {{ namespace }};
 
-use Teksite\Extralaravel\Http\ApiFormRequest;
+use Teksite\Module\Foundations\ApiFormRequest;
 
 class {{ class }} extends ApiFormRequest
 {

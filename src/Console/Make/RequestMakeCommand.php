@@ -2,68 +2,72 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputOption;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class RequestMakeCommand extends GeneratorCommand
+class RequestMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-request {name} {module}
-         {--f|force : Create the class even if the cast already exists }
-         {--api : return json } ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-request';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new form request class in modules or steward';
 
-    protected $description = 'Create a new request class in the specific module';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Request';
 
-    protected $type = 'Request';
-
-    protected function getStub()
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub(): string
     {
         return $this->option('api')
-            ? $this->resolveStubPath('/request-api.stub')
-            : $this->resolveStubPath('/request.stub');
+            ? $this->resolveStubPath('stubs/request.api.stub')
+            : $this->resolveStubPath('stubs/request.stub');
     }
 
-
-    protected function getPath($name)
+    protected function path(): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        return  'app/Http/Requests';
+    }
+
+    /**
+     * set replacements
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected function replacements(): array
+    {
+        return [];
 
     }
 
     /**
-     * تنظیمات نام‌گذاری کلاس.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name)
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Http\\Requests');
-
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
+            ['api', null, InputOption::VALUE_NONE, 'Generate api form request class class'],
+        ];
     }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
-    }
-
-
 }
