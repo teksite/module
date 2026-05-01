@@ -22,19 +22,32 @@ trait ModuleGeneratorTrait
 
         if (!file_exists($composerPath)) throw new RuntimeException('composer.json not found.');
 
-        $composer = json_decode(file_get_contents($composerPath), true);
-        $autoload = data_get($composer, 'autoload.psr-4', []);
+        $composerContent = file_get_contents($composerPath);
+        $composer = json_decode($composerContent, true);
+        $autoloadPsr4 = data_get($composer, 'autoload.psr-4', []);
+
+        if (!is_array($autoloadPsr4)) $autoloadPsr4 = [];
+
+        $normalizedInputPath = trim(str_replace('\\', '/', $path), '/');
 
         $path = str_replace('\\', '/', $path);
-        $relativePath = '/' . trim($this->path(), '/\\') . '/' ;
 
-        foreach ($autoload as $namespacePrefix => $baseDir) {
-            $baseDir ='/'. rtrim(str_replace('\\', '/', $baseDir), '/') . '/';
-            if (str_starts_with($relativePath, $baseDir)) {
-                $namespace = preg_replace($baseDir, $namespacePrefix, $path, 1);
-                $namespace = normalizeSlashNamespace($namespace);
-                $this->base_namespace = $namespace;
-                return $namespace;
+        foreach ($autoloadPsr4 as $namespacePrefix => $baseDir) {
+            $normalizedBaseDir = trim(str_replace('\\', '/', $baseDir), '/');
+
+            if (str_starts_with($normalizedInputPath ,$normalizedBaseDir)) {
+                $remainingPath = substr($normalizedInputPath, strlen($normalizedBaseDir));
+                $remainingPath = trim($remainingPath, '/');
+
+                $finalNamespace = rtrim($namespacePrefix, '\\') . '\\'; // اطمینان از وجود بک‌اسلش در انتهای پیشوند namespace
+
+
+                if (!empty($remainingPath)) {
+                    $finalNamespace .= str_replace('/', '\\', $remainingPath);
+                }
+
+                $this->base_namespace = $finalNamespace;
+                return $finalNamespace;
 
             }
         }
