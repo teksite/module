@@ -77,7 +77,6 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected abstract function replacements(): array;
 
-
     public function handle(): void
     {
         $name = $this->getNameInput();
@@ -93,7 +92,7 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         if ($this instanceof PromptsForMissingInput) {
-            $this->afterPromptingForMissingArguments();
+            #TODO add/suggest missing inputs
         }
 
         if ($this->generatorType === 'class') {
@@ -105,8 +104,6 @@ abstract class GeneratorModuleCommand extends Command
 
         $contentClass = $this->buildClass($module, $name);
         $this->makeFile($contentClass, $path, $module);
-
-
     }
 
 
@@ -288,47 +285,6 @@ abstract class GeneratorModuleCommand extends Command
         ];
     }
 
-    /**
-     * Prompt for missing input arguments using the returned questions.
-     *
-     * @return array<string, string|array{string, string}|\Closure(): (array<int, string>|string|int|bool)>
-     */
-    protected function promptForMissingArgumentsUsing(): array
-    {
-        return [
-            'name' => [
-                'What should the ' . strtolower($this->type) . ' be named?',
-                match ($this->type) {
-                    'Attribute'       => 'E.g. SlugAttribute',
-                    'Cast'            => 'E.g. Json',
-                    'Channel'         => 'E.g. OrderChannel',
-                    'Console command' => 'E.g. SendEmails',
-                    'Component'       => 'E.g. Alert',
-                    'Controller'      => 'E.g. UserController',
-                    'Event'           => 'E.g. PodcastProcessed',
-                    'Exception'       => 'E.g. InvalidOrderException',
-                    'Factory'         => 'E.g. PostFactory',
-                    'Job'             => 'E.g. ProcessPodcast',
-                    'Listener'        => 'E.g. SendPodcastNotification',
-                    'Mailable'        => 'E.g. OrderShipped',
-                    'Middleware'      => 'E.g. EnsureTokenIsValid',
-                    'Model'           => 'E.g. Flight',
-                    'Notification'    => 'E.g. InvoicePaid',
-                    'Observer'        => 'E.g. UserObserver',
-                    'Policy'          => 'E.g. PostPolicy',
-                    'Provider'        => 'E.g. ElasticServiceProvider',
-                    'Request'         => 'E.g. StorePodcastRequest',
-                    'Resource'        => 'E.g. UserResource',
-                    'Rule'            => 'E.g. Uppercase',
-                    'Scope'           => 'E.g. TrendingScope',
-                    'Seeder'          => 'E.g. UserSeeder',
-                    'Test'            => 'E.g. UserTest',
-                    default           => '',
-                },
-            ],
-        ];
-    }
-
 
     /**
      * @return mixed
@@ -344,8 +300,6 @@ abstract class GeneratorModuleCommand extends Command
             ->all();
     }
 
-
-
     /**
      * Get a list of possible event names.
      *
@@ -353,14 +307,14 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function possibleEvents(): array
     {
-        $eventPath = module_path($this->getModuleInput() ,'app/Events');
+        $eventPath = module_path($this->getModuleInput(), 'app/Events');
 
-        if (! is_dir($eventPath)) {
+        if (!is_dir($eventPath)) {
             return [];
         }
 
         return (new Collection(Finder::create()->files()->depth(0)->in($eventPath)))
-            ->map(fn ($file) => $file->getBasename('.php'))
+            ->map(fn($file) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
