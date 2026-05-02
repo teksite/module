@@ -25,6 +25,8 @@ abstract class GeneratorModuleCommand extends Command
     protected string $generatorType = 'class';
 
     protected null|string $namespace = null;
+    protected null|string $modulesNamespace = null;
+    protected null|string $moduleNamespace = null;
 
     /**
      * The filesystem instance.
@@ -91,9 +93,10 @@ abstract class GeneratorModuleCommand extends Command
             return;
         }
 
-        if ($this instanceof PromptsForMissingInput) {
-            #TODO add/suggest missing inputs
-        }
+
+        #TODO add/suggest missing inputs
+//        if ($this instanceof PromptsForMissingInput) {
+//        }
 
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
@@ -160,6 +163,8 @@ abstract class GeneratorModuleCommand extends Command
         $namespace = trim(implode('\\', array_slice(explode('\\', $fullNamespace), 0, -1)), '\\');
 
         $this->namespace = $namespace;
+        $this->modulesNamespace = module_namespace();
+        $this->moduleNamespace = module_namespace($module);
         return $namespace;
     }
 
@@ -318,5 +323,70 @@ abstract class GeneratorModuleCommand extends Command
             ->sort()
             ->values()
             ->all();
+    }
+
+    /**
+     * Qualify the given model class base name.
+     *
+     * @return class-string|null
+     */
+    protected function qualifyModel(string $model, ?string $term=null , bool $check=false ): ?string
+    {
+       $modelNamespace= $this->guessModel($model ,$term);
+
+       if ($check && !class_exists($modelNamespace)) {
+           $answer =$this->confirm('the related model class does not exist. Do you want to continue?');
+           if (!$answer) {
+               return null;
+           }
+       }
+       return $modelNamespace;
+    }
+
+
+    /**
+     * Guess the model name from the Factory name or return a default model name.
+     *
+     * @param string $name
+     * @param string|null $term
+     * @return string
+     */
+    protected function guessModel(string $name ,?string $term = null): string
+    {
+        if ($term && str_ends_with($name, $term)) {
+            $model = substr($name, 0, -strlen($term));
+        } else {
+            $model = $name;
+        }
+
+
+        $model = trim($model, '\\/');
+        $model = str_replace(['\\\\', '/'], '\\', $model);
+
+        $stewardNamespace = steward_namespace();
+        $rootStewardPattern = $stewardNamespace . '\\App\\Models\\';
+        $stewardBasePattern = 'Steward\\App\\Models\\';
+
+        if (Str::startsWith($model, $rootStewardPattern)) {
+            return $model;
+        }
+
+        if (Str::startsWith($model, $stewardBasePattern)) {
+            $model = Str::replaceFirst($stewardBasePattern, '', $trimmedModel);
+            return 'Lareon' . '\\' . $model;
+        }
+
+        $modulesNamespace = module_namespace();
+        $rootModulesPattern = '/^Lareon\\\\Modules\\\\[^\\\\\s]+\\\\App\\\\Models$/';
+        $modulesAppModelsPattern = '/^[^\\\\\s]+\\\\App\\\\Models$/';
+
+        if (preg_match($rootModulesPattern, $model)) {
+            return $model;
+        }
+        if (preg_match($modulesAppModelsPattern, $model)) {
+            return 'Lareon\\Modules\\' . $model;
+        }
+
+        return module_namespace($model) . '\\App\\Models\\' . $model;
     }
 }

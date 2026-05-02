@@ -107,7 +107,7 @@ class ModuleServiceProvider extends ServiceProvider
             EnumMakeCommand::class,
             EventMakeCommand::class,
             ExceptionMakeCommand::class,
-            // FactoryMakeCommand::class,
+            FactoryMakeCommand::class,
             InterfaceMakeCommand::class,
             JobMakeCommand::class,
             JobMiddlewareMakeCommand::class,

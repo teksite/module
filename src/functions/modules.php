@@ -18,8 +18,8 @@ if (!function_exists('module_path')) {
 
         $modulePath = $modulesRootPath . ($moduleName ? DIRECTORY_SEPARATOR . $moduleName : '');
 
-        $finalPath =  $modulePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
-        $normalized =normalizeSlashPath($finalPath);
+        $finalPath = $modulePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
+        $normalized = normalizeSlashPath($finalPath);
 
         return $absolute ? base_path($normalized) : $normalized;
     }
@@ -33,9 +33,9 @@ if (!function_exists('module_namespace')) {
      * @param string|null $moduleName
      * @return string
      */
-    function module_namespace(?string $moduleName): string
+    function module_namespace(?string $moduleName = null): string
     {
-        return config('modules.module.namespace', 'Lareon\Modules') . '\\' . ($moduleName ? Str::ucfirst($moduleName) : '');
+        return config('modules.module.namespace', 'Lareon\Modules') . ($moduleName ? '\\' . Str::ucfirst($moduleName) : '');
     }
 }
 
@@ -66,7 +66,7 @@ if (!function_exists('get_module_bootstrap')) {
 
         if (in_array('*', $modulesArray)) return $bootstrapContent;
 
-        $filteredModules= collect($bootstrapContent)
+        $filteredModules = collect($bootstrapContent)
             ->filter(fn($data, $key) => in_array($key, $modulesArray))
             ->toArray();
         return is_array($modules) ? $filteredModules : array_first($filteredModules ?? []);
@@ -82,7 +82,7 @@ if (!function_exists('get_modules')) {
      */
     function get_modules(string|array $modules = ['*']): array
     {
-       return get_module_bootstrap($modules);
+        return get_module_bootstrap($modules);
     }
 }
 
@@ -93,15 +93,15 @@ if (!function_exists('get_modules_status')) {
      * @param bool $steward
      * @return array
      */
-    function get_modules_status( bool $steward = false): array
+    function get_modules_status(bool $steward = false): array
     {
-       $modules = get_module_bootstrap();
-       return collect($modules)
-           ->map(fn($module) => $module['active'] ?? false)
-           ->when($steward, function ($collection) {
-               return $collection->merge(['steward' => true]);
-           })
-           ->toArray();
+        $modules = get_module_bootstrap();
+        return collect($modules)
+            ->map(fn($module) => $module['active'] ?? false)
+            ->when($steward, function ($collection) {
+                return $collection->merge(['steward' => true]);
+            })
+            ->toArray();
     }
 }
 
@@ -159,7 +159,6 @@ if (!function_exists('get_module_type')) {
 }
 
 
-
 if (!function_exists('steward_namespace')) {
     /**
      *  get namespace steward
@@ -182,8 +181,8 @@ if (!function_exists('steward_path')) {
     {
         $stewardRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.steward.directory', 'steward');
 
-        $finalPath =  $stewardRootPath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
-        $normalized =normalizeSlashPath($finalPath);
+        $finalPath = $stewardRootPath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
+        $normalized = normalizeSlashPath($finalPath);
 
         return $absolute ? base_path($normalized) : $normalized;
     }
