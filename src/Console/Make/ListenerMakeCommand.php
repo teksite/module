@@ -2,108 +2,98 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
+use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
 use function Laravel\Prompts\suggest;
 
-class ListenerMakeCommand extends GeneratorCommand
+class ListenerMakeCommand extends GeneratorModuleCommand implements PromptsForMissingInput
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
-    protected $signature = 'module:make-listener {name} {module}
-        {--e|event= : The event class being listened  for}
-        {--f|force : Create the class even if the listener already exists }
-        {--queued : Indicates the event listener should be queued }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-listener';
 
-    protected $description = 'Create a new listener in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new listener class in modules or steward';
 
-    protected $type = 'Listener';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Listener';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
     protected function getStub(): string
     {
         if ($this->option('queued')) {
             return $this->option('event')
-                ? $this->resolveStubPath('/listener.typed.queued.stub')
-                : $this->resolveStubPath('/listener.queued.stub');
+                ? $this->resolveStubPath('stubs/listener.typed.queued.stub')
+                : $this->resolveStubPath('/stubs/listener.queued.stub');
         }
 
         return $this->option('event')
-            ? $this->resolveStubPath('/listener.typed.stub')
-            : $this->resolveStubPath('/listener.stub');
+            ? $this->resolveStubPath('stubs/listener.typed.stub')
+            : $this->resolveStubPath('stubs/listener.stub');
+
+    }
+
+    protected function path(): string
+    {
+        return 'app/Listeners';
+    }
+
+    /**
+     * set replacements
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected function replacements(): array
+    {
+        return [
+            '{{ event }}' =>$this->option('event'),
+        ];
 
     }
 
     /**
-     * Get the destination class path.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function getPath($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name, 'php');
+        return [
+            ['event', 'e', InputOption::VALUE_OPTIONAL, 'The event class being listened for'],
+            ['queued', null, InputOption::VALUE_NONE, 'Indicates the event listener should be queued'],
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
+        ];
     }
+
 
     /**
-     * Get the default namespace for the class.
+     * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param string $name
-     * @return string
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
      */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setNamespace($module, $name, '\\App\\Listeners');
-    }
-
-    protected function buildClass($name)
-    {
-        $module=$this->argument('module');
-        $event = $this->option('event') ?? '';
-        if (!Str::startsWith($event, [
-            $this->moduleNamespace(),
-            $this->moduleNamespace($module),
-            $this->moduleNamespace($module ,'App\\Events\\'),
-        ])) {
-            $event = $this->moduleNamespace($module , 'App\\Events\\')  . str_replace('/', '\\', $event);
-        }
-
-        $stub = str_replace(
-            ['DummyEvent', '{{ event }}'], class_basename($event), parent::buildClass($name)
-        );
-
-        return str_replace(
-            ['DummyFullEvent', '{{ eventNamespace }}'], trim($event, '\\'), $stub
-        );
-    }
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
         if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
             return;
@@ -118,8 +108,4 @@ class ListenerMakeCommand extends GeneratorCommand
             $input->setOption('event', $event);
         }
     }
-
-
-
-
 }

@@ -17,7 +17,8 @@ use Symfony\Component\Finder\Finder;
 use Teksite\Module\Console\Make\traits\ModuleGeneratorTrait;
 use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
 
-abstract class GeneratorModuleCommand extends Command implements PromptsForMissingInput
+
+abstract class GeneratorModuleCommand extends Command
 {
     use ModuleGeneratorTrait, ModuleValidationGeneratorTrait;
 
@@ -89,6 +90,10 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
             $this->components->error('The module "' . $module . 'is not registered or does not exist.');
             $this->components->error("use steward work instead of module name to make {$this->type} in steward");
             return;
+        }
+
+        if ($this instanceof PromptsForMissingInput) {
+            $this->afterPromptingForMissingArguments();
         }
 
         if ($this->generatorType === 'class') {
@@ -334,6 +339,28 @@ abstract class GeneratorModuleCommand extends Command implements PromptsForMissi
 
         return (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
             ->map(fn($file) => $file->getBasename('.php'))
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+
+
+    /**
+     * Get a list of possible event names.
+     *
+     * @return array<int, string>
+     */
+    protected function possibleEvents(): array
+    {
+        $eventPath = module_path($this->getModuleInput() ,'app/Events');
+
+        if (! is_dir($eventPath)) {
+            return [];
+        }
+
+        return (new Collection(Finder::create()->files()->depth(0)->in($eventPath)))
+            ->map(fn ($file) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
