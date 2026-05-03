@@ -388,7 +388,7 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         if (Str::startsWith($model, $stewardBasePattern)) {
-            $model = Str::replaceFirst($stewardBasePattern, '', $trimmedModel);
+            $model = Str::replaceFirst($stewardBasePattern, '', $model);
             return 'Lareon' . '\\' . $model;
         }
 
