@@ -124,7 +124,7 @@ abstract class GeneratorModuleCommand extends Command
 
         if (!$this->checkForce($path)) return;
 
-        $contentClass = $this->buildFile($module, $name);
+        $contentClass = $this->buildFile();
 
         $this->makeFile($contentClass, $path, $module);
 
@@ -338,8 +338,8 @@ abstract class GeneratorModuleCommand extends Command
     protected function findAvailableModels(): mixed
     {
         $modelPath = $this->getModuleInput() === 'Steward'
-        ? steward_path('App\Models')
-        : module_path($this->getModuleInput(), 'App\Models');
+            ? steward_path('App\Models')
+            : module_path($this->getModuleInput(), 'App\Models');
 
         return (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
             ->map(fn($file) => $file->getBasename('.php'))
@@ -355,7 +355,9 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function possibleEvents(): array
     {
-        $eventPath = module_path($this->getModuleInput(), 'app/Events');
+        $eventPath = $this->getModuleInput() === 'Steward'
+            ? steward_path('app/Events')
+            : module_path($this->getModuleInput(), 'app/Events');
 
         if (!is_dir($eventPath)) {
             return [];
