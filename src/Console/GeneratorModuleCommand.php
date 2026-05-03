@@ -23,6 +23,11 @@ abstract class GeneratorModuleCommand extends Command
 {
     use ModuleGeneratorTrait, ModuleValidationGeneratorTrait;
 
+    /**
+     * set class to make class , set file to create normal class
+     *
+     * @var string
+     */
     protected string $generatorType = 'class';
 
     protected null|string $namespace = null;
@@ -112,8 +117,8 @@ abstract class GeneratorModuleCommand extends Command
 
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
-
         }
+
         $path = $this->getPath($name, $module);
 
         if (!$this->checkForce($path)) return;
@@ -301,10 +306,9 @@ abstract class GeneratorModuleCommand extends Command
      *
      * @param string $contentClass
      * @param string $path
-     * @param string $module
      * @return void
      */
-    public function makeFile(string $contentClass, string $path, string $module): void
+    public function makeFile(string $contentClass, string $path): void
     {
         $this->files->put($path, $contentClass);
     }

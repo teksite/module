@@ -13,7 +13,9 @@ use Teksite\Module\Console\GeneratorModuleCommand;
 
 class ViewMakeCommand extends GeneratorModuleCommand
 {
-/*    use CreatesMatchingTest;*/
+    //TODO make test
+
+    //    use CreatesMatchingTest;
 
     /**
      * The console command name.
@@ -64,8 +66,9 @@ class ViewMakeCommand extends GeneratorModuleCommand
     protected function prepareFile(string $path): string
     {
 
-        return $path .'.' . ltrim($this->option('extension') ?? '.blade.php', '.');
+        return $path . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
     }
+
     /**
      * set replacements
      *
@@ -74,8 +77,8 @@ class ViewMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [
-            '{{ quote }}'=>Inspiring::quotes()->random(),
-            '{{quote}}'=>Inspiring::quotes()->random(),
+            '{{ quote }}' => Inspiring::quotes()->random(),
+            '{{quote}}'   => Inspiring::quotes()->random(),
         ];
 
     }
@@ -117,7 +120,7 @@ class ViewMakeCommand extends GeneratorModuleCommand
      */
     protected function handleTestCreation($path): bool
     {
-        if (! $this->option('test') && ! $this->option('pest') && ! $this->option('phpunit')) {
+        if (!$this->option('test') && !$this->option('pest') && !$this->option('phpunit')) {
             return false;
         }
 
@@ -168,22 +171,23 @@ class ViewMakeCommand extends GeneratorModuleCommand
      */
     protected function testClassFullyQualifiedName(): string
     {
-        $name = Str::of(Str::lower($this->getNameInput()))->replace('.'.$this->option('extension'), '');
+        $name = Str::of(Str::lower($this->getNameInput()))->replace('.' . $this->option('extension'), '');
 
         $namespacedName = Str::of(
             (new Stringable($name))
                 ->replace('/', ' ')
                 ->explode(' ')
-                ->map(fn ($part) => (new Stringable($part))->ucfirst())
+                ->map(fn($part) => (new Stringable($part))->ucfirst())
                 ->implode('\\')
         )
                              ->replace(['-', '_'], ' ')
                              ->explode(' ')
-                             ->map(fn ($part) => (new Stringable($part))->ucfirst())
+                             ->map(fn($part) => (new Stringable($part))->ucfirst())
                              ->implode('');
 
-        return 'Tests\\Feature\\View\\'.$namespacedName;
+        return 'Tests\\Feature\\View\\' . $namespacedName;
     }
+
     /**
      * Get the test stub file for the generator.
      *
@@ -191,11 +195,11 @@ class ViewMakeCommand extends GeneratorModuleCommand
      */
     protected function getTestStub(): string
     {
-        $stubName = 'view.'.($this->usingPest() ? 'pest' : 'test').'.stub';
+        $stubName = 'view.' . ($this->usingPest() ? 'pest' : 'test') . '.stub';
 
         return file_exists($customPath = $this->laravel->basePath("stubs/$stubName"))
             ? $customPath
-            : __DIR__.'/stubs/'.$stubName;
+            : __DIR__ . '/stubs/' . $stubName;
     }
 
     /**
@@ -224,7 +228,7 @@ class ViewMakeCommand extends GeneratorModuleCommand
 
         return $this->option('pest') ||
             (function_exists('\Pest\\version') &&
-                file_exists(base_path('tests').'/Pest.php'));
+                file_exists(base_path('tests') . '/Pest.php'));
     }
 
 
