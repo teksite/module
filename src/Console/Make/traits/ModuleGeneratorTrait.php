@@ -3,6 +3,7 @@
 namespace Teksite\Module\Console\Make\traits;
 
 use RuntimeException;
+use Teksite\Module\Contract\TestGenerator;
 
 trait ModuleGeneratorTrait
 {
@@ -17,15 +18,25 @@ trait ModuleGeneratorTrait
      */
     public function getModuleDirNamespace(string $module, string $path): string
     {
-        $modulePath = $module === 'steward' ? steward_path() : module_path($module);
-        $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
+        $composer = $this->getComposer($module);
 
-        if (!file_exists($composerPath)) throw new RuntimeException('composer.json not found.');
+        if ($this instanceof TestGenerator) {
+            $autoloadPsr4 = data_get($composer, 'autoload-dev.psr-4', []);
+        } else {
+            $autoloadPsr4 = data_get($composer, 'autoload.psr-4', []);
 
-        $composerContent = file_get_contents($composerPath);
-        $composer = json_decode($composerContent, true);
-        $autoloadPsr4 = data_get($composer, 'autoload.psr-4', []);
+        }
+        return $this->setBaseNameSpace($autoloadPsr4, $path);
+    }
 
+
+    /**
+     * @param mixed $autoloadPsr4
+     * @param string $path
+     * @return string
+     */
+    private function setBaseNameSpace(mixed $autoloadPsr4, string $path): string
+    {
         if (!is_array($autoloadPsr4)) $autoloadPsr4 = [];
 
         $normalizedInputPath = trim(str_replace('\\', '/', $path), '/');
@@ -33,7 +44,7 @@ trait ModuleGeneratorTrait
         foreach ($autoloadPsr4 as $namespacePrefix => $baseDir) {
             $normalizedBaseDir = trim(str_replace('\\', '/', $baseDir), '/');
 
-            if (str_starts_with($normalizedInputPath ,$normalizedBaseDir)) {
+            if (str_starts_with($normalizedInputPath, $normalizedBaseDir)) {
                 $remainingPath = substr($normalizedInputPath, strlen($normalizedBaseDir));
                 $remainingPath = trim($remainingPath, '/');
 
@@ -51,6 +62,21 @@ trait ModuleGeneratorTrait
         }
 
         throw new RuntimeException('Unable to detect application namespace.');
+    }
+
+    /**
+     * @param string $module
+     * @return mixed
+     */
+    private function getComposer(string $module): mixed
+    {
+        $modulePath = $module === 'steward' ? steward_path() : module_path($module);
+        $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
+
+        if (!file_exists($composerPath)) throw new RuntimeException('composer.json not found.');
+
+        $composerContent = file_get_contents($composerPath);
+        return json_decode($composerContent, true);
     }
 
 }

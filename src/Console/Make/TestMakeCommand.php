@@ -2,125 +2,100 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
-use function Laravel\Prompts\select;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Contract\TestGenerator;
 
-class TestMakeCommand extends GeneratorCommand
+class TestMakeCommand extends GeneratorModuleCommand implements TestGenerator
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-test {name} {module}
-         {--f|force : Create the test even if the test already exists }
-         {--u|unit : Create a unit test }
-         {--pest : Create a Pest test }
-         {--phpunit : Create a PHPUnit test }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-test';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new test class in modules or steward';
 
-    protected $description = 'Create a new seeder in the specific module';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Test';
 
-    protected $type = 'Tests';
-
-    protected function getStub()
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub(): string
     {
         $suffix = $this->option('unit') ? '.unit.stub' : '.stub';
 
         return $this->usingPest()
-            ? $this->resolveStubPath('/pest'.$suffix)
-            : $this->resolveStubPath('/test'.$suffix)
-            ;
+            ? $this->resolveStubPath('stubs/pest' . $suffix)
+            : $this->resolveStubPath('stubs/test' . $suffix);
     }
 
-
-    protected function getPath($name)
-    {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-
-    }
-
-
-    protected function qualifyClass($name)
-    {
-        $module = $this->argument('module');
-
-        if ($this->option('unit')) {
-            return $this->setNamespace($module , $name, '\\Tests\\Unit');
-        } else {
-            return $this->setNamespace($module , $name, '\\Tests\\Feature');
-        }
-    }
-
-    protected function getDefaultNamespace($rootNamespace)
+    protected function path(): string
     {
         if ($this->option('unit')) {
-            return '\Unit';
+            return 'tests\Unit';
         } else {
-            return '\Feature';
+            return 'tests\Feature';
         }
-    }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-
-    /**
-     * Interact further with the user if they were prompted for missing arguments.
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return void
-     */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
-    {
-        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
-            return;
-        }
-
-        $type = select('Which type of test would you like?', [
-            'feature' => 'Feature',
-            'unit' => 'Unit',
-        ]);
-
-        match ($type) {
-            'feature' => null,
-            'unit' => $input->setOption('unit', true),
-        };
     }
 
     /**
-     * Determine if Pest is being used by the application.
+     * set replacements
      *
-     * @return bool
+     * @return array [string $searchable , string $replace ]
      */
-    protected function usingPest()
+    protected function replacements(): array
     {
-        if ($this->option('phpunit')) {
-            return false;
-        }
+        return [];
+
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the test even if the test already exists'],
+            ['unit', 'u', InputOption::VALUE_NONE, 'Create a unit test'],
+            ['pest', null, InputOption::VALUE_NONE, 'Create a Pest test'],
+            ['phpunit', null, InputOption::VALUE_NONE, 'Create a PHPUnit test'],
+        ];
+    }
+
+
+    protected function usingPest(): bool
+    {
+        if ($this->option('phpunit')) return false;
+
 
         return $this->option('pest') ||
-            (function_exists('\Pest\\version') &&
-                file_exists(base_path('tests') . '/Pest.php'));
+            (
+                function_exists('\Pest\\version') &&
+                (
+                    file_exists(base_path('tests') . '/Pest.php')
+                    ||
+                    file_exists(module_path($this->getModuleInput(), 'tests') . '/Pest.php')
+
+                )
+
+            );
     }
-
-
 }

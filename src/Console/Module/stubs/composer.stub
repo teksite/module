@@ -43,7 +43,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "{{ namespace }}\\Tests\\": "Tests/"
+            "{{ namespace }}\\Tests\\": "tests/"
         }
     }
 }
