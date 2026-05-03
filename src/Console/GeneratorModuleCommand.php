@@ -17,6 +17,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Finder\Finder;
 use Teksite\Module\Console\Make\traits\ModuleGeneratorTrait;
 use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
+use function PHPUnit\Framework\isFalse;
 
 
 abstract class GeneratorModuleCommand extends Command
@@ -284,7 +285,7 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * @throws FileNotFoundException
      */
-    protected function buildFile($module, $name): string
+    protected function buildFile(): string
     {
         $stub = $this->files->get($this->getStub());
         $replacements = collect([
@@ -297,8 +298,6 @@ abstract class GeneratorModuleCommand extends Command
           ->toArray();
 
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
-
-
     }
 
     /**
@@ -338,7 +337,9 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function findAvailableModels(): mixed
     {
-        $modelPath = module_path($this->getModuleInput(), 'App\Models');
+        $modelPath = $this->getModuleInput() === 'Steward'
+        ? steward_path('App\Models')
+        : module_path($this->getModuleInput(), 'App\Models');
 
         return (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
             ->map(fn($file) => $file->getBasename('.php'))
