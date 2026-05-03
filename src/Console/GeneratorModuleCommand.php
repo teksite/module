@@ -99,7 +99,7 @@ abstract class GeneratorModuleCommand extends Command
         }
         $module = $this->getModuleInput();
         if (!$this->isModuleExist($module)) {
-            $this->components->error('The module "' . $module . 'is not registered or does not exist.');
+            $this->components->error('The module "' . $module . ' is not registered or does not exist.');
             $this->components->error("use steward work instead of module name to make {$this->type} in steward");
             return;
         }
@@ -118,8 +118,17 @@ abstract class GeneratorModuleCommand extends Command
 
         if (!$this->checkForce($path)) return;
 
-        $contentClass = $this->buildClass($module, $name);
+        $contentClass = $this->buildFile($module, $name);
+
         $this->makeFile($contentClass, $path, $module);
+
+        if (isset(class_uses_recursive($this)[CreatesMatchingTest::class])) {
+            $this->handleTestCreation($path);
+        }
+
+        $this->newLine();
+        $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $path);
+        $this->newLine();
     }
 
 
@@ -132,11 +141,23 @@ abstract class GeneratorModuleCommand extends Command
 
     protected function getPath(string $name, string $module): string
     {
-        $path = $module === 'steward' ? steward_path($this->path() . '/' . $name, false) : module_path($module, $this->path() . '/' . $name, false);
+        $path = $module === 'Steward'
+            ? steward_path($this->path() . '/' . $name, false)
+            : module_path($module, $this->path() . '/' . $name, false);
         $this->makeDirectory($path);
-        return normalizeSlashPath("$path.php");
+        return normalizeSlashPath($this->prepareFile($path));
     }
 
+    /**
+     * add extension to filename
+     *
+     * @param string $path
+     * @return string
+     */
+    protected function prepareFile(string $path): string
+    {
+        return $path . '.php';
+    }
 
     /**
      * Build the directory for the class if necessary.
@@ -177,8 +198,12 @@ abstract class GeneratorModuleCommand extends Command
         $namespace = normalizeSlashPath($namespace);
 
         $this->namespace = $namespace;
-        $this->modulesNamespace = module_namespace();
-        $this->moduleNamespace = module_namespace($module);
+        $this->modulesNamespace = $this->getModuleInput() === 'Steward'
+            ? steward_namespace()
+            : module_namespace();
+        $this->moduleNamespace = $this->getModuleInput() === 'Steward'
+            ? steward_namespace()
+            : module_namespace($module);
         return $namespace;
     }
 
@@ -197,7 +222,7 @@ abstract class GeneratorModuleCommand extends Command
 
 
         if (!Str::endsWith($name, $this->fileAppend)) {
-            $name= $name.$this->fileAppend;
+            $name = $name . $this->fileAppend;
         }
 
         return normalizeSlashPath($name);
@@ -211,7 +236,7 @@ abstract class GeneratorModuleCommand extends Command
     protected function getClassName(): string
     {
         $name = $this->getNameInput();
-        return  array_last(explode('\\', $name));
+        return array_last(explode('\\', $name));
 
     }
 
@@ -245,7 +270,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function viewPath(string $path = ''): string
     {
-        $views = $this->laravel['config']['view.paths'][0] ?? resource_path('views');
+        $views = $this->getModuleInput() === 'Steward' ? config('modules.steward.view', 'resources/views') : config('modules.module.view', 'resources/views');
 
         return $views . ($path ? DIRECTORY_SEPARATOR . $path : $path);
     }
@@ -254,7 +279,7 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * @throws FileNotFoundException
      */
-    protected function buildClass($module, $name): string
+    protected function buildFile($module, $name): string
     {
         $stub = $this->files->get($this->getStub());
         $replacements = collect([
@@ -282,11 +307,6 @@ abstract class GeneratorModuleCommand extends Command
     public function makeFile(string $contentClass, string $path, string $module): void
     {
         $this->files->put($path, $contentClass);
-        $this->newLine();
-        $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $path);
-        $this->newLine();
-
-
     }
 
     /**
@@ -317,7 +337,7 @@ abstract class GeneratorModuleCommand extends Command
         $modelPath = module_path($this->getModuleInput(), 'App\Models');
 
         return (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
-            ->map(fn ($file) => $file->getBasename('.php'))
+            ->map(fn($file) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
@@ -379,7 +399,7 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         $model = trim($model, '\\/');
-        $model = str_replace(['\\\\', '/' , '//'], '\\', $model);
+        $model = str_replace(['\\\\', '/', '//'], '\\', $model);
 
         $stewardNamespace = steward_namespace();
         $rootStewardPattern = $stewardNamespace . '\\App\\Models\\';
@@ -413,35 +433,37 @@ abstract class GeneratorModuleCommand extends Command
     }
 
 
-    protected function modelNameReplaces(): array {
+    protected function modelNameReplaces(): array
+    {
 
         $modelNamespace = $this->qualifyModel($this->option('model'));
         $model = class_basename($modelNamespace);
-        $modelVariable =lcfirst($model);
+        $modelVariable = lcfirst($model);
         return [
-            '{{ model }}' =>$model ,
-            '{{model}}' =>$model ,
-            '{{ modelVariable }}' => $modelVariable,
-            '{{modelVariable}}' => $modelVariable,
+            '{{ model }}'           => $model,
+            '{{model}}'             => $model,
+            '{{ modelVariable }}'   => $modelVariable,
+            '{{modelVariable}}'     => $modelVariable,
             '{{ namespacedModel }}' => $modelNamespace,
-            '{{namespacedModel}}' => $modelNamespace,
+            '{{namespacedModel}}'   => $modelNamespace,
 
         ];
     }
 
 
-    protected function userNameReplaces(): array {
+    protected function userNameReplaces(): array
+    {
 
-        $userModelNamespace =$this->userProviderModel();
-        $userClassName=  class_basename($userModelNamespace);
+        $userModelNamespace = $this->userProviderModel();
+        $userClassName = class_basename($userModelNamespace);
 
         return [
 
-            '{{ namespacedUserModel }}'=>$userModelNamespace,
-            '{{namespacedUserModel}}'=>$userModelNamespace,
-            '{{ user }}' => $userClassName,
-            '{{user}}'   => $userClassName,
-            '$user'      => '$' . Str::camel($userClassName),
+            '{{ namespacedUserModel }}' => $userModelNamespace,
+            '{{namespacedUserModel}}'   => $userModelNamespace,
+            '{{ user }}'                => $userClassName,
+            '{{user}}'                  => $userClassName,
+            '$user'                     => '$' . Str::camel($userClassName),
         ];
     }
 
@@ -453,22 +475,22 @@ abstract class GeneratorModuleCommand extends Command
      *
      * @throws \LogicException
      */
-    protected function userProviderModel()
+    protected function userProviderModel(): ?string
     {
         $config = $this->laravel['config'];
 
         $guard = $this->option('guard') ?: $config->get('auth.defaults.guard');
 
-        if (is_null($guardProvider = $config->get('auth.guards.'.$guard.'.provider'))) {
-            throw new LogicException('The ['.$guard.'] guard is not defined in your "auth" configuration file.');
+        if (is_null($guardProvider = $config->get('auth.guards.' . $guard . '.provider'))) {
+            throw new LogicException('The [' . $guard . '] guard is not defined in your "auth" configuration file.');
         }
 
-        if (! $config->get('auth.providers.'.$guardProvider.'.model')) {
+        if (!$config->get('auth.providers.' . $guardProvider . '.model')) {
             return 'App\\Models\\User';
         }
 
         return $config->get(
-            'auth.providers.'.$guardProvider.'.model'
+            'auth.providers.' . $guardProvider . '.model'
         );
     }
 }

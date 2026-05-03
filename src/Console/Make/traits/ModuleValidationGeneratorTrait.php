@@ -107,7 +107,6 @@ trait ModuleValidationGeneratorTrait
     protected function isModuleExist(string $module): bool
     {
         $modules = get_modules_status(true);
-
         if (!in_array($module, array_keys($modules))) return false;
         if ($modules[$module] === false) $this->line("<fg=yellow;options=bold>{$module} in not active<>");
         return true;

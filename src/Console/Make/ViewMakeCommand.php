@@ -2,34 +2,42 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
+use Illuminate\Console\Concerns\CreatesMatchingTest;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
-use function Laravel\Prompts\select;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class ViewMakeCommand extends GeneratorCommand
+class ViewMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+/*    use CreatesMatchingTest;*/
 
-    protected $signature = 'module:make-view {name} {module}
-         {--f|force : Create the test even if the view already exists }
-         {--extension=blade.php : The extension of the generated view }
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-view';
 
-    ';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new view in modules or steward';
+
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'View';
 
 
-    protected $description = 'Create a new view in the specific module';
-
-    protected $type = 'View';
-
+    protected string $generatorType = 'file';
 
     /**
      * Get the stub file for the generator.
@@ -37,100 +45,52 @@ class ViewMakeCommand extends GeneratorCommand
      * @return string
      * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        return $this->resolveStubPath('/view.stub');
+        return $this->resolveStubPath('stubs/view.stub');
+    }
+
+    protected function path(): string
+    {
+        return $this->viewPath();
     }
 
     /**
-     * Get the destination class path.
+     * add extension to filename
      *
-     * @param string $name
+     * @param string $path
      * @return string
      */
-    protected function getPath($name)
+    protected function prepareFile(string $path): string
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,$this->option('extension') ?? 'blade.php');
+
+        return $path .'.' . ltrim($this->option('extension') ?? '.blade.php', '.');
+    }
+    /**
+     * set replacements
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected function replacements(): array
+    {
+        return [
+            '{{ quote }}'=>Inspiring::quotes()->random(),
+            '{{quote}}'=>Inspiring::quotes()->random(),
+        ];
+
     }
 
-    protected function rootNamespace()
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-        return config('lareon.module.namespace') . $module;
-    }
-
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) {
-            return $this->writeView();
-        }
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return $this->writeView();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-    protected function writeView()
-    {
-
-        $path = $this->viewPath(
-            str_replace('.', '/', $this->getView()). '.'. $this->option('extension') ??'blade.php'
-        );
-
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true, true);
-        }
-
-        if ($this->files->exists($path) && ! $this->option('force')) {
-            $this->components->error('View already exists.');
-
-            return;
-        }
-
-        file_put_contents(
-            $path,
-            '<div>
-    <!-- '.Inspiring::quotes()->random().' -->
-</div>'
-        );
-        $this->components->info(sprintf('%s [%s] created successfully.', 'View', $path));
-    }
-    protected function getView()
-    {
-        $segments = explode('/', str_replace('\\', '/', $this->argument('name')));
-
-        $name = array_pop($segments);
-
-        $path =  [
-                'components',
-                ...$segments,
-            ];
-
-        $path[] = $name;
-        return (new Collection($path))
-            ->map(fn ($segment) => Str::kebab($segment))
-            ->implode('.');
-    }
-
-
-
-
-    protected function buildClass($name)
-    {
-        $contents = parent::buildClass($name);
-
-        return str_replace(
-            '{{ quote }}',
-            Inspiring::quotes()->random(),
-            $contents,
-        );
+        return [
+            ['extension', null, InputOption::VALUE_OPTIONAL, 'The extension of the generated view', 'blade.php'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the view even if the view already exists'],
+        ];
     }
 
     /**
@@ -138,21 +98,22 @@ class ViewMakeCommand extends GeneratorCommand
      *
      * @return string
      */
-    protected function getTestPath()
+    protected function getTestPath(): string
     {
         return base_path(
             Str::of($this->testClassFullyQualifiedName())
-                ->replace('\\', '/')
-                ->replaceFirst('Tests/Feature', 'tests/Feature')
-                ->append('Test.php')
-                ->value()
+               ->replace('\\', '/')
+               ->replaceFirst('Tests/Feature', 'tests/Feature')
+               ->append('Test.php')
+               ->value()
         );
     }
 
     /**
      * Create the matching test case if requested.
      *
-     * @param  string  $path
+     * @param string $path
+     * @throws FileNotFoundException
      */
     protected function handleTestCreation($path): bool
     {
@@ -180,11 +141,11 @@ class ViewMakeCommand extends GeneratorCommand
      *
      * @return string
      */
-    protected function testNamespace()
+    protected function testNamespace(): string
     {
         return Str::of($this->testClassFullyQualifiedName())
-            ->beforeLast('\\')
-            ->value();
+                  ->beforeLast('\\')
+                  ->value();
     }
 
     /**
@@ -192,20 +153,20 @@ class ViewMakeCommand extends GeneratorCommand
      *
      * @return string
      */
-    protected function testClassName()
+    protected function testClassName(): string
     {
         return Str::of($this->testClassFullyQualifiedName())
-            ->afterLast('\\')
-            ->append('Test')
-            ->value();
+                  ->afterLast('\\')
+                  ->append('Test')
+                  ->value();
     }
 
     /**
-     * Get the class fully qualified name for the test.
+     * Get the class fully-qualified name for the test.
      *
      * @return string
      */
-    protected function testClassFullyQualifiedName()
+    protected function testClassFullyQualifiedName(): string
     {
         $name = Str::of(Str::lower($this->getNameInput()))->replace('.'.$this->option('extension'), '');
 
@@ -216,20 +177,19 @@ class ViewMakeCommand extends GeneratorCommand
                 ->map(fn ($part) => (new Stringable($part))->ucfirst())
                 ->implode('\\')
         )
-            ->replace(['-', '_'], ' ')
-            ->explode(' ')
-            ->map(fn ($part) => (new Stringable($part))->ucfirst())
-            ->implode('');
+                             ->replace(['-', '_'], ' ')
+                             ->explode(' ')
+                             ->map(fn ($part) => (new Stringable($part))->ucfirst())
+                             ->implode('');
 
         return 'Tests\\Feature\\View\\'.$namespacedName;
     }
-
     /**
      * Get the test stub file for the generator.
      *
      * @return string
      */
-    protected function getTestStub()
+    protected function getTestStub(): string
     {
         $stubName = 'view.'.($this->usingPest() ? 'pest' : 'test').'.stub';
 
@@ -243,12 +203,12 @@ class ViewMakeCommand extends GeneratorCommand
      *
      * @return string
      */
-    protected function testViewName()
+    protected function testViewName(): string
     {
         return Str::of($this->getNameInput())
-            ->replace('/', '.')
-            ->lower()
-            ->value();
+                  ->replace('/', '.')
+                  ->lower()
+                  ->value();
     }
 
     /**
@@ -256,7 +216,7 @@ class ViewMakeCommand extends GeneratorCommand
      *
      * @return bool
      */
-    protected function usingPest()
+    protected function usingPest(): bool
     {
         if ($this->option('phpunit')) {
             return false;
@@ -266,5 +226,6 @@ class ViewMakeCommand extends GeneratorCommand
             (function_exists('\Pest\\version') &&
                 file_exists(base_path('tests').'/Pest.php'));
     }
+
 
 }

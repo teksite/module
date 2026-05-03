@@ -3,42 +3,6 @@
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-if (!function_exists('module_path')) {
-    /**
-     * @param string|null $moduleName name of the module or module root path
-     * @param string|null $path desired path
-     * @param bool $absolute absolut or relevant from project path
-     * @return string|null
-     */
-    function module_path(?string $moduleName = null, ?string $path = null, bool $absolute = true): ?string
-    {
-        $modulesRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.module.directory', 'modules');
-
-        $moduleName = $moduleName ? Str::ucfirst($moduleName) : null;
-
-        $modulePath = $modulesRootPath . ($moduleName ? DIRECTORY_SEPARATOR . $moduleName : '');
-
-        $finalPath = $modulePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
-        $normalized = normalizeSlashPath($finalPath);
-
-        return $absolute ? base_path($normalized) : $normalized;
-    }
-
-}
-
-if (!function_exists('module_namespace')) {
-    /**
-     *  get namespace of module(s)
-     *
-     * @param string|null $moduleName
-     * @return string
-     */
-    function module_namespace(?string $moduleName = null): string
-    {
-        return config('modules.module.namespace', 'Lareon\Modules') . ($moduleName ? '\\' . Str::ucfirst($moduleName) : '');
-    }
-}
-
 if (!function_exists('module_bootstrap_path')) {
     /**
      * get path of modules registration files
@@ -99,7 +63,7 @@ if (!function_exists('get_modules_status')) {
         return collect($modules)
             ->map(fn($module) => $module['active'] ?? false)
             ->when($steward, function ($collection) {
-                return $collection->merge(['steward' => true]);
+                return $collection->merge(['Steward' => true]);
             })
             ->toArray();
     }
@@ -159,6 +123,56 @@ if (!function_exists('get_module_type')) {
 }
 
 
+
+if (!function_exists('module_path')) {
+    /**
+     * @param string|null $moduleName name of the module or module root path
+     * @param string|null $path desired path
+     * @param bool $absolute absolut or relevant from project path
+     * @return string|null
+     */
+    function module_path(?string $moduleName = null, ?string $path = null, bool $absolute = true): ?string
+    {
+        $modulesRootPath = config('modules.main_path', 'lareon') . DIRECTORY_SEPARATOR . config('modules.module.directory', 'modules');
+
+        $moduleName = $moduleName ? Str::ucfirst($moduleName) : null;
+
+        $modulePath = $modulesRootPath . ($moduleName ? DIRECTORY_SEPARATOR . $moduleName : '');
+
+        $finalPath = $modulePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
+        $normalized = normalizeSlashPath($finalPath);
+
+        return $absolute ? base_path($normalized) : $normalized;
+    }
+
+}
+
+if (!function_exists('module_namespace')) {
+    /**
+     *  get namespace of module(s)
+     *
+     * @param string|null $moduleName
+     * @return string
+     */
+    function module_namespace(?string $moduleName = null): string
+    {
+        return config('modules.module.namespace', 'Lareon\Modules') . ($moduleName ? '\\' . Str::ucfirst($moduleName) : '');
+    }
+}
+
+if (!function_exists('module_view_path')) {
+    /**
+     * return module view path
+     *
+     * @param string $modules
+     * @return string return string
+     */
+    function module_view_path(string $modules): string
+    {
+        return module_path($modules, config('modules.module.view', 'resources/views'));
+    }
+}
+
 if (!function_exists('steward_namespace')) {
     /**
      *  get namespace steward
@@ -187,4 +201,16 @@ if (!function_exists('steward_path')) {
         return $absolute ? base_path($normalized) : $normalized;
     }
 
+}
+
+if (!function_exists('steward_view_path')) {
+    /**
+     * return steward view path
+     *
+     * @return string return string
+     */
+    function steward_view_path(): string
+    {
+        return steward_path(config('modules.module.view', 'resources/views'));
+    }
 }
