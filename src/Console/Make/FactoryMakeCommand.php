@@ -30,6 +30,8 @@ class FactoryMakeCommand extends GeneratorModuleCommand
      */
     protected string $type = 'Factory';
 
+    protected string $fileAppend = 'Factory';
+
     /**
      * Get the stub file for the generator.
      *
@@ -54,15 +56,17 @@ class FactoryMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
 
-        $name = $this->getNameInput();
-        dd($name);
-        $classFactoryName = class_basename(Str::ucfirst(str_replace('Factory', '', $name)));
+        $classFactoryName = $this->getClassName();
+
         $namespaceModel = $this->option('model')
             ? $this->qualifyModel($this->option('model'))
             : $this->qualifyModel($this->getNameInput() , 'Factory');
+
         return [
                '{{ namespacedModel }}' => $namespaceModel,
+               '{{namespacedModel}}' => $namespaceModel,
                '{{ classFactoryName }}' => $classFactoryName,
+               '{{classFactoryName}}' => $classFactoryName,
 
         ];
 

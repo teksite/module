@@ -42,6 +42,13 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected string $type;
 
+    /**
+     * append prepend word to the file.
+     *
+     * @var string
+     */
+    protected string $fileAppend = '';
+
 
     /**
      * Create a new generator command instance.
@@ -79,6 +86,9 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected abstract function replacements(): array;
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function handle(): void
     {
         $name = $this->getNameInput();
@@ -103,6 +113,7 @@ abstract class GeneratorModuleCommand extends Command
 
         }
         $path = $this->getPath($name, $module);
+
         if (!$this->checkForce($path)) return;
 
         $contentClass = $this->buildClass($module, $name);
@@ -159,8 +170,9 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function getNamespace(string $module, string $name): string
     {
-        $fullNamespace = $this->getModuleNamespace($module, $this->path()) . '\\' . $name;
+        $fullNamespace = $this->getModuleDirNamespace($module, $this->path()) . '\\' . $name;
         $namespace = trim(implode('\\', array_slice(explode('\\', $fullNamespace), 0, -1)), '\\');
+        $namespace = normalizeSlashPath($namespace);
 
         $this->namespace = $namespace;
         $this->modulesNamespace = module_namespace();
@@ -178,7 +190,12 @@ abstract class GeneratorModuleCommand extends Command
         $name = trim($this->argument('name'));
 
         if (Str::endsWith($name, '.php')) {
-            return Str::substr($name, 0, -4);
+            $name = Str::substr($name, 0, -4);
+        }
+
+
+        if (!Str::endsWith($name, $this->fileAppend)) {
+            $name= $name.$this->fileAppend;
         }
 
         return normalizeSlashPath($name);
@@ -192,7 +209,8 @@ abstract class GeneratorModuleCommand extends Command
     protected function getClassName(): string
     {
         $name = $this->getNameInput();
-        return array_last(explode('\\', $name));
+        return  array_last(explode('\\', $name));
+
     }
 
     /**
@@ -237,7 +255,6 @@ abstract class GeneratorModuleCommand extends Command
     protected function buildClass($module, $name): string
     {
         $stub = $this->files->get($this->getStub());
-        array_merge($this->replacements());
         $replacements = collect([
             '{{ namespace }}' => $this->namespace,
             '{{namespace}}'   => $this->namespace,
@@ -245,7 +262,6 @@ abstract class GeneratorModuleCommand extends Command
             '{{class}}'       => $this->getClassName(),
         ])->merge($this->replacements())
           ->merge($this->replacements ?? [])
-          ->unique()
           ->toArray();
 
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
@@ -330,17 +346,17 @@ abstract class GeneratorModuleCommand extends Command
      *
      * @return class-string|null
      */
-    protected function qualifyModel(string $model, ?string $term=null , bool $check=false ): ?string
+    protected function qualifyModel(string $model, ?string $term = null, bool $check = false): ?string
     {
-       $modelNamespace= $this->guessModel($model ,$term);
+        $modelNamespace = $this->guessModel($model, $term);
 
-       if ($check && !class_exists($modelNamespace)) {
-           $answer =$this->confirm('the related model class does not exist. Do you want to continue?');
-           if (!$answer) {
-               return null;
-           }
-       }
-       return $modelNamespace;
+        if ($check && !class_exists($modelNamespace)) {
+            $answer = $this->confirm('the related model class does not exist. Do you want to continue?');
+            if (!$answer) {
+                return null;
+            }
+        }
+        return $modelNamespace;
     }
 
 
@@ -351,14 +367,14 @@ abstract class GeneratorModuleCommand extends Command
      * @param string|null $term
      * @return string
      */
-    protected function guessModel(string $name ,?string $term = null): string
+    protected function guessModel(string $name, ?string $term = null): string
     {
+
         if ($term && str_ends_with($name, $term)) {
             $model = substr($name, 0, -strlen($term));
         } else {
             $model = $name;
         }
-
 
         $model = trim($model, '\\/');
         $model = str_replace(['\\\\', '/'], '\\', $model);

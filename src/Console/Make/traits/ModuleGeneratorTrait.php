@@ -15,7 +15,7 @@ trait ModuleGeneratorTrait
      * @param string $path
      * @return string
      */
-    public function getModuleNamespace(string $module, string $path): string
+    public function getModuleDirNamespace(string $module, string $path): string
     {
         $modulePath = $module === 'steward' ? steward_path() : module_path($module);
         $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
