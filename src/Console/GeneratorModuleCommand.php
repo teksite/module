@@ -105,6 +105,7 @@ abstract class GeneratorModuleCommand extends Command
 
 
         #TODO add/suggest missing inputs
+
 //        if ($this instanceof PromptsForMissingInput) {
 //        }
 
@@ -377,7 +378,7 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         $model = trim($model, '\\/');
-        $model = str_replace(['\\\\', '/'], '\\', $model);
+        $model = str_replace(['\\\\', '/' , '//'], '\\', $model);
 
         $stewardNamespace = steward_namespace();
         $rootStewardPattern = $stewardNamespace . '\\App\\Models\\';
@@ -393,8 +394,8 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         $modulesNamespace = module_namespace();
-        $rootModulesPattern = '/^Lareon\\\\Modules\\\\[^\\\\\s]+\\\\App\\\\Models$/';
-        $modulesAppModelsPattern = '/^[^\\\\\s]+\\\\App\\\\Models$/';
+        $rootModulesPattern = '/^Lareon\\\\Modules\\\\([^\\\\s]+)\\\\App\\\\Modules\\\\(.+)$/';
+        $modulesAppModelsPattern = '/^([^\\\\s]+)\\\\App\\\\Modules\\\\(.+)$/';
 
         if (preg_match($rootModulesPattern, $model)) {
             return $model;
@@ -403,6 +404,10 @@ abstract class GeneratorModuleCommand extends Command
             return 'Lareon\\Modules\\' . $model;
         }
 
-        return module_namespace($model) . '\\App\\Models\\' . $model;
+        if (Str::startsWith($model, 'App\\Models\\')) {
+            return $model;
+        }
+
+        return module_namespace($this->getModuleInput()) . '\\App\\Models\\' . $model;
     }
 }

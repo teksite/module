@@ -29,7 +29,6 @@ class ControllerMakeCommand extends GeneratorCommand
      {--s|singleton : Generate a singleton resource controller class}
      {--creatable : Indicate that a singleton resource should be creatable}
      {--R|requests : Generate FormRequest classes for store and update}
-     {--m|model= : Generate a resource controller for the given model}
     ';
 
     protected $description = 'Create a new controller class in the specific module';
