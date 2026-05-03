@@ -9,6 +9,7 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use LogicException;
 use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Completion\CompletionSuggestions;
 use Symfony\Component\Console\Completion\Suggestion;
@@ -413,6 +414,7 @@ abstract class GeneratorModuleCommand extends Command
 
 
     protected function modelNameReplaces(): array {
+
         $modelNamespace = $this->qualifyModel($this->option('model'));
         $model = class_basename($modelNamespace);
         $modelVariable =lcfirst($model);
@@ -425,5 +427,48 @@ abstract class GeneratorModuleCommand extends Command
             '{{namespacedModel}}' => $modelNamespace,
 
         ];
+    }
+
+
+    protected function userNameReplaces(): array {
+
+        $userModelNamespace =$this->userProviderModel();
+        $userClassName=  class_basename($userModelNamespace);
+
+        return [
+
+            '{{ namespacedUserModel }}'=>$userModelNamespace,
+            '{{namespacedUserModel}}'=>$userModelNamespace,
+            '{{ user }}' => $userClassName,
+            '{{user}}'   => $userClassName,
+            '$user'      => '$' . Str::camel($userClassName),
+        ];
+    }
+
+
+    /**
+     * Get the model for the guard's user provider.
+     *
+     * @return string|null
+     *
+     * @throws \LogicException
+     */
+    protected function userProviderModel()
+    {
+        $config = $this->laravel['config'];
+
+        $guard = $this->option('guard') ?: $config->get('auth.defaults.guard');
+
+        if (is_null($guardProvider = $config->get('auth.guards.'.$guard.'.provider'))) {
+            throw new LogicException('The ['.$guard.'] guard is not defined in your "auth" configuration file.');
+        }
+
+        if (! $config->get('auth.providers.'.$guardProvider.'.model')) {
+            return 'App\\Models\\User';
+        }
+
+        return $config->get(
+            'auth.providers.'.$guardProvider.'.model'
+        );
     }
 }

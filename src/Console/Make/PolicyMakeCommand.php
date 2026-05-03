@@ -2,147 +2,103 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Contract\PromptsForMissingInput;
+use function Laravel\Prompts\suggest;
 
-class PolicyMakeCommand extends GeneratorCommand
+class PolicyMakeCommand extends GeneratorModuleCommand implements PromptsForMissingInput
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:make-policy {name} {module}
-        {--f|force= : Create the class even if the policy already exists }
-        {--m|model= : The model that the policy applies to }
-        {--g|guard= : The guard that the policy relies on }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-policy';
 
-    protected $description = 'Create a new policy in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a policy class in modules or steward';
 
-    protected $type = 'Policy';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Policy';
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         return $this->option('model')
-            ? $this->resolveStubPath('/policy.stub')
-            : $this->resolveStubPath('/policy.plain.stub');
+            ? $this->resolveStubPath('stubs/policy.stub')
+            : $this->resolveStubPath('stubs/policy.plain.stub');
     }
 
+    protected function path(): string
+    {
+        return 'app/Policy';
+    }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
 
-        return $this->setNamespace($module,$name , '\\App\\Policies');
-    }
+        $modelReplacements = $this->option('model') ? $this->modelNameReplaces() : [];
+        $userReplacements = $this->userNameReplaces();
 
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) return parent::handle();
 
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return parent::handle();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-    protected function buildClass($name)
-    {
-        $stub = $this->replaceUserNamespace(
-            parent::buildClass($name)
-        );
-
-        $model = $this->option('model');
-
-        return $model ? $this->replaceModel($stub, $model) : $stub;
-    }
-
-    protected function replaceModel($stub, $model)
-    {
-        $model = str_replace('/', '\\', $model);
-
-        if (str_starts_with($model, '\\')) {
-            $namespacedModel = trim($model, '\\');
-        } else {
-            $namespacedModel = $this->qualifyModel($model);
-        }
-
-        $model = class_basename(trim($model, '\\'));
-
-        $dummyUser = class_basename($this->userProviderModel());
-
-        $dummyModel = Str::camel($model) === 'user' ? 'model' : $model;
-
-        $replace = [
-            'NamespacedDummyModel' => $namespacedModel,
-            '{{ namespacedModel }}' => $namespacedModel,
-            '{{namespacedModel}}' => $namespacedModel,
-            'DummyModel' => $model,
-            '{{ model }}' => $model,
-            '{{model}}' => $model,
-            'dummyModel' => Str::camel($dummyModel),
-            '{{ modelVariable }}' => Str::camel($dummyModel),
-            '{{modelVariable}}' => Str::camel($dummyModel),
-            'DummyUser' => $dummyUser,
-            '{{ user }}' => $dummyUser,
-            '{{user}}' => $dummyUser,
-            '$user' => '$' . Str::camel($dummyUser),
+        return [
+            ...$modelReplacements,
+            ...$userReplacements,
         ];
 
-        $stub = str_replace(
-            array_keys($replace), array_values($replace), $stub
-        );
-
-        return preg_replace(
-            vsprintf('/use %s;[\r\n]+use %s;/', [
-                preg_quote($namespacedModel, '/'),
-                preg_quote($namespacedModel, '/'),
-            ]),
-            "use {$namespacedModel};",
-            $stub
-        );
     }
 
-    protected function replaceUserNamespace($stub)
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
     {
-        $model = $this->userProviderModel();
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the policy already exists'],
+            ['model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the policy applies to'],
+            ['guard', 'g', InputOption::VALUE_OPTIONAL, 'The guard that the policy relies on'],
+        ];
+    }
 
-        if (!$model) {
-            return $stub;
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
+            return;
         }
 
-        return str_replace(
-            $this->rootNamespace() . 'User',
-            $model,
-            $stub
+        $model = suggest(
+            'What model should this policy apply to? (Optional)',
+            $this->findAvailableModels(),
         );
+
+        if ($model) {
+            $input->setOption('model', $model);
+        }
     }
 
 }
