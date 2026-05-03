@@ -48,7 +48,7 @@ class ObserverMakeCommand extends GeneratorModuleCommand implements PromptsForMi
 
     protected function path(): string
     {
-        return  'app/Observers';
+        return 'app/Observers';
     }
 
     /**
@@ -58,8 +58,7 @@ class ObserverMakeCommand extends GeneratorModuleCommand implements PromptsForMi
      */
     protected function replacements(): array
     {
-        return [];
-
+        return $this->option('model') ? $this->modelNameReplaces() : [];
     }
 
     /**
@@ -90,4 +89,6 @@ class ObserverMakeCommand extends GeneratorModuleCommand implements PromptsForMi
             $input->setOption('model', $model);
         }
     }
+
+
 }

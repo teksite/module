@@ -313,10 +313,10 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function findAvailableModels(): mixed
     {
-        $modelPath = is_dir(app_path('Models')) ? app_path('Models') : app_path();
+        $modelPath = module_path($this->getModuleInput(), 'App\Models');
 
         return (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
-            ->map(fn($file) => $file->getBasename('.php'))
+            ->map(fn ($file) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
@@ -409,5 +409,21 @@ abstract class GeneratorModuleCommand extends Command
         }
 
         return module_namespace($this->getModuleInput()) . '\\App\\Models\\' . $model;
+    }
+
+
+    protected function modelNameReplaces(): array {
+        $modelNamespace = $this->qualifyModel($this->option('model'));
+        $model = class_basename($modelNamespace);
+        $modelVariable =lcfirst($model);
+        return [
+            '{{ model }}' =>$model ,
+            '{{model}}' =>$model ,
+            '{{ modelVariable }}' => $modelVariable,
+            '{{modelVariable}}' => $modelVariable,
+            '{{ namespacedModel }}' => $modelNamespace,
+            '{{namespacedModel}}' => $modelNamespace,
+
+        ];
     }
 }
