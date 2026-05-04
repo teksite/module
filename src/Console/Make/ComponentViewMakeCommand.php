@@ -3,37 +3,32 @@
 namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
 
-class ViewMakeCommand extends GeneratorModuleCommand
+class ComponentViewMakeCommand extends GeneratorModuleCommand
 {
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $name = 'module:make-view';
+    protected $name = 'module:make-component-view';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create a new view in modules or steward';
+    protected $description = 'Create a new view file in modules or steward';
 
     /**
      * The type of class being generated.
      *
      * @var string
      */
-    protected string $type = 'View';
-
+    protected string $type = 'Component';
 
     protected string $generatorType = 'file';
 
@@ -50,7 +45,7 @@ class ViewMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return $this->viewPath();
+        return $this->viewPath() .'/components';
     }
 
     /**
@@ -61,7 +56,6 @@ class ViewMakeCommand extends GeneratorModuleCommand
      */
     protected function prepareFile(string $path): string
     {
-
         return $path . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
     }
 
