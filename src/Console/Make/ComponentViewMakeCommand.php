@@ -6,9 +6,11 @@ use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Foundation\Inspiring;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 
 class ComponentViewMakeCommand extends GeneratorModuleCommand
 {
+    use ViewHandlerTrait;
     /**
      * The console command name.
      *
@@ -45,7 +47,7 @@ class ComponentViewMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return $this->viewPath() .'/components';
+        return $this->viewPath() .'/Components';
     }
 
     /**

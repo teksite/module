@@ -2,230 +2,107 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
-use function Laravel\Prompts\select;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 
-class MailMakeCommand extends GeneratorCommand
+class MailMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
+    use ViewHandlerTrait;
 
-    // protected $name = 'module:make-mail';
-    protected $signature = 'module:make-mail {name} {module}
-    {--force= : Create a new Blade template for the mailable (true false) }
-    {--m|markdown= : Create a new Markdown template for the mailable }
-    {--view= : Create a new Blade template for the mailable }
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-mail';
 
-    protected $description = 'Create a new email in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new email cast class in modules or steward';
 
-    protected $type = 'Mailable';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Mailable';
+
+
+    /**
+     * @throws \Exception
+     */
+    protected function handler(): void
+    {
+        if ($this->option('markdown') !== false) {
+            $this->writeMarkdownTemplate($this->getModuleInput(), 'mail');
+        }
+
+        if ($this->option('view') !== false) {
+            $this->writeView($this->getModuleInput(), 'mail');
+        }
+    }
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
-        if (!!$this->option('markdown') !== false) {
-            return $this->resolveStubPath('/markdown-mail.stub');
+        if ($this->option('markdown') !== false) {
+            return $this->resolveStubPath('stubs/markdown-mail.stub');
         }
 
-        if (!!$this->option('view') !== false) {
-            return $this->resolveStubPath('/view-mail.stub');
+        if ($this->option('view') !== false) {
+            return $this->resolveStubPath('stubs/view-mail.stub');
         }
 
-        return $this->resolveStubPath('/mail.stub');
+        return $this->resolveStubPath('stubs/mail.stub');
+    }
 
+    protected function path(): string
+    {
+        return 'app/Mail';
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Mail');
-    }
-
-
-    public function handle()
-    {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return $this->generateViews();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return $this->generateViews();
-        }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
-    }
-
-    protected function generateViews()
-    {
-        if (parent::handle() === false && !!!$this->option('force')) {
-            return;
-        }
-
-        if (!!$this->option('markdown') !== false) {
-           return  $this->writeMarkdownTemplate();
-        }
-
-        if (!!$this->option('view') !== false) {
-           return  $this->writeView();
-        }
-    }
-
-    /**
-     * Write the Markdown template for the mailable.
-     *
-     * @return void
-     */
-    protected function writeMarkdownTemplate()
-    {
-        $path = $this->viewPath('mail/'.
-            str_replace('.', '/', $this->getView()) . '.blade.php'
-        );
-
-        if ($this->files->exists($path)) {
-            return $this->components->error(sprintf('%s [%s] already exists.', 'Markdown view', $path));
-        }
-
-        $this->files->ensureDirectoryExists(dirname($path));
-
-        $this->files->put($path, file_get_contents(__DIR__ . '/../../stubs/markdown.stub'));
-
-        $this->components->info(sprintf('%s [%s] created successfully.', 'Markdown view', $path));
-    }
-
-    /**
-     * Write the Blade template for the mailable.
-     *
-     * @return void
-     */
-    protected function writeView()
-    {
-
-        $path = $this->viewPath(
-            str_replace('.', '/', 'mails.'.$this->getView()) . '.blade.php'
-        );
-
-        if ($this->files->exists($path)) {
-            return $this->components->error(sprintf('%s [%s] already exists.', 'View', $path));
-        }
-
-        $this->files->ensureDirectoryExists(dirname($path));
-
-        $stub = str_replace(
-            '{{ quote }}',
-            Inspiring::quotes()->random(),
-            file_get_contents(__DIR__ . '/../../stubs/view.stub')
-        );
-
-        $this->files->put($path, $stub);
-
-        $this->components->info(sprintf('%s [%s] created successfully.', 'View', $path));
-    }
-
-    /**
-     * Build the class with the given name.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function buildClass($name)
-    {
-        $module = $this->getLowerNameModule();
-
-        $class = str_replace(
-            '{{ subject }}',
-            Str::headline(str_replace($this->getNamespace($name) . '\\', '', $name)),
-            parent::buildClass($name)
-        );
-
-        if (!!$this->option('markdown') !== false || !!$this->option('view') !== false) {
-            $class = str_replace(['DummyView', '{{ view }}'], $module . '::mails.' . $this->getView(), $class);
-        }
-
-        if (!!!$this->option('markdown') || !!!$this->option('view')) {
-            $class = str_replace(['DummyView', '{{ view }}'], $this->getView(), $class);
-        }
-        return $class;
-    }
-
-    /**
-     * Get the view name.
-     *
-     * @return string
-     */
-    protected function getView()
-    {
-        $module = $this->getLowerNameModule();
-        $view = $this->option('markdown') ?: $this->option('view');
-
-        if (!$view) {
-            $name = str_replace('\\', '/', $this->argument('name'));
-
-            $view = $module . '::mail.' . (new Collection(explode('/', $name)))
-                    ->map(fn($part) => Str::kebab($part))
-                    ->implode('.');
-        }
-        return $view;
-
-
+        $nameSegment = explode(DIRECTORY_SEPARATOR, $this->getNameInput());
+        $subject = array_pop($nameSegment);
+        $view = $this->getModuleInput(). "::" .$this->viewPath('mail');
+        return [
+            '{{subject}}'   => $subject,
+            '{{ subject }}' => $subject,
+            '{{view}}'      => $view,
+            '{{ view }}'    => $view,
+        ];
     }
 
 
     /**
-     * Interact further with the user if they were prompted for missing arguments.
+     * Get the console command arguments.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return void
+     * @return array
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function getOptions(): array
     {
-        if ($this->didReceiveOptions($input)) {
-            return;
-        }
-
-        $type = select('Would you like to create a view?', [
-            'markdown' => 'Markdown View',
-            'view' => 'Empty View',
-            'none' => 'No View',
-        ]);
-
-        if ($type !== 'none') {
-            $input->setOption($type, null);
-        }
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the mailable already exists'],
+            ['markdown', 'm', InputOption::VALUE_OPTIONAL, 'Create a new Markdown template for the mailable', false],
+            ['view', null, InputOption::VALUE_OPTIONAL, 'Create a new Blade template for the mailable', false],
+        ];
     }
+
 }

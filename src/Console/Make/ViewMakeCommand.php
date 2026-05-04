@@ -2,17 +2,14 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 
 class ViewMakeCommand extends GeneratorModuleCommand
 {
+    use ViewHandlerTrait;
     /**
      * The console command name.
      *
@@ -50,8 +47,9 @@ class ViewMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return $this->viewPath();
+        return $this->viewDirectory();
     }
+
 
     /**
      * add extension to filename

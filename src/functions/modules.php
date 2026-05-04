@@ -123,7 +123,6 @@ if (!function_exists('get_module_type')) {
 }
 
 
-
 if (!function_exists('module_path')) {
     /**
      * @param string|null $moduleName name of the module or module root path
@@ -165,11 +164,12 @@ if (!function_exists('module_view_path')) {
      * return module view path
      *
      * @param string $modules
+     * @param bool $absolute
      * @return string return string
      */
-    function module_view_path(string $modules): string
+    function module_view_path(string $modules, bool $absolute = false): string
     {
-        return module_path($modules, config('modules.module.view', 'resources/views'));
+        return module_path($modules, config('modules.module.view', 'resources/views'), $absolute);
     }
 }
 
@@ -177,16 +177,15 @@ if (!function_exists('module_resource_path')) {
     /**
      * @param string $moduleName name of the module or module root path
      * @param string|null $path desired path view
+     * @param bool $absolute
      * @return string|null
      */
-    function module_resource_path(string $moduleName,  ?string $path = null): ?string
+    function module_resource_path(string $moduleName, ?string $path = null, bool $absolute = false): ?string
     {
-        return module_path($moduleName, '/resources/'.$path , false);
+        return module_path($moduleName, '/resources/' . $path, $absolute);
     }
 
 }
-
-
 
 
 if (!function_exists('steward_namespace')) {
@@ -225,21 +224,21 @@ if (!function_exists('steward_view_path')) {
      *
      * @return string return string
      */
-    function steward_view_path(): string
+    function steward_view_path(bool $absolute = false): string
     {
-        return steward_path(config('modules.module.view', 'resources/views'));
+        return steward_path(config('modules.module.view', 'resources/views'), $absolute);
     }
 }
 
 if (!function_exists('steward_resource_path')) {
     /**
-     * @param string $moduleName name of the module or module root path
      * @param string|null $path desired path view
+     * @param bool $absolute
      * @return string|null
      */
-    function steward_resource_path(string $moduleName, ?string $path = null): ?string
+    function steward_resource_path(?string $path = null, bool $absolute = false): ?string
     {
-        return steward_path('/resources/'.$path , false);
+        return steward_path('/resources/' . $path, $absolute);
     }
 
 }

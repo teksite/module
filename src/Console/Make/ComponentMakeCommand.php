@@ -8,9 +8,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 
 class ComponentMakeCommand extends GeneratorModuleCommand
 {
+    use ViewHandlerTrait;
     /**
      * The console command name.
      *
@@ -33,10 +35,13 @@ class ComponentMakeCommand extends GeneratorModuleCommand
     protected string $type = 'Component';
 
 
+    /**
+     * @throws \Exception
+     */
     protected function handler(): void
     {
         if (!$this->option('inline')) {
-            $this->call('module:make-component-view', ['name' => $this->getViewDir(), 'module' => $this->argument('module')]);
+            $this->writeView($this->getModuleInput() ,'component');
         }
     }
 
@@ -67,34 +72,17 @@ class ComponentMakeCommand extends GeneratorModuleCommand
         if ($this->option('inline')) {
             return [
                 '{{ view }}' => "<<<'blade'\n<div>\n    <!-- " . Inspiring::quotes()->random() . " -->\n</div>\nblade",
+                '{{view}}' => "<<<'blade'\n<div>\n    <!-- " . Inspiring::quotes()->random() . " -->\n</div>\nblade",
             ];
         }
-
         return [
-            '{{ view }}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->getView() . '\')',
+            '{{ view }}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->viewPath('components') . '\')',
+            '{{view}}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->viewPath('components') . '\')',
         ];
 
     }
 
 
-    /**
-     * Get the view name relative to the view path.
-     *
-     * @return string view
-     */
-    protected function getView(): string
-    {
-
-        $getViewArray = $this->getViewArray();
-
-        $path = [
-            'components',
-            ...$getViewArray,
-        ];
-        return (new Collection($path))
-            ->map(fn($segment) => Str::kebab($segment))
-            ->implode('.');
-    }
 
     protected function getViewDir(): string
     {

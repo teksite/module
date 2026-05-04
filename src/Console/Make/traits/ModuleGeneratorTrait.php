@@ -4,6 +4,8 @@ namespace Teksite\Module\Console\Make\traits;
 
 use RuntimeException;
 use Teksite\Module\Contract\TestGenerator;
+use Teksite\Module\Exception\FileNotFoundException;
+use Teksite\Module\Facade\Module;
 
 trait ModuleGeneratorTrait
 {
@@ -15,6 +17,7 @@ trait ModuleGeneratorTrait
      * @param string $module
      * @param string $path
      * @return string
+     * @throws FileNotFoundException
      */
     public function getModuleDirNamespace(string $module, string $path): string
     {
@@ -67,13 +70,14 @@ trait ModuleGeneratorTrait
     /**
      * @param string $module
      * @return mixed
+     * @throws FileNotFoundException
      */
     private function getComposer(string $module): mixed
     {
         $modulePath = $module === 'steward' ? steward_path() : module_path($module);
         $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
 
-        if (!file_exists($composerPath)) throw new RuntimeException('composer.json not found.');
+        if (!file_exists($composerPath)) throw new FileNotFoundException('composer.json not found.');
 
         $composerContent = file_get_contents($composerPath);
         return json_decode($composerContent, true);

@@ -146,14 +146,6 @@ trait ModuleValidationGeneratorTrait
     }
 
 
-
-
-    /*
-     *
-     *
-     *
-     * */
-
     protected function validateModuleName(string $moduleName): array
     {
         // Exact match

@@ -2,6 +2,7 @@
 # Introduction
 
 The body of your message.
+{{ quote }}
 
 <x-mail::button :url="''">
 Button Text

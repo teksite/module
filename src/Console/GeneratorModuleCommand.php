@@ -7,6 +7,7 @@ use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use LogicException;
@@ -17,7 +18,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Finder\Finder;
 use Teksite\Module\Console\Make\traits\ModuleGeneratorTrait;
 use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
-use function PHPUnit\Framework\isFalse;
 
 
 abstract class GeneratorModuleCommand extends Command
@@ -94,7 +94,7 @@ abstract class GeneratorModuleCommand extends Command
     protected abstract function replacements(): array;
 
     /**
-     * @throws FileNotFoundException
+     * @throws \Teksite\Module\Exception\FileNotFoundException|FileNotFoundException
      */
     public function handle(): void
     {
@@ -128,13 +128,13 @@ abstract class GeneratorModuleCommand extends Command
 
         $this->makeFile($contentClass, $path, $module);
 
-        $this->handler();
+        $this->newLine();
 
+        $this->handler();
         if (isset(class_uses_recursive($this)[CreatesMatchingTest::class])) {
             $this->handleTestCreation($path);
         }
 
-        $this->newLine();
         $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $path);
         $this->newLine();
     }
@@ -198,6 +198,7 @@ abstract class GeneratorModuleCommand extends Command
      * @param string $module
      * @param string $name
      * @return string
+     * @throws \Teksite\Module\Exception\FileNotFoundException
      */
     protected function getNamespace(string $module, string $name): string
     {
@@ -270,18 +271,7 @@ abstract class GeneratorModuleCommand extends Command
     }
 
 
-    /**
-     * Get the first view directory path from the application configuration.
-     *
-     * @param string $path
-     * @return string
-     */
-    protected function viewPath(string $path = ''): string
-    {
-        $views = $this->getModuleInput() === 'Steward' ? config('modules.steward.view', 'resources/views') : config('modules.module.view', 'resources/views');
 
-        return $views . ($path ? DIRECTORY_SEPARATOR . $path : $path);
-    }
 
 
     /**
@@ -510,4 +500,7 @@ abstract class GeneratorModuleCommand extends Command
             'auth.providers.' . $guardProvider . '.model'
         );
     }
+
+
+
 }
