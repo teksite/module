@@ -175,7 +175,6 @@ class BaseModuleServiceProvider extends ServiceProvider
      */
     protected function bootViews(): void
     {
-
         $viewPath = resource_path('views/modules/' . $this->lowerModuleName);
         $sourcePath = module_path($this->moduleName , config('modules.module.view', 'resources/views'));
 
@@ -183,11 +182,10 @@ class BaseModuleServiceProvider extends ServiceProvider
         $this->loadViewsFrom(array_merge($this->publishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
 
         $componentNamespace = module_namespace($this->moduleName) . '\\App\\View\\Components';
-        Blade::componentNamespace($componentNamespace, $this->moduleName);
 
-
-
+        Blade::componentNamespace($componentNamespace, $this->lowerModuleName);
     }
+
 
     /**
      * Get the paths where the module views are published.
