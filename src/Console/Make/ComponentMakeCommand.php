@@ -3,6 +3,9 @@
 namespace Teksite\Module\Console\Make;
 
 use Illuminate\Console\Concerns\CreatesMatchingTest;
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
 
@@ -29,6 +32,14 @@ class ComponentMakeCommand extends GeneratorModuleCommand
      */
     protected string $type = 'Component';
 
+
+    protected function handler(): void
+    {
+        if (!$this->option('inline')) {
+            $this->call('module:make-component-view', ['name' => $this->getViewDir(), 'module' => $this->argument('module')]);
+        }
+    }
+
     /**
      * Get the stub file for the generator.
      *
@@ -37,15 +48,14 @@ class ComponentMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        return $this->option('inbound')
-            ? $this->resolveStubPath('stubs/cast.inbound.stub')
-            : $this->resolveStubPath('stubs/cast.stub');
+        return $this->resolveStubPath('stubs/view-component.stub');
     }
 
     protected function path(): string
     {
-        return  'app/Casts';
+        return 'app/View/Components';
     }
+
 
     /**
      * set replacements
@@ -54,9 +64,65 @@ class ComponentMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        return [];
+        if ($this->option('inline')) {
+            return [
+                '{{ view }}' => "<<<'blade'\n<div>\n    <!-- " . Inspiring::quotes()->random() . " -->\n</div>\nblade",
+            ];
+        }
+
+        return [
+            '{{ view }}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->getView() . '\')',
+        ];
 
     }
+
+
+    /**
+     * Get the view name relative to the view path.
+     *
+     * @return string view
+     */
+    protected function getView(): string
+    {
+
+        $getViewArray = $this->getViewArray();
+
+        $path = [
+            'components',
+            ...$getViewArray,
+        ];
+        return (new Collection($path))
+            ->map(fn($segment) => Str::kebab($segment))
+            ->implode('.');
+    }
+
+    protected function getViewDir(): string
+    {
+
+        $getViewArray = $this->getViewArray();
+
+        $path = [
+            ...$getViewArray,
+        ];
+        return (new Collection($path))
+            ->map(fn($segment) => Str::kebab($segment))
+            ->implode('\\');
+    }
+
+    protected function getViewArray(): array
+    {
+        $segments = explode('/', str_replace('\\', '/', $this->argument('name')));
+
+        $name = array_pop($segments);
+
+        $path = [
+            ...$segments,
+        ];
+        $path[] = $name;
+
+        return $path;
+    }
+
 
     /**
      * Get the console command arguments.
@@ -67,8 +133,6 @@ class ComponentMakeCommand extends GeneratorModuleCommand
     {
         return [
             ['inline', null, InputOption::VALUE_NONE, 'Create a component that renders an inline view'],
-            ['view', null, InputOption::VALUE_NONE, 'Create an anonymous component with only a view'],
-            ['path', null, InputOption::VALUE_REQUIRED, 'The location where the component view should be created'],
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the component already exists'],
         ];
     }

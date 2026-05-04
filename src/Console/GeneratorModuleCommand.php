@@ -128,6 +128,8 @@ abstract class GeneratorModuleCommand extends Command
 
         $this->makeFile($contentClass, $path, $module);
 
+        $this->handler();
+
         if (isset(class_uses_recursive($this)[CreatesMatchingTest::class])) {
             $this->handleTestCreation($path);
         }
@@ -474,6 +476,14 @@ abstract class GeneratorModuleCommand extends Command
         ];
     }
 
+    /*
+     *
+     * extra code if needed in commands
+     */
+    protected function handler()
+    {
+
+    }
 
     /**
      * Get the model for the guard's user provider.
