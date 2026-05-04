@@ -175,11 +175,11 @@ if (!function_exists('module_view_path')) {
 
 if (!function_exists('module_resource_path')) {
     /**
-     * @param string|null $moduleName name of the module or module root path
+     * @param string $moduleName name of the module or module root path
      * @param string|null $path desired path view
      * @return string|null
      */
-    function module_resource_path(string $moduleName = null, ?string $path = null): ?string
+    function module_resource_path(string $moduleName,  ?string $path = null): ?string
     {
         return module_path($moduleName, '/resources/'.$path , false);
     }
@@ -231,14 +231,13 @@ if (!function_exists('steward_view_path')) {
     }
 }
 
-
 if (!function_exists('steward_resource_path')) {
     /**
      * @param string|null $moduleName name of the module or module root path
      * @param string|null $path desired path view
      * @return string|null
      */
-    function steward_resource_path(string $moduleName = null, ?string $path = null): ?string
+    function steward_resource_path(string $moduleName, ?string $path = null): ?string
     {
         return steward_path('/resources/'.$path , false);
     }
