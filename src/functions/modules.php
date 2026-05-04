@@ -233,7 +233,7 @@ if (!function_exists('steward_view_path')) {
 
 if (!function_exists('steward_resource_path')) {
     /**
-     * @param string|null $moduleName name of the module or module root path
+     * @param string $moduleName name of the module or module root path
      * @param string|null $path desired path view
      * @return string|null
      */
