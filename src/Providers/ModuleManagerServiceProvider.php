@@ -11,12 +11,11 @@ class ModuleManagerServiceProvider extends ServiceProvider
     public function register(): void
     {
         $modules = Module::registeredModules();
-
-        foreach ($modules as $module) {
-            if ($module['active']){
-                $providerClass = $module['provider'];
+        foreach ($modules as $module=>$info) {
+            if ($info['active']){
+                $providerClass = $info['provider'];
                 $type = $module['type'] ?? 'self';
-                if (class_exists($providerClass) && $type === 'self') $this->app->register($providerClass);
+                if (class_exists($providerClass)) $this->app->register($providerClass);
             }
         }
     }

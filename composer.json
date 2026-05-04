@@ -23,7 +23,7 @@
         },
         "files": [
             "src/functions/helpers.php",
-            "src/functions/functions.php"
+            "src/functions/modules.php"
         ]
     },
     "require": {

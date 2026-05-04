@@ -177,12 +177,12 @@ class BaseModuleServiceProvider extends ServiceProvider
     {
 
         $viewPath = resource_path('views/modules/' . $this->lowerModuleName);
-        $sourcePath = module_path($this->moduleName, config('modules.module.view_path'));
+        $sourcePath = module_view_path($this->moduleName, 'resources');
 
         $this->publishes([$sourcePath => $viewPath], ['views', $this->lowerModuleName . '-module-views']);
         $this->loadViewsFrom(array_merge($this->publishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
 
-        $componentNamespace = module_namespace($this->moduleName) . '\\View\\Components';
+        $componentNamespace = module_namespace($this->moduleName) . '\\App\\View\\Components';
         Blade::componentNamespace($componentNamespace, $this->moduleName);
     }
 

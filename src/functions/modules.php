@@ -173,6 +173,22 @@ if (!function_exists('module_view_path')) {
     }
 }
 
+if (!function_exists('module_resource_path')) {
+    /**
+     * @param string|null $moduleName name of the module or module root path
+     * @param string|null $path desired path view
+     * @return string|null
+     */
+    function module_resource_path(string $moduleName = null, ?string $path = null): ?string
+    {
+        return module_path($moduleName, '/resources/'.$path , false);
+    }
+
+}
+
+
+
+
 if (!function_exists('steward_namespace')) {
     /**
      *  get namespace steward
@@ -213,4 +229,18 @@ if (!function_exists('steward_view_path')) {
     {
         return steward_path(config('modules.module.view', 'resources/views'));
     }
+}
+
+
+if (!function_exists('steward_resource_path')) {
+    /**
+     * @param string|null $moduleName name of the module or module root path
+     * @param string|null $path desired path view
+     * @return string|null
+     */
+    function steward_resource_path(string $moduleName = null, ?string $path = null): ?string
+    {
+        return steward_path('/resources/'.$path , false);
+    }
+
 }

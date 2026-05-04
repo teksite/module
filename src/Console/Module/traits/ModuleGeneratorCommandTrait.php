@@ -48,7 +48,7 @@ trait ModuleGeneratorCommandTrait
 
         $namespace = Module::moduleNamespace($moduleName);
 
-        $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
+        $providerClass = "{$namespace}\\App\\Providers\\{$moduleName}ServiceProvider";
 
         if (!array_key_exists($moduleName, $registeredModule)) {
             $registeredModule[$moduleName]['provider'] = $providerClass;
