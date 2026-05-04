@@ -2,119 +2,109 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\GeneratorModuleCommand;
+use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
-class NotificationMakeCommand extends GeneratorCommand
+class NotificationMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
+    use ViewHandlerTrait;
 
-    protected $signature = 'module:make-notification {name} {module}
-        {--f|force : Create the class even if the cast already exists }
-        {--m|markdown= : Create a new Markdown template for the mailable}
-    ';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-notification';
 
-    protected $description = 'Create a new notification in the specific module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create a new notification class in modules or steward';
 
-    protected $type = 'Notification';
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Notification';
+
+
+    /**
+     * @throws \Exception
+     */
+    protected function handler(): void
+    {
+        if ($this->option('markdown') !== false) {
+            $this->writeMarkdownTemplate($this->getModuleInput(), 'notification');
+        }
+
+    }
 
     /**
      * Get the stub file for the generator.
      *
      * @return string
+     * @throws \Exception
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         return $this->option('markdown')
-            ? $this->resolveStubPath('/markdown-notification.stub')
-            : $this->resolveStubPath('/notification.stub');
+            ? $this->resolveStubPath('stubs/markdown-notification.stub')
+            : $this->resolveStubPath('stubs/notification.stub');
+    }
+
+    protected function path(): string
+    {
+        return 'app/Notifications';
     }
 
     /**
-     * Get the destination class path.
+     * set replacements
      *
-     * @param string $name
-     * @return string
+     * @return array [string $searchable , string $replace ]
      */
-    protected function getPath($name): string
+    protected function replacements(): array
     {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
+        $view = $this->getModuleInput() . "::" . $this->viewPath('notification');
+
+        return [
+            '{{ view }}' => $view,
+            '{{view}}'   => $view,
+
+        ];
+
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the console command arguments.
      *
-     * @param string $name
-     * @return string
+     * @return array
      */
-    protected function qualifyClass($name): string
+    protected function getOptions(): array
     {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Notifications');
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the notification already exists'],
+            ['markdown', 'm', InputOption::VALUE_NONE, 'Create a new Markdown template for the notification'],
+        ];
     }
 
-    public function handle(): bool|int|null
-    {
-        $module = $this->argument('module');
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
 
-        if ($isValid) {
-          return $this->generateViews();
-        }
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-          return $this->generateViews();
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-    protected function generateViews()
-    {
-        if ($this->option('markdown')) {
-            $this->writeMarkdownTemplate();
-        }
-        return parent::handle();
-    }
-
-    protected function writeMarkdownTemplate()
-    {
-        $path = $this->viewPath(
-            str_replace('.', '/', $this->option('markdown')).'.blade.php'
-        );
-
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true);
-        }
-
-        $this->files->put($path, file_get_contents(__DIR__ . '/../../stubs/markdown.stub'));
-
-        $this->components->info(sprintf('%s [%s] created successfully.', 'Markdown', $path));
-    }
-
-    protected function buildClass($name)
-    {
-        $class = parent::buildClass($name);
-
-        $module = $this->getLowerNameModule();
-
-        if ($this->option('markdown')) {
-            $class = str_replace(['DummyView', '{{ view }}'], $module . "::".$this->option('markdown'), $class);
-        }
-
-        return $class;
-    }
-
+    /**
+     * Perform actions after the user was prompted for missing arguments.
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return void
+     */
     protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
     {
         if ($this->didReceiveOptions($input)) {
@@ -125,7 +115,7 @@ class NotificationMakeCommand extends GeneratorCommand
 
         if ($wantsMarkdownView) {
             $defaultMarkdownView = (new Collection(explode('/', str_replace('\\', '/', $this->argument('name')))))
-                ->map(fn ($path) => Str::kebab($path))
+                ->map(fn($path) => Str::kebab($path))
                 ->prepend('mail')
                 ->implode('.');
 

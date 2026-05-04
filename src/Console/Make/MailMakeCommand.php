@@ -2,8 +2,6 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\GeneratorModuleCommand;
 use Teksite\Module\Console\Make\traits\ViewHandlerTrait;

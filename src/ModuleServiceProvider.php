@@ -119,7 +119,7 @@ class ModuleServiceProvider extends ServiceProvider
             MiddlewareMakeCommand::class,
             // MigrationMakeCommand::class,
             // ModelMakeCommand::class,
-            // NotificationMakeCommand::class,
+            NotificationMakeCommand::class,
             ObserverMakeCommand::class,
             PolicyMakeCommand::class,
             ProviderMakeCommand::class,
