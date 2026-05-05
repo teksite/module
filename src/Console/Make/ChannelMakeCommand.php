@@ -51,7 +51,9 @@ class ChannelMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        return [];
+        return [
+            ...$this->userNameReplaces()
+        ];
 
     }
 

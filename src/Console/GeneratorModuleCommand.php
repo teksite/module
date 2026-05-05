@@ -112,7 +112,7 @@ abstract class GeneratorModuleCommand extends Command
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
         }
-        $path = $this->getPath($name , $module);
+        $path = $this->getPath($name, $module);
         $arrayPath = explode(DIRECTORY_SEPARATOR, $path);
 
         $fileName = array_pop($arrayPath);
@@ -122,7 +122,7 @@ abstract class GeneratorModuleCommand extends Command
         $filename = $this->addExtensionToFilename($filename);
 
 
-        $fullFilePath  = implode(DIRECTORY_SEPARATOR, $arrayPath) . DIRECTORY_SEPARATOR . $filename;
+        $fullFilePath = implode(DIRECTORY_SEPARATOR, $arrayPath) . DIRECTORY_SEPARATOR . $filename;
 
         if (!$this->checkForce($fullFilePath)) return;
 
@@ -292,9 +292,10 @@ abstract class GeneratorModuleCommand extends Command
             '{{namespace}}'   => $this->namespace,
             '{{ class }}'     => $this->getClassName(),
             '{{class}}'       => $this->getClassName(),
-        ])->merge($this->replacements())
-          ->merge($this->replacements ?? [])
-          ->toArray();
+        ])
+            ->merge($this->replacements())
+            ->merge($this->replacements ?? [])
+            ->toArray();
 
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
     }
@@ -493,7 +494,7 @@ abstract class GeneratorModuleCommand extends Command
     {
         $config = $this->laravel['config'];
 
-        $guard = $this->option('guard') ?: $config->get('auth.defaults.guard');
+        $guard = $this->hasOption('guard') ?  $this->option('guard') : $config->get('auth.defaults.guard');
 
         if (is_null($guardProvider = $config->get('auth.guards.' . $guard . '.provider'))) {
             throw new LogicException('The [' . $guard . '] guard is not defined in your "auth" configuration file.');
