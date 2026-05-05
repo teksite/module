@@ -30,7 +30,6 @@ class FactoryMakeCommand extends GeneratorModuleCommand
      */
     protected string $type = 'Factory';
 
-    protected string $fileAppend = 'Factory';
 
     /**
      * Get the stub file for the generator.
@@ -70,6 +69,20 @@ class FactoryMakeCommand extends GeneratorModuleCommand
 
         ];
 
+    }
+
+
+    /**
+     * change final filename if necessary
+     *
+     * @param string $filename
+     * @return string
+     */
+    protected function resolveFilename(string $filename): string
+    {
+        return (!Str::endsWith($filename, 'Factory'))
+            ? $filename . 'Factory'
+            : $filename;
     }
 
     /**

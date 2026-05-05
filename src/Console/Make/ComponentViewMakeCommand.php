@@ -53,12 +53,12 @@ class ComponentViewMakeCommand extends GeneratorModuleCommand
     /**
      * add extension to filename
      *
-     * @param string $path
+     * @param string $filename
      * @return string
      */
-    protected function prepareFile(string $path): string
+    protected function addExtensionToFilename(string $filename): string
     {
-        return $path . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
+        return $filename . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
     }
 
     /**

@@ -49,13 +49,6 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected string $type;
 
-    /**
-     * append prepend word to the file.
-     *
-     * @var string
-     */
-    protected string $fileAppend = '';
-
 
     /**
      * Create a new generator command instance.
@@ -119,52 +112,73 @@ abstract class GeneratorModuleCommand extends Command
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
         }
+        $path = $this->getPath($name , $module);
+        $arrayPath = explode(DIRECTORY_SEPARATOR, $path);
 
-        $path = $this->getPath($name, $module);
+        $fileName = array_pop($arrayPath);
 
-        if (!$this->checkForce($path)) return;
+        $filename = $this->resolveFilename($fileName);
+
+        $filename = $this->addExtensionToFilename($filename);
+
+
+        $fullFilePath  = implode(DIRECTORY_SEPARATOR, $arrayPath) . DIRECTORY_SEPARATOR . $filename;
+
+        if (!$this->checkForce($fullFilePath)) return;
+
+        $this->ensureDirectoryExistence($fullFilePath);
 
         $contentClass = $this->buildFile();
 
-        $this->makeFile($contentClass, $path, $module);
+        $this->makeFile($contentClass, $fullFilePath);
+        $this->handler();
 
         $this->newLine();
 
-        $this->handler();
         if (isset(class_uses_recursive($this)[CreatesMatchingTest::class])) {
-            $this->handleTestCreation($path);
+            $this->handleTestCreation($fullFilePath);
         }
 
-        $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $path);
+        $this->components->twoColumnDetail("$module| the {$this->type} file has been created.", $fullFilePath);
         $this->newLine();
     }
 
 
     protected function resolveStubPath($stub): string
     {
-        $path = app('modules.stubs') . '/' . $stub;
+        $path = app('modules.stubs') . '/' . trim($stub, '/\\');
         return file_exists($path) ? $path : throw new \Exception ($stub . "doesn't exist in the path: ", $path);
     }
 
 
     protected function getPath(string $name, string $module): string
     {
-        $path = $module === 'Steward'
-            ? steward_path($this->path() . '/' . $name, false)
-            : module_path($module, $this->path() . '/' . $name, false);
-        $this->makeDirectory($path);
-        return normalizeSlashPath($this->prepareFile($path));
+        return $module === 'Steward'
+            ? steward_path($this->path() . DIRECTORY_SEPARATOR . $name, false)
+            : module_path($module, trim($this->path(), '/\\') . DIRECTORY_SEPARATOR . $name, false);
+    }
+
+
+    /**
+     * change final filename if necessary
+     *
+     * @param string $filename
+     * @return string
+     */
+    protected function resolveFilename(string $filename): string
+    {
+        return $filename;
     }
 
     /**
      * add extension to filename
      *
-     * @param string $path
+     * @param string $filename
      * @return string
      */
-    protected function prepareFile(string $path): string
+    protected function addExtensionToFilename(string $filename): string
     {
-        return $path . '.php';
+        return $filename . '.php';
     }
 
     /**
@@ -173,7 +187,7 @@ abstract class GeneratorModuleCommand extends Command
      * @param string $path
      * @return void
      */
-    protected function makeDirectory(string $path): void
+    protected function ensureDirectoryExistence(string $path): void
     {
         if (!$this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0777, true, true);
@@ -230,10 +244,6 @@ abstract class GeneratorModuleCommand extends Command
         }
 
 
-        if (!Str::endsWith($name, $this->fileAppend)) {
-            $name = $name . $this->fileAppend;
-        }
-
         return normalizeSlashPath($name);
     }
 
@@ -269,9 +279,6 @@ abstract class GeneratorModuleCommand extends Command
     {
         return Str::lower($this->getModuleInput());
     }
-
-
-
 
 
     /**
@@ -500,7 +507,6 @@ abstract class GeneratorModuleCommand extends Command
             'auth.providers.' . $guardProvider . '.model'
         );
     }
-
 
 
 }
