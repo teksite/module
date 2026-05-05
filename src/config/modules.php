@@ -26,21 +26,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Module configuration
+    | Module and Steward configuration
     |--------------------------------------------------------------------------
     |
     */
     'module'                    => [
-        "directory" => "modules",
-        'namespace' => 'Lareon\Modules',
+        "directory"      => "modules",
+        'namespace'      => 'Lareon\Modules',
+        'lang_path'      => 'lang',
+        'views'          => 'resources/views',
+        'config_path'    => 'config',
+        'migration_path' => 'database/migrations',
     ],
-    'manager'                   => [
+    'steward'                   => [
         "directory"      => "steward",
         'namespace'      => 'Lareon\Steward',
+        'lang_path'      => 'lang',
+        'views'          => 'resources/views',
+        'config_path'    => 'config',
+        'migration_path' => 'database/migrations',
         'module_manager' => '\\Lareon\\CMS\\App\\Providers\\ModulesManagerServiceProvider',
-
-        'view_path' => 'resources/views',
     ],
 
 ];
-
