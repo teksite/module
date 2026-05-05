@@ -147,7 +147,7 @@ trait ModuleValidationGeneratorTrait
     protected function checkForce(string $path): bool
     {
         if ($this->alreadyExists($path)) {
-            if (!$this->option('force')) {
+            if (!$this->hasOption('force')  || !$this->option('force')) {
                 $this->components->error($this->type . ' already exists in ' . $path . '.');
                 return false;
             }
