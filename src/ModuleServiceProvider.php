@@ -3,6 +3,7 @@
 namespace Teksite\Module;
 
 use Illuminate\Support\ServiceProvider;
+use Teksite\Module\Console\Make\AttributeMakeCommand;
 use Teksite\Module\Console\Make\CastMakeCommand;
 use Teksite\Module\Console\Make\ChannelMakeCommand;
 use Teksite\Module\Console\Make\ClassMakeCommand;
@@ -98,6 +99,7 @@ class ModuleServiceProvider extends ServiceProvider
     public function bootCommands(): void
     {
         $this->commands([
+            AttributeMakeCommand::class,
             CastMakeCommand::class,
             ConfigMakeCommand::class,
             ChannelMakeCommand::class,
