@@ -92,6 +92,7 @@ abstract class GeneratorModuleCommand extends Command
     public function handle(): void
     {
 
+        $this->newLine();
         $name = $this->getNameInput();
         if ($this->isReservedName($name)) {
             $this->components->error('The name "' . $name . '" is reserved by PHP.');
@@ -104,8 +105,6 @@ abstract class GeneratorModuleCommand extends Command
             return;
         }
 
-
-        #TODO add/suggest missing inputs
 
 //        if ($this instanceof PromptsForMissingInput) {
 //        }
@@ -134,8 +133,6 @@ abstract class GeneratorModuleCommand extends Command
 
         $this->makeFile($contentClass, $fullFilePath);
         $this->handler();
-
-        $this->newLine();
 
         if (isset(class_uses_recursive($this)[CreatesMatchingTest::class])) {
             $this->handleTestCreation($fullFilePath);
@@ -477,7 +474,6 @@ abstract class GeneratorModuleCommand extends Command
     }
 
 
-
     /**
      * Get the model for the guard's user provider.
      *
@@ -489,7 +485,7 @@ abstract class GeneratorModuleCommand extends Command
     {
         $config = $this->laravel['config'];
 
-        $guard = $this->hasOption('guard') ?  $this->option('guard') : $config->get('auth.defaults.guard');
+        $guard = $this->hasOption('guard') ? $this->option('guard') : $config->get('auth.defaults.guard');
 
         if (is_null($guardProvider = $config->get('auth.guards.' . $guard . '.provider'))) {
             throw new LogicException('The [' . $guard . '] guard is not defined in your "auth" configuration file.');

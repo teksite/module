@@ -107,8 +107,18 @@ trait ModuleValidationGeneratorTrait
     protected function isModuleExist(string $module): bool
     {
         $modules = get_modules_status(true);
-        if (!in_array($module, array_keys($modules))) return false;
-        if ($modules[$module] === false) $this->line("<fg=yellow;options=bold>{$module} in not active<>");
+        $modulesList = array_keys($modules);
+
+        if (!$this->validationExactMatch($modulesList, $module)) {
+            if ($this->validateSimilarMatches($modulesList, $module)) {
+
+                return true;
+            }
+            return false;
+
+
+        };
+        if (($modules[$module] ?? false) === false) $this->line("<fg=yellow;options=bold>{$module} in not active<>");
         return true;
     }
 
@@ -137,7 +147,7 @@ trait ModuleValidationGeneratorTrait
     protected function checkForce(string $path): bool
     {
         if ($this->alreadyExists($path)) {
-            if ( !$this->option('force')){
+            if (!$this->option('force')) {
                 $this->components->error($this->type . ' already exists in ' . $path . '.');
                 return false;
             }
@@ -153,54 +163,44 @@ trait ModuleValidationGeneratorTrait
             return [true, $moduleName];
         }
         // Check for similar matches
-        if ($suggest =$this->getSimilarMatches($moduleName)) {
+        if ($suggest = $this->getSimilarMatches($moduleName)) {
             return [false, $suggest];
         }
 
         return [false, null];
     }
 
+
     /**
-     * Get all existing module names.
+     * Check if the given name matches any module name exactly.
      *
-     * @return array
+     * @param array $modules
+     * @param $module
+     * @return bool
      */
-//    protected function getAllModuleNames(): array
-//    {
-//        $modulePath = base_path('Lareon/Modules');
-//        if (!File::exists($modulePath)) {
-//            return [];
-//        }
-//
-//        return collect(File::directories($modulePath))
-//            ->map(fn($path) => basename($path))
-//            ->toArray();
-//    }
-//
-//    /**
-//     * Check if the given name matches any module name exactly.
-//     *
-//     * @param string $moduleName
-//     * @return bool
-//     */
-//    protected function exactMatch(string $moduleName): bool
-//    {
-//        $allModules = $this->getAllModuleNames();
-//
-//        return in_array($moduleName, $allModules);
-//    }
-//
-//    /**
-//     * Check for similar matches in different cases and return suggestions.
-//     *
-//     * @param string $moduleName
-//     * @return array
-//     */
-//    protected function getSimilarMatches(string $moduleName): ?string
-//    {
-//        $allModules = $this->getAllModuleNames();
-//        return collect($allModules)->filter(function ($module) use ($moduleName) {
-//            return strtolower($module) === strtolower($moduleName);
-//        })->values()->first();
-//    }
+    protected function validationExactMatch(array $modules, $module): bool
+    {
+
+        return in_array($module, $modules);
+    }
+
+    /**
+     * Check for similar matches in different cases and return suggestions.
+     *
+     * @param array $modules
+     * @param string $module
+     * @return string|null
+     */
+    protected function validateSimilarMatches(array $modules, string $module): ?string
+    {
+
+        $similarModule = collect($modules)->first(function ($item) use ($module) {
+            return strtolower($item) === strtolower($module);
+        });
+        if (!!$similarModule && $this->confirm("Did you mean '{$similarModule}'?")) {
+            $this->input->setArgument('module', $similarModule);
+            return true;
+        }
+        return false;
+    }
 }
