@@ -85,7 +85,7 @@ class PolicyMakeCommand extends GeneratorModuleCommand implements PromptsForMiss
         ];
     }
 
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
         if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
             return;

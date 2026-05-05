@@ -66,7 +66,7 @@ class ClassMakeCommand extends GeneratorModuleCommand
      *
      * @return array
      */
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return [
             ['invokable', 'i', InputOption::VALUE_NONE, 'Generate a single method, invokable class'],

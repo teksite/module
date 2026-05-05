@@ -7,7 +7,6 @@ use Illuminate\Console\Concerns\CreatesMatchingTest;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use LogicException;
@@ -78,7 +77,6 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected abstract function path(): string;
 
-
     /**
      * set replacements
      *
@@ -87,10 +85,13 @@ abstract class GeneratorModuleCommand extends Command
     protected abstract function replacements(): array;
 
     /**
+     * execute the command
+     *
      * @throws \Teksite\Module\Exception\FileNotFoundException|FileNotFoundException
      */
     public function handle(): void
     {
+
         $name = $this->getNameInput();
         if ($this->isReservedName($name)) {
             $this->components->error('The name "' . $name . '" is reserved by PHP.');
@@ -112,6 +113,7 @@ abstract class GeneratorModuleCommand extends Command
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
         }
+
         $path = $this->getPath($name, $module);
         $arrayPath = explode(DIRECTORY_SEPARATOR, $path);
 
@@ -474,14 +476,7 @@ abstract class GeneratorModuleCommand extends Command
         ];
     }
 
-    /*
-     *
-     * extra code if needed in commands
-     */
-    protected function handler()
-    {
 
-    }
 
     /**
      * Get the model for the guard's user provider.
@@ -509,5 +504,13 @@ abstract class GeneratorModuleCommand extends Command
         );
     }
 
+    
+    /**
+     * extra code if needed in commands
+     */
+    protected function handler()
+    {
+
+    }
 
 }

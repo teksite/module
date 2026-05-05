@@ -105,7 +105,7 @@ class NotificationMakeCommand extends GeneratorModuleCommand
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
         if ($this->didReceiveOptions($input)) {
             return;
