@@ -504,7 +504,7 @@ abstract class GeneratorModuleCommand extends Command
         );
     }
 
-    
+
     /**
      * extra code if needed in commands
      */

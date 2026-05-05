@@ -2,19 +2,15 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
-use Illuminate\Database\Console\Migrations\BaseCommand;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+
 
 
 class MigrationMakeCommand extends GeneratorCommand
 {
-    use ModuleNameValidator , ModuleCommandsTrait;
+
     /**
      * The console command signature.
      *
