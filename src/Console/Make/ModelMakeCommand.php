@@ -154,7 +154,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
 
         $this->call('module:make-factory', [
             'name'    => "{$factory}Factory",
-            'module'    => $this->getModuleInput(),
+            'module'  => $this->getModuleInput(),
             '--model' => $this->filename,
         ]);
     }
@@ -174,7 +174,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
 
         $this->call('module:make-migration', [
             'name'     => "create_{$table}_table",
-            'module'    => $this->getModuleInput(),
+            'module'   => $this->getModuleInput(),
             '--create' => $table,
         ]);
     }
@@ -189,8 +189,8 @@ class ModelMakeCommand extends GeneratorModuleCommand
         $seeder = Str::studly(class_basename($this->argument('name')));
 
         $this->call('module:make-seeder', [
-            'name' => "{$seeder}Seeder",
-            'module'    => $this->getModuleInput(),
+            'name'   => "{$seeder}Seeder",
+            'module' => $this->getModuleInput(),
 
         ]);
     }
@@ -208,7 +208,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
 
         $this->call('module:make-controller', array_filter([
             'name'       => "{$controller}Controller",
-            'module'    => $this->getModuleInput(),
+            'module'     => $this->getModuleInput(),
             '--model'    => $this->option('resource') || $this->option('api') ? $modelName : null,
             '--api'      => $this->option('api'),
             '--requests' => $this->option('requests') || $this->option('all'),
@@ -220,18 +220,18 @@ class ModelMakeCommand extends GeneratorModuleCommand
      *
      * @return void
      */
-    protected function createFormRequests()
+    protected function createFormRequests(): void
     {
         $request = Str::studly(class_basename($this->argument('name')));
 
         $this->call('module:make-request', [
-            'name' => "Store{$request}Request",
-            'module'    => $this->getModuleInput(),
+            'name'   => "Store{$request}Request",
+            'module' => $this->getModuleInput(),
         ]);
 
         $this->call('module:make-request', [
-            'name' => "Update{$request}Request",
-            'module'    => $this->getModuleInput(),
+            'name'   => "Update{$request}Request",
+            'module' => $this->getModuleInput(),
         ]);
     }
 
@@ -246,7 +246,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
 
         $this->call('module:make-policy', [
             'name'    => "{$policy}Policy",
-            'module'    => $this->getModuleInput(),
+            'module'  => $this->getModuleInput(),
             '--model' => $this->filename,
         ]);
     }

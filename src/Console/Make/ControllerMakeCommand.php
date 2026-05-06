@@ -234,14 +234,14 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         $updateRequestClass = 'Update'.class_basename($modelClass).'Request';
 
         $options =[
-            'name' => $updateRequestClass,
+            '--api' => $this->hasOption('api')  && $this->option('api'),
             'module' => $this->getModuleInput(),
         ];
         if ($this->option('api')) {
             $options[]='--api';
         }
-        $this->call('module:make-request', $options);
-        $this->call('module:make-request', $options);
+        $this->call('module:make-request', ['name' =>$storeRequestClass , ...$options]);
+        $this->call('module:make-request', ['name' =>$updateRequestClass , ...$options]);
 
         return [$storeRequestClass, $updateRequestClass];
     }
