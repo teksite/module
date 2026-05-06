@@ -80,23 +80,21 @@ trait ReplaceStubGeneratorTrait
         }
 
         $modelNamespace = $this->guessModel($class, $term);
-
         if ($check && !class_exists($modelNamespace)) {
             $answer = $this->choice('The related model class does not exist. Do you want to continue?',
-                ['yes', 'no', 'make'], 'yes');
+                ['y' => 'yes without making a relative model', 'n' => 'no need to proceed', 'm' => 'yes and make relative model'], 'y');
+            if ($answer === 'y') {
+                $this->modelCache[$cacheKey] = $modelNamespace;
 
-            if ($answer === 'no') {
-                $this->modelCache[$cacheKey] = null;
-                return null;
             }
-            if ($answer === 'make') {
+
+            if ($answer === 'm') {
                 $this->call('model:make-model', ["name" => $this->filename, 'module' => $this->getModuleInput()]);
                 $modelNamespace = module_namespace($this->getModuleInput()) . "\\App\\Models\\" . $this->filename;
             }
         }
 
         $this->modelCache[$cacheKey] = $modelNamespace;
-
         return $modelNamespace;
     }
 
@@ -162,9 +160,9 @@ trait ReplaceStubGeneratorTrait
     /**
      * Get model replacements array.
      */
-    protected function modelNameReplaces(): array
+    protected function modelNameReplaces(?string $term = null, bool $check = false): array
     {
-        [$modelNamespace, $model] = $this->getModel();
+        [$modelNamespace, $model] = $this->getModel($term, $check);
         $modelVariable = lcfirst($model);
 
         return [
@@ -180,9 +178,9 @@ trait ReplaceStubGeneratorTrait
     /**
      * Get model information.
      */
-    protected function getModel(): array
+    protected function getModel(?string $term = null, bool $check = false): array
     {
-        $modelNamespace = $this->qualifyModel($this->option('model'));
+        $modelNamespace = $this->qualifyModel($this->option('model'), $term, $check);
         $model = class_basename($modelNamespace);
 
         return [$modelNamespace, $model];

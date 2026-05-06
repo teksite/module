@@ -86,8 +86,9 @@ class ControllerMakeCommand extends GeneratorModuleCommand
             $replace = $this->buildParentReplacements();
         }
         if ($this->option('model')) {
-            $replace = $this->modelNameReplaces();
+            $replace = $this->modelNameReplaces('controller' , true);
         }
+
         if ($this->option('creatable')) {
             $replace['abort(404);'] = '//';
         }
