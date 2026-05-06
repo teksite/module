@@ -7,8 +7,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Teksite\Module\Console\GeneratorModuleCommand;
-use Teksite\Module\Exception\FileNotFoundException;
-use function Laravel\Prompts\confirm;
 
 class ControllerMakeCommand extends GeneratorModuleCommand
 {
@@ -45,30 +43,30 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         $stub = null;
 
         if ($type = $this->option('type')) {
-            $stub = "stubs/controller.{$type}.stub";
+            $stub = "stubs/controller/controller.{$type}.stub";
         } elseif ($this->option('parent')) {
             $stub = $this->option('singleton')
-                ? 'stubs/controller.nested.singleton.stub'
-                : 'stubs/controller.nested.stub';
+                ? 'stubs/controller/controller.nested.singleton.stub'
+                : 'stubs/controller/controller.nested.stub';
         } elseif ($this->option('model')) {
-            $stub = 'stubs/controller.model.stub';
+            $stub = 'stubs/controller/controller.model.stub';
         } elseif ($this->option('invokable')) {
-            $stub = 'stubs/controller.invokable.stub';
+            $stub = 'stubs/controller/controller.invokable.stub';
         } elseif ($this->option('singleton')) {
-            $stub = 'stubs/controller.singleton.stub';
+            $stub = 'stubs/controller/controller.singleton.stub';
         } elseif ($this->option('resource')) {
-            $stub = 'stubs/controller.stub';
+            $stub = 'stubs/controller/controller.stub';
         }
 
         if ($this->option('api') && is_null($stub)) {
-            $stub = 'stubs/controller.api.stub';
+            $stub = 'stubs/controller/controller.api.stub';
         } elseif ($this->option('api') && !is_null($stub) && !$this->option('invokable')) {
             $stub = str_replace('.stub', '.api.stub', $stub);
         }
 
-        $stub ??= 'stubs/controller.plain.stub';
+        $stub ??= 'stubs/controller/controller.plain.stub';
 
-        return $stub;
+        return $this->resolveStubPath($stub);
     }
 
     protected function path(): string
@@ -83,9 +81,6 @@ class ControllerMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $laravelRootNamespace = $this->laravel->getNamespace();
-        $namespace = $this->namespace;
-
         $replace = [];
         if ($this->option('parent')) {
             $replace = $this->buildParentReplacements();
@@ -97,17 +92,17 @@ class ControllerMakeCommand extends GeneratorModuleCommand
             $replace['abort(404);'] = '//';
         }
 
-        $baseControllerPath = $this->getModuleInput() === 'Stewrad'
-            ? steward_path('app/Http/Controllers')
-            : module_path($this->getModuleInput(), 'app/Http/Controllers');
+        $baseControllerPath = $this->module_path($this->getModuleInput() ,'app/Http/Controllers');
         $baseControllerExists = file_exists($baseControllerPath);
         if ($baseControllerExists) {
-            $replace["use {$namespace}\Controller;\n"] = '';
+            $replace["{{ rootNamespace }}"] = $this->module_namespace($this->getModuleInput(), 'App\\');
         } else {
             $replace[' extends Controller'] = '';
-            $replace["use {$laravelRootNamespace}Http\Controllers\Controller;\n"] = '';
+            $replace["use {{ rootNamespace }}Http\Controllers\Controller;\n"] = '';
         }
-        return $replace;
+
+        $requestReplace= $this->buildFormRequestReplacements($replace, $this->filename);
+        return array_merge($replace, $requestReplace);
     }
 
     /**
@@ -192,70 +187,18 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         ];
     }
 
-    /**
-     * Build the model replacement values.
-     *
-     * @param  array  $replace
-     * @return array
-     */
-    protected function buildModelReplacements(array $replace): array
-    {
-        $modelClass = $this->parseModel($this->option('model'));
 
-        if (! class_exists($modelClass) && confirm("A {$modelClass} model does not exist. Do you want to generate it?", default: true)) {
-            $this->call('make:model', ['name' => $modelClass]);
-        }
-
-        $replace = $this->buildFormRequestReplacements($replace, $modelClass);
-
-        return array_merge($replace, [
-            'DummyFullModelClass' => $modelClass,
-            '{{ namespacedModel }}' => $modelClass,
-            '{{namespacedModel}}' => $modelClass,
-            'DummyModelClass' => class_basename($modelClass),
-            '{{ model }}' => class_basename($modelClass),
-            '{{model}}' => class_basename($modelClass),
-            'DummyModelVariable' => lcfirst(class_basename($modelClass)),
-            '{{ modelVariable }}' => lcfirst(class_basename($modelClass)),
-            '{{modelVariable}}' => lcfirst(class_basename($modelClass)),
-        ]);
-    }
-
-    /**
-     * Get the fully-qualified model class name.
-     *
-     * @param  string  $model
-     * @return string
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function parseModel($model)
-    {
-        if (preg_match('/[^A-Za-z0-9_\/\\\\]/', $model)) {
-            throw new InvalidArgumentException('Model name contains invalid characters.');
-        }
-
-        return $this->qualifyModel($model);
-    }
-
-    /**
-     * Build the model replacement values.
-     *
-     * @param  array  $replace
-     * @param  string  $modelClass
-     * @return array
-     */
-    protected function buildFormRequestReplacements(array $replace, $modelClass)
+    protected function buildFormRequestReplacements(array $replace, $modelClass): array
     {
         [$namespace, $storeRequestClass, $updateRequestClass] = [
             'Illuminate\\Http', 'Request', 'Request',
         ];
 
         if ($this->option('requests')) {
-            $namespace = 'App\\Http\\Requests';
+            $namespace = $this->module_namespace($this->getModuleInput()) .'\\App\\Http\\Requests';
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
-                $modelClass, $storeRequestClass, $updateRequestClass
+                $modelClass
             );
         }
 
@@ -282,24 +225,23 @@ class ControllerMakeCommand extends GeneratorModuleCommand
     /**
      * Generate the form requests for the given model and classes.
      *
-     * @param  string  $modelClass
-     * @param  string  $storeRequestClass
-     * @param  string  $updateRequestClass
+     * @param string $modelClass
      * @return array
      */
-    protected function generateFormRequests($modelClass, $storeRequestClass, $updateRequestClass): array
+    protected function generateFormRequests(string $modelClass): array
     {
         $storeRequestClass = 'Store'.class_basename($modelClass).'Request';
-
-        $this->call('make:request', [
-            'name' => $storeRequestClass,
-        ]);
-
         $updateRequestClass = 'Update'.class_basename($modelClass).'Request';
 
-        $this->call('make:request', [
+        $options =[
             'name' => $updateRequestClass,
-        ]);
+            'module' => $this->getModuleInput(),
+        ];
+        if ($this->option('api')) {
+            $options[]='--api';
+        }
+        $this->call('module:make-request', $options);
+        $this->call('module:make-request', $options);
 
         return [$storeRequestClass, $updateRequestClass];
     }

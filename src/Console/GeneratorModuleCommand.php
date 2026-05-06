@@ -17,7 +17,7 @@ use Teksite\Module\Exception\FileNotFoundException;
 
 abstract class GeneratorModuleCommand extends Command
 {
-    use ModuleGeneratorTrait, ModuleValidationGeneratorTrait , ReplaceStubGeneratorTrait;
+    use ModuleGeneratorTrait, ModuleValidationGeneratorTrait, ReplaceStubGeneratorTrait;
 
     /**
      * The type of generation (class or file).
@@ -247,7 +247,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function getPath(string $name, string $module): string
     {
-        return $this->module_path($module ,$this->path() . DIRECTORY_SEPARATOR . $name, false);
+        return $this->module_path($module, $this->path() . DIRECTORY_SEPARATOR . $name, false);
     }
 
     /**
@@ -396,7 +396,7 @@ abstract class GeneratorModuleCommand extends Command
      * @param bool $absolute
      * @return string
      */
-    protected function module_path(string $module, null|string $path = null , bool $absolute =false): string
+    protected function module_path(string $module, null|string $path = null, bool $absolute = false): string
     {
         if ($module === 'Steward') {
             return steward_path($path, $absolute);
@@ -413,10 +413,11 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function module_namespace(string $module, null|string $path = null): string
     {
+        $pathNamespace = $path ? "\\" . normalizeSlashNamespace($path) : '';
         if ($module === 'Steward') {
-            return steward_namespace($path);
+            return steward_namespace() . $pathNamespace;
         }
-        return module_namespace($module, $path);
+        return module_namespace($module) . $pathNamespace;
     }
 
     /**
@@ -437,9 +438,6 @@ abstract class GeneratorModuleCommand extends Command
     {
         // Override in child classes
     }
-
-
-
 
 
 }

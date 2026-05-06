@@ -91,7 +91,7 @@ trait ReplaceStubGeneratorTrait
             }
             if ($answer === 'make') {
                 $this->call('model:make-model', ["name" => $this->filename, 'module' => $this->getModuleInput()]);
-                return;
+                $modelNamespace = module_namespace($this->getModuleInput()) . "\\App\\Models\\" . $this->filename;
             }
         }
 
@@ -221,8 +221,4 @@ trait ReplaceStubGeneratorTrait
 
         return $config->get("auth.providers.{$guardProvider}.model", 'App\\Models\\User');
     }
-
-
-
-
 }
