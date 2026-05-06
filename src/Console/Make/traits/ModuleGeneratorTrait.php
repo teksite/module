@@ -5,7 +5,6 @@ namespace Teksite\Module\Console\Make\traits;
 use RuntimeException;
 use Teksite\Module\Contract\TestGenerator;
 use Teksite\Module\Exception\FileNotFoundException;
-use Teksite\Module\Facade\Module;
 
 trait ModuleGeneratorTrait
 {
@@ -52,7 +51,6 @@ trait ModuleGeneratorTrait
                 $remainingPath = trim($remainingPath, '/');
 
                 $finalNamespace = rtrim($namespacePrefix, '\\') . '\\'; // اطمینان از وجود بک‌اسلش در انتهای پیشوند namespace
-
 
                 if (!empty($remainingPath)) {
                     $finalNamespace .= str_replace('/', '\\', $remainingPath);
