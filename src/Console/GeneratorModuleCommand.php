@@ -247,11 +247,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function getPath(string $name, string $module): string
     {
-        $basePath = $module === 'Steward'
-            ? steward_path($this->path() . DIRECTORY_SEPARATOR . $name, false)
-            : module_path($module, trim($this->path(), '/\\') . DIRECTORY_SEPARATOR . $name, false);
-
-        return normalizeSlashPath($basePath);
+        return $this->module_path($module ,$this->path() . DIRECTORY_SEPARATOR . $name, false);
     }
 
     /**
@@ -389,6 +385,38 @@ abstract class GeneratorModuleCommand extends Command
     public function makeFile(string $content, string $path): void
     {
         $this->files->put($path, $content);
+    }
+
+
+    /**
+     * integrate module and steward pathes
+     *
+     * @param string $module
+     * @param string|null $path
+     * @param bool $absolute
+     * @return string
+     */
+    protected function module_path(string $module, null|string $path = null , bool $absolute =false): string
+    {
+        if ($module === 'Steward') {
+            return steward_path($path, $absolute);
+        }
+        return module_path($module, $path, $absolute);
+    }
+
+    /**
+     * integrate module and steward paths
+     *
+     * @param string $module
+     * @param string|null $path
+     * @return string
+     */
+    protected function module_namespace(string $module, null|string $path = null): string
+    {
+        if ($module === 'Steward') {
+            return steward_namespace($path);
+        }
+        return module_namespace($module, $path);
     }
 
     /**

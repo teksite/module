@@ -17,22 +17,16 @@ trait ReplaceStubGeneratorTrait
     private ?array $possibleEventsCache = null;
 
 
-
-
     /**
      * Get possible events (with caching).
      */
-
-
     protected function possibleEvents(): array
     {
         if ($this->possibleEventsCache !== null) {
             return $this->possibleEventsCache;
         }
 
-        $eventPath = $this->getModuleInput() === 'Steward'
-            ? steward_path('app/Events')
-            : module_path($this->getModuleInput(), 'app/Events');
+        $eventPath = $this->module_path($this->getModuleInput(), 'app/Events');
 
         if (!is_dir($eventPath)) {
             $this->possibleEventsCache = [];
@@ -57,9 +51,7 @@ trait ReplaceStubGeneratorTrait
             return $this->availableModelsCache;
         }
 
-        $modelPath = $this->getModuleInput() === 'Steward'
-            ? steward_path('App\\Models')
-            : module_path($this->getModuleInput(), 'App\\Models');
+        $modelPath = $this->module_path($this->getModuleInput(), 'App\\Models');
 
         if (!is_dir($modelPath)) {
             $this->availableModelsCache = [];
@@ -91,15 +83,15 @@ trait ReplaceStubGeneratorTrait
 
         if ($check && !class_exists($modelNamespace)) {
             $answer = $this->choice('The related model class does not exist. Do you want to continue?',
-                [ 'yes', 'no', 'make' ],'yes');
+                ['yes', 'no', 'make'], 'yes');
 
             if ($answer === 'no') {
                 $this->modelCache[$cacheKey] = null;
                 return null;
             }
             if ($answer === 'make') {
-                $this->call('model:make-model', ["name"=>$this->filename , 'module'=>$this->getModuleInput()]);
-                return ;
+                $this->call('model:make-model', ["name" => $this->filename, 'module' => $this->getModuleInput()]);
+                return;
             }
         }
 
@@ -163,9 +155,8 @@ trait ReplaceStubGeneratorTrait
             return $model;
         }
 
-        return $this->getModuleInput() === 'Steward'
-            ? steward_namespace() . '\\App\\Models\\' . $model
-            : module_namespace($this->getModuleInput()) . '\\App\\Models\\' . $model;
+        return $this->module_namespace($this->getModuleInput()) . '\\App\\Models\\' . $model;
+
     }
 
     /**
@@ -230,6 +221,8 @@ trait ReplaceStubGeneratorTrait
 
         return $config->get("auth.providers.{$guardProvider}.model", 'App\\Models\\User');
     }
+
+
 
 
 }
