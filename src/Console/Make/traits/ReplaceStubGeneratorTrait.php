@@ -209,7 +209,7 @@ trait ReplaceStubGeneratorTrait
     protected function userProviderModel(): ?string
     {
         $config = $this->laravel['config'];
-        $guard = $this->hasOption('guard') ? $this->option('guard') : $config->get('auth.defaults.guard');
+        $guard = $config->get('auth.defaults.guard');
 
         $guardProvider = $config->get("auth.guards.{$guard}.provider");
 

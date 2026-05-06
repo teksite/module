@@ -2,58 +2,114 @@
 
 namespace Teksite\Module\Console\Make;
 
-use Illuminate\Console\Concerns\CreatesMatchingTest;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
-use function Laravel\Prompts\multiselect;
+use Teksite\Module\Console\GeneratorModuleCommand;
 
-class ModelMakeCommand extends GeneratorCommand
+class ModelMakeCommand extends GeneratorModuleCommand
 {
-    use ModuleNameValidator, ModuleCommandsTrait, CreatesMatchingTest;
 
-    protected $signature = 'module:make-model {name} {module}
-            {--a|all : Generate a migration, seeder, factory, policy, resource controller, and form request classes for the model }
-            {--c|controller : Create a new controller for the model }
-            {--f|factory : Create a new factory for the model }
-            {--ull|force : Create the class even if the model already exists }
-            {--m|migration : Create a new migration file for the model }
-            {--morph-pivot :  Indicates if the generated model should be a custom polymorphic intermediate table model }
-            {--policy : Create a new policy for the model }
-            {--s|seed : Create a new seeder for the model }
-            {--p|pivot : Indicates if the generated model should be a custom intermediate table model }
-            {--r|resource : Indicates if the generated controller should be a resource controller }
-            {--api : Indicates if the generated controller should be an API resource controller }
-            {--R|requests : Create new form request classes and use them in the resource controller }
-';
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $name = 'module:make-model';
 
-    protected $description = 'Create a new model class in the module';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create aa new Eloquent model class in modules or steward';
 
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected string $type = 'Model';
 
-    public function handle()
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getStub(): string
     {
-        $module = $this->argument('module');
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-
-        if ($isValid) return $this->generatingModel();
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->input->setArgument('module', $suggestedName);
-            return $this->generatingModel();
+        if ($this->option('pivot')) {
+            return $this->resolveStubPath('stubs/model.pivot.stub');
         }
-        $this->error("The module '".$module."' does not exist.");
-        return 1;
+
+        if ($this->option('morph-pivot')) {
+            return $this->resolveStubPath('stubs/model.morph-pivot.stub');
+        }
+
+        return $this->resolveStubPath('stubs/model.stub');
     }
-    protected function generatingModel(){
-        if (parent::handle() === false && !$this->option('force')) {
-            return false;
+
+    protected function path(): string
+    {
+        return 'app/Models';
+    }
+
+    /**
+     * set replacements
+     *
+     * @return array [string $searchable , string $replace ]
+     */
+    protected function replacements(): array
+    {
+        $replacements = [];
+        if ($this->option('factory') || $this->option('all')) {
+            $modelPath = Str::of($this->argument('name'))->studly()->replace('/', '\\')->toString();
+
+            $factoryNamespace = $this->module_namespace($this->getModuleInput()) . '\\Database\\Factories\\' . $modelPath . 'Factory';
+
+            $factoryCode = <<<EOT
+            /** @use HasFactory<$factoryNamespace> */
+                use HasFactory;
+            EOT;
+
+            $replacements['{{ factory }}'] = $factoryCode;
+            $replacements['{{ factoryImport }}'] = 'use Illuminate\Database\Eloquent\Factories\HasFactory;';
+        } else {
+            $replacements['{{ factory }}'] = '//';
+            $replacements["{{ factoryImport }}\n"] = '';
+            $replacements["{{ factoryImport }}\r\n"] = '';
         }
+
+        return $replacements;
+
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['all', 'a', InputOption::VALUE_NONE, 'Generate a migration, seeder, factory, policy, resource controller, and form request classes for the model'],
+            ['controller', 'c', InputOption::VALUE_NONE, 'Create a new controller for the model'],
+            ['factory', 'f', InputOption::VALUE_NONE, 'Create a new factory for the model'],
+            ['force', null, InputOption::VALUE_NONE, 'Create the class even if the model already exists'],
+            ['migration', 'm', InputOption::VALUE_NONE, 'Create a new migration file for the model'],
+            ['morph-pivot', null, InputOption::VALUE_NONE, 'Indicates if the generated model should be a custom polymorphic intermediate table model'],
+            ['policy', null, InputOption::VALUE_NONE, 'Create a new policy for the model'],
+            ['seed', 's', InputOption::VALUE_NONE, 'Create a new seeder for the model'],
+            ['pivot', 'p', InputOption::VALUE_NONE, 'Indicates if the generated model should be a custom intermediate table model'],
+            ['resource', 'r', InputOption::VALUE_NONE, 'Indicates if the generated controller should be a resource controller'],
+            ['api', null, InputOption::VALUE_NONE, 'Indicates if the generated controller should be an API resource controller'],
+            ['requests', 'R', InputOption::VALUE_NONE, 'Create new form request classes and use them in the resource controller'],
+        ];
+    }
+
+    protected function handler(): void
+    {
+        parent::handler();
 
         if ($this->option('all')) {
             $this->input->setOption('factory', true);
@@ -92,15 +148,14 @@ class ModelMakeCommand extends GeneratorCommand
      *
      * @return void
      */
-    protected function createFactory()
+    protected function createFactory(): void
     {
         $factory = Str::studly($this->argument('name'));
-        $module = $this->argument('module');
 
         $this->call('module:make-factory', [
-            'name' => "{$factory}Factory",
-            'module' => $module,
-            '--model' => $this->qualifyClass($this->getNameInput()),
+            'name'    => "{$factory}Factory",
+            'module'    => $this->getModuleInput(),
+            '--model' => $this->filename,
         ]);
     }
 
@@ -109,17 +164,17 @@ class ModelMakeCommand extends GeneratorCommand
      *
      * @return void
      */
-    protected function createMigration()
+    protected function createMigration(): void
     {
         $table = Str::snake(Str::pluralStudly(class_basename($this->argument('name'))));
-        $module = $this->argument('module');
+
         if ($this->option('pivot')) {
             $table = Str::singular($table);
         }
 
         $this->call('module:make-migration', [
-            'name' => "create_{$table}_table",
-            'module' => $module,
+            'name'     => "create_{$table}_table",
+            'module'    => $this->getModuleInput(),
             '--create' => $table,
         ]);
     }
@@ -129,14 +184,14 @@ class ModelMakeCommand extends GeneratorCommand
      *
      * @return void
      */
-    protected function createSeeder()
+    protected function createSeeder(): void
     {
         $seeder = Str::studly(class_basename($this->argument('name')));
-        $module = $this->argument('module');
 
         $this->call('module:make-seeder', [
             'name' => "{$seeder}Seeder",
-            'module' => "$module",
+            'module'    => $this->getModuleInput(),
+
         ]);
     }
 
@@ -145,20 +200,18 @@ class ModelMakeCommand extends GeneratorCommand
      *
      * @return void
      */
-    protected function createController()
+    protected function createController(): void
     {
         $controller = Str::studly(class_basename($this->argument('name')));
 
-        $modelName = $this->qualifyClass($this->getNameInput());
-        $moduleName = $this->argument('module');
+        $modelName = $this->filename;
+
         $this->call('module:make-controller', array_filter([
-            'name' => "{$controller}Controller",
-            'module' => "$moduleName",
-            '--model' => $this->option('resource') || $this->option('api') ? $modelName : null,
-            '--api' => $this->option('api'),
+            'name'       => "{$controller}Controller",
+            'module'    => $this->getModuleInput(),
+            '--model'    => $this->option('resource') || $this->option('api') ? $modelName : null,
+            '--api'      => $this->option('api'),
             '--requests' => $this->option('requests') || $this->option('all'),
-            '--test' => $this->option('test'),
-            '--pest' => $this->option('pest'),
         ]));
     }
 
@@ -170,15 +223,15 @@ class ModelMakeCommand extends GeneratorCommand
     protected function createFormRequests()
     {
         $request = Str::studly(class_basename($this->argument('name')));
-        $module = $this->argument('module');
+
         $this->call('module:make-request', [
             'name' => "Store{$request}Request",
-            'module' => "$module",
+            'module'    => $this->getModuleInput(),
         ]);
 
         $this->call('module:make-request', [
             'name' => "Update{$request}Request",
-            'module' => "$module",
+            'module'    => $this->getModuleInput(),
         ]);
     }
 
@@ -190,146 +243,11 @@ class ModelMakeCommand extends GeneratorCommand
     protected function createPolicy()
     {
         $policy = Str::studly(class_basename($this->argument('name')));
-        $module = $this->argument('module');
 
         $this->call('module:make-policy', [
-            'name' => "{$policy}Policy",
-            'module' => "$module",
-
-            '--model' => $this->qualifyClass($this->getNameInput()),
+            'name'    => "{$policy}Policy",
+            'module'    => $this->getModuleInput(),
+            '--model' => $this->filename,
         ]);
-    }
-
-    /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
-    protected function getStub()
-    {
-        if ($this->option('pivot')) {
-            return $this->resolveStubPath('/model-pivot-class.stub');
-        }
-
-        if ($this->option('morph-pivot') ?? false) {
-            return $this->resolveStubPath('/model.morph-pivot.stub');
-        }
-
-        return $this->resolveStubPath('/model-class.stub');
-
-
-    }
-
-    protected function getPath($name): string
-    {
-        $module = $this->argument('module');
-        return $this->setPath($name,'php');
-    }
-
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param string $name
-     * @return string
-     */
-    protected function qualifyClass($name): string
-    {
-        $module = $this->argument('module');
-
-        return $this->setNamespace($module,$name , '\\App\\Models');
-    }
-
-
-    /**
-     * Build the class with the given name.
-     *
-     * @param string $name
-     * @return string
-     *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     */
-    protected function buildClass($name)
-    {
-        $replace = $this->buildFactoryReplacements();
-
-        return str_replace(
-            array_keys($replace), array_values($replace), parent::buildClass($name)
-        );
-    }
-
-    /**
-     * Build the replacements for a factory.
-     *
-     * @return array<string, string>
-     */
-    protected function buildFactoryReplacements()
-    {
-        $replacements = [];
-
-        if ($this->option('factory') || $this->option('all')) {
-            $modelPath = Str::of($this->argument('name'))->studly()->replace('/', '\\')->toString();
-
-            $factoryNamespace = '\\Database\\Factories\\' . $modelPath . 'Factory';
-
-            $factoryCode = <<<EOT
-            /** @use HasFactory<$factoryNamespace> */
-                use HasFactory;
-            EOT;
-
-            $replacements['{{ factory }}'] = $factoryCode;
-            $replacements['{{ factoryImport }}'] = 'use Illuminate\Database\Eloquent\Factories\HasFactory;';
-        } else {
-            $replacements['{{ factory }}'] = '//';
-            $replacements["{{ factoryImport }}\n"] = '';
-            $replacements["{{ factoryImport }}\r\n"] = '';
-        }
-
-        return $replacements;
-    }
-
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return [
-            ['all', 'a', InputOption::VALUE_NONE, 'Generate a migration, seeder, factory, policy, resource controller, and form request classes for the model'],
-            ['controller', 'c', InputOption::VALUE_NONE, 'Create a new controller for the model'],
-            ['factory', 'f', InputOption::VALUE_NONE, 'Create a new factory for the model'],
-            ['force', null, InputOption::VALUE_NONE, 'Create the class even if the model already exists'],
-            ['migration', 'm', InputOption::VALUE_NONE, 'Create a new migration file for the model'],
-            ['morph-pivot', null, InputOption::VALUE_NONE, 'Indicates if the generated model should be a custom polymorphic intermediate table model'],
-            ['policy', null, InputOption::VALUE_NONE, 'Create a new policy for the model'],
-            ['seed', 's', InputOption::VALUE_NONE, 'Create a new seeder for the model'],
-            ['pivot', 'p', InputOption::VALUE_NONE, 'Indicates if the generated model should be a custom intermediate table model'],
-            ['resource', 'r', InputOption::VALUE_NONE, 'Indicates if the generated controller should be a resource controller'],
-            ['api', null, InputOption::VALUE_NONE, 'Indicates if the generated controller should be an API resource controller'],
-            ['requests', 'R', InputOption::VALUE_NONE, 'Create new form request classes and use them in the resource controller'],
-        ];
-    }
-
-    /**
-     * Interact further with the user if they were prompted for missing arguments.
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return void
-     */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
-    {
-        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
-            return;
-        }
-
-        (new Collection(multiselect('Would you like any of the following?', [
-            'seed' => 'Database Seeder',
-            'factory' => 'Factory',
-            'requests' => 'Form Requests',
-            'migration' => 'Migration',
-            'policy' => 'Policy',
-            'resource' => 'Resource Controller',
-        ])))->each(fn($option) => $input->setOption($option, true));
     }
 }
