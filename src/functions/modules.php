@@ -85,13 +85,15 @@ if (!function_exists('get_enabled_modules')) {
     /**
      * get arrays of installed and enabled modules
      *
+     * @param bool $onlyName
      * @return array
      */
-    function get_enabled_modules(): array
+    function get_enabled_modules(bool $onlyName = false): array
     {
-        return collect(get_module_bootstrap())
+        $modules= collect(get_module_bootstrap())
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
             ->toArray();
+        return $onlyName ? array_keys($modules) : $modules;
     }
 }
 
@@ -99,13 +101,32 @@ if (!function_exists('get_disabled_modules')) {
     /**
      * get arrays of installed and disabled modules
      *
+     * @param bool $onlyName
      * @return array
      */
-    function get_disabled_modules(): array
+    function get_disabled_modules(bool $onlyName = false): array
     {
-        return collect(get_module_bootstrap())
+        $modules= collect(get_module_bootstrap())
             ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)
             ->toArray();
+        return $onlyName ? array_keys($modules) : $modules;
+
+    }
+}
+
+if (!function_exists('get_all_modules')) {
+    /**
+     * get arrays of installed modules
+     *
+     * @param bool $onlyName
+     * @return array
+     */
+    function get_all_modules(bool $onlyName = false): array
+    {
+        $modules= get_module_bootstrap();
+
+        return $onlyName ? array_keys($modules) : $modules;
+
     }
 }
 
@@ -121,7 +142,6 @@ if (!function_exists('get_module_type')) {
         return (get_module_bootstrap($modules))['type'] ?? null;
     }
 }
-
 
 if (!function_exists('module_path')) {
     /**

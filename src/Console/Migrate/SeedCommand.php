@@ -2,27 +2,37 @@
 
 namespace Teksite\Module\Console\Migrate;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
+use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
 use Teksite\Module\Contract\MigrationContract;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleNameValidator;
 
 class SeedCommand extends BasicMigrator implements MigrationContract
 {
-    use ModuleNameValidator;
 
-    protected $signature = 'module:seed
-        {module? : The module to seed.}
-    ';
+    protected $name = 'db:seed';
 
-    protected $description = 'Seed the module';
+
+    protected $description = 'Seed the database with records in modules or steward';
 
     protected $type = 'Seed';
 
     public function runTheCommand()
     {
         $this->seeding();
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['module', 'M', InputOption::VALUE_IS_ARRAY, 'desired modules , if not set mean all modules'],
+            ['class', null, InputOption::VALUE_OPTIONAL, 'The class name of the root seeder', 'Database\\Seeders\\DatabaseSeeder'],
+            ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to seed'],
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production'],
+        ];
     }
 }

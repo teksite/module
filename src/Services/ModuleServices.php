@@ -67,19 +67,21 @@ class ModuleServices
     }
 
     /**
+     * @param bool $onlyName
      * @return array
      */
-    public function enables(): array
+    public function enables(bool $onlyName =false): array
     {
-        return get_enabled_modules();
+        return get_enabled_modules($onlyName);
     }
 
     /**
+     * @param bool $onlyName
      * @return array
      */
-    public function disables(): array
+    public function disables(bool $onlyName =false): array
     {
-        return get_disabled_modules();
+        return get_disabled_modules($onlyName);
     }
 
     /**

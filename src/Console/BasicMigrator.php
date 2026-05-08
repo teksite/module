@@ -5,20 +5,54 @@ namespace Teksite\Module\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
 use Teksite\Module\Facade\Module;
 use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
 
 class BasicMigrator extends Command
 {
-    use ModuleNameValidator , ModuleMigrationTrait;
+    use ModuleValidationGeneratorTrait , ModuleMigrationTrait;
 
     /**
      * @return array
      */
     public function getModules(): array
     {
-        $module = $this->argument('module');
-        return $module ? [$module] : Module::all();
+        $modules = $this->argument('module');
+        return $modules ?? $this->allModules();
+
+    }
+
+    /**
+     * get all enabled modules
+     *
+     * @return array
+     */
+    protected function enabledModules(): array
+    {
+        return get_enabled_modules();
+    }
+
+
+    /**
+     * get all disabled modules
+     *
+     * @return array
+     */
+    protected function disabledModules(): array
+    {
+        return get_disabled_modules();
+    }
+
+
+    /**
+     * get all modules
+     *
+     * @return array
+     */
+    protected function allModules(): array
+    {
+        return get_modules();
     }
 
 
