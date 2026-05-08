@@ -28,7 +28,7 @@ class SeedCommand extends BasicMigrator implements MigrationContract
             $this->seedModule($module, $isForce);
         }
 
-        $this->showSummary();
+        $this->showSummary('Seeding ');
 
         return $this->failureCount === 0 ? Command::SUCCESS : Command::FAILURE;
     }
@@ -100,9 +100,6 @@ class SeedCommand extends BasicMigrator implements MigrationContract
             });
         });
     }
-
-
-
 
 
     /**

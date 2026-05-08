@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
 
-abstract class BasicMigrator extends Command  implements Isolatable
+abstract class BasicMigrator extends Command implements Isolatable
 {
     use Prohibitable, ConfirmableTrait;
 
@@ -23,10 +23,11 @@ abstract class BasicMigrator extends Command  implements Isolatable
     private ?array $cachedDisabledModules = null;
 
 
-
     protected int $successCount = 0;
     protected int $failureCount = 0;
-    protected array $failedModules = [];
+    protected array $successItems = [];
+    protected array $failedItems = [];
+
     /**
      * Execute the console command.
      * @return int
@@ -100,7 +101,9 @@ abstract class BasicMigrator extends Command  implements Isolatable
     {
         $startTime = Carbon::now();
         $callback();
-        return $startTime->diffInMilliseconds(Carbon::now());
+        $endTime = Carbon::now();
+
+        return $startTime->diffInMilliseconds($endTime);
     }
 
 
@@ -119,10 +122,10 @@ abstract class BasicMigrator extends Command  implements Isolatable
             $resolver->setDefaultConnection($previousConnection);
         }
     }
+
     private function parseModuleOption(): array
     {
         $moduleOption = $this->option('module');
-
         if (empty($moduleOption)) {
             return $this->getAllModules(true);
         }
@@ -195,26 +198,55 @@ abstract class BasicMigrator extends Command  implements Isolatable
     /**
      * Show seeding summary
      */
-    protected function showSummary(): void
+    protected function showSummary(null|string $operationType = null): void
     {
         $this->newLine(2);
 
+        $total = $this->successCount + $this->failureCount;
+
         $this->components->twoColumnDetail(
-            '<fg=yellow>Summary</>',
+            "<fg=yellow>{$operationType} Summary</>",
             sprintf(
-                '✅ Success: %d | ❌ Failed: %d',
+                '✅ Success: %d | ❌ Failed: %d | 📁 Total: %d',
                 $this->successCount,
-                $this->failureCount
+                $this->failureCount,
+                $total
             )
         );
 
-        if (!empty($this->failedModules)) {
-            $this->components->warn('Failed modules: ' . implode(', ', $this->failedModules));
+        if (!empty($this->successItems)) {
+            $this->newLine();
+            $this->components->bulletList(
+                collect($this->successItems)
+                    ->map(fn($item) => "<fg=green>✓ {$item}</>")
+                    ->toArray()
+            );
+        }
+
+        if (!empty($this->failedItems)) {
+            $this->newLine();
+            $this->components->error('Failed items:');
+            $this->components->bulletList(
+                collect($this->failedItems)
+                    ->map(fn($item) => "<fg=red>✗ {$item}</>")
+                    ->toArray()
+            );
         }
 
         $this->newLine();
     }
 
+
+    /**
+     * Reset statistics
+     */
+    protected function resetStats(): void
+    {
+        $this->successCount = 0;
+        $this->failureCount = 0;
+        $this->successItems = [];
+        $this->failedItems = [];
+    }
     /**
      * Get the database connection name
      */

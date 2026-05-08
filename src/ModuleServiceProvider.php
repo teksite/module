@@ -134,17 +134,17 @@ class ModuleServiceProvider extends ServiceProvider
             TraitMakeCommand::class,
             ViewMakeCommand::class,
             TrashControllerMakeCommand::class,
-//
-//
-            // /* Module -> Migration and Seeds */
-             SeedCommand::class,
-            // MigrateCommands::class,
+
+
+            /* Module -> Migration and Seeds */
+            SeedCommand::class,
+            MigrateCommands::class,
             // RollbackCommands::class,
             // FreshCommands::class,
             // RefreshCommands::class,
             // ResetCommands::class,
-//
-//
+
+
             /* Module -> Generator commands */
             ModuleMakeCommand::class,
             DeleteMakeCommand::class,
