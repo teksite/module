@@ -26,8 +26,8 @@ class DeleteMakeCommand extends Command
      */
     public function handle(): void
     {
-
         $modulesName = $this->argument('name');
+
         $bootstrapFile = module_bootstrap_path();
 
         if (!$this->validating($modulesName, $bootstrapFile)) return;
@@ -39,7 +39,6 @@ class DeleteMakeCommand extends Command
     /**
      * Ask for confirmation before deleting.
      */
-
     private function validating(array $modulesName, $bootstrapFile): bool
     {
         if (!File::exists($bootstrapFile)) {
@@ -52,7 +51,6 @@ class DeleteMakeCommand extends Command
                 return false;
             }
         }
-
         return true;
 
     }
@@ -71,28 +69,15 @@ class DeleteMakeCommand extends Command
         $modulesName = array_map(fn($module) => Str::studly(trim($module)), $modulesName);
 
         foreach ($modulesName as $module) {
-            $isRegistered = (in_array($module, Module::all()));
-            $pathExist = is_dir(Module::modulePath($module)) ? Module::modulePath($module) : false;
-            if (!!$pathExist) {
-                $this->removeDirectory($pathExist);
-                $dirMSg = "<fg=green;options=bold>✔ deleted successfully!</>";
+            if (!$this->deleteConfirmation($module)) continue;
 
-            } else {
-                $dirMSg = "<fg=red;options=bold>✘ directory not found!</>";
-            }
+            $this->newLine();
+            $this->line("<fg=yellow> Deleting module $module</>");
 
-            if (!!$isRegistered) {
-                $this->updateModuleBootstrap($module, $bootstrapFile);
-                $regMSg = "<fg=green;options=bold>✔ unregistered successfully!</>";
-
-            } else {
-                $regMSg = "<fg=red;options=bold>✘ not found in bootstrap/modules.php!</>";
-            }
-
-            $this->components->twoColumnDetail("$module| $regMSg", "<fg=green;options=bold>$dirMSg</>");
-
+            $this->deletingDirectory($module);
+            $this->unregister($module, $bootstrapFile);
         }
-
+$this->newLine();
         $this->dumpingComposer();
 
     }
@@ -108,15 +93,48 @@ class DeleteMakeCommand extends Command
     /**
      * Remove the module from config/modules.php if it exists.
      */
-    private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): void
+    private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): bool
     {
-        $modules = get_modules(true);
-
-        if (!in_array($moduleName, array_keys($modules))) return;
-
+        $modules = get_all_modules();
 
         unset($modules[$moduleName]);
+
         File::put($bootstrapFile, '<?php return ' . humanReadableVarExport($modules, true) . ';');
+        return true;
+    }
+
+
+    /**
+     * @param mixed $module
+     * @return void
+     */
+    public function deletingDirectory(mixed $module): void
+    {
+        $pathExist = is_dir(Module::modulePath($module)) ? Module::modulePath($module) : false;
+        if (!!$pathExist) {
+            $this->removeDirectory($pathExist);
+            $this->components->twoColumnDetail("<fg=gray> └─ deleting $module directory</>", "<fg=green>✓ DONE</>");
+
+        } else {
+            $this->components->twoColumnDetail("<fg=gray> └─ deleting $module directory", "<fg=red>✘ directory not found!</>");
+        }
+    }
+
+    /**
+     * @param mixed $module
+     * @param string $bootstrapFile
+     * @return void
+     */
+    public function unregister(string $module, string $bootstrapFile): void
+    {
+        $isRegistered = (in_array($module, get_all_modules(true)));
+        if ($isRegistered) {
+            $this->updateModuleBootstrap($module, $bootstrapFile);
+            $this->components->twoColumnDetail("<fg=gray> └─ unregistering $module</>", "<fg=green>✓ DONE</>");
+
+        } else {
+            $this->components->twoColumnDetail("<fg=gray> └─ unregistering $module</>", "<fg=red>✘ not found in bootstrap/modules.php!</>");
+        }
 
     }
 

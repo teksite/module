@@ -110,6 +110,7 @@ trait ModuleGeneratorCommandTrait
 
     protected function dumpingComposer(): void
     {
+
         $this->line("wait to dump autoload of composer, it may take a while ...");
 
         Process::path(base_path())
