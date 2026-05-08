@@ -153,23 +153,4 @@ trait ModuleMigrationTrait
     }
 
 
-    /**
-     * @param \Closure $closer
-     * @param string $first
-     * @param string $second
-     * @return void
-     */
-    public function runAndCalculate(\Closure $closer, string $first = '', string $second = ''): void
-    {
-        $startTime = Carbon::now();
-
-        $closer();
-
-        $endTime = Carbon::now();
-
-        $executionTime = $startTime->diffInMilliseconds($endTime);
-
-        $this->components->twoColumnDetail($first, "$executionTime <fg=green;options=bold>DONE</>");
-
-    }
 }

@@ -110,7 +110,7 @@ class DeleteMakeCommand extends Command
      */
     private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): void
     {
-        $modules = get_module_bootstrap();
+        $modules = get_modules(true);
 
         if (!in_array($moduleName, array_keys($modules))) return;
 

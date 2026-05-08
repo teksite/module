@@ -3,165 +3,223 @@
 namespace Teksite\Module\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Teksite\Module\Console\Make\traits\ModuleValidationGeneratorTrait;
-use Teksite\Module\Facade\Module;
+use Illuminate\Console\ConfirmableTrait;
+use Illuminate\Console\Prohibitable;
+use Illuminate\Contracts\Console\Isolatable;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
 
-class BasicMigrator extends Command
+abstract class BasicMigrator extends Command  implements Isolatable
 {
-    use ModuleValidationGeneratorTrait , ModuleMigrationTrait;
+    use Prohibitable, ConfirmableTrait;
 
     /**
-     * @return array
+     * Cache for modules list to avoid repeated calls
      */
-    public function getModules(): array
-    {
-        $modules = $this->argument('module');
-        return $modules ?? $this->allModules();
+    private ?array $cachedAllModules = null;
+    private ?array $cachedEnabledModules = null;
+    private ?array $cachedDisabledModules = null;
 
-    }
 
+
+    protected int $successCount = 0;
+    protected int $failureCount = 0;
+    protected array $failedModules = [];
     /**
-     * get all enabled modules
-     *
-     * @return array
+     * Execute the console command.
+     * @return int
      */
-    protected function enabledModules(): array
+    public function handle(): int
     {
-        return get_enabled_modules();
-    }
-
-
-    /**
-     * get all disabled modules
-     *
-     * @return array
-     */
-    protected function disabledModules(): array
-    {
-        return get_disabled_modules();
-    }
-
-
-    /**
-     * get all modules
-     *
-     * @return array
-     */
-    protected function allModules(): array
-    {
-        return get_modules();
-    }
-
-
-    /**
-     * @param $moules
-     * @return false|string
-     */
-    protected function checkModule($moules): false|string
-    {
-        [$isValid, $suggestedName] = $this->validateModuleName($moules);
-        if ($isValid) {
-            return $moules;
+        if ($this->isProhibited() || !$this->confirmToProceed()) {
+            return Command::FAILURE;
         }
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            return $suggestedName;
+        $this->newLine();
+        return $this->handler($this->getModules());
+    }
+
+    /**
+     * Main business logic of the command
+     */
+    abstract protected function handler(array $modules): int;
+
+    /**
+     * get modules name from the command or get all
+     *
+     * @return array
+     */
+    protected function getModules(): array
+    {
+        $modules = $this->parseModuleOption();
+        $this->validateModulesExist($modules);
+        $this->updateModuleOption($modules);
+        return $modules;
+    }
+
+    /**
+     * Get all enabled modules (cached)
+     */
+    protected function getEnabledModules(): array
+    {
+        return $this->cachedEnabledModules ??= get_enabled_modules(true);
+    }
+
+    /**
+     * Get all disabled modules (cached)
+     */
+    protected function getDisabledModules(): array
+    {
+        return $this->cachedDisabledModules ??= get_disabled_modules(true);
+    }
+
+    /**
+     * Get all modules (cached)
+     */
+    protected function getAllModules(bool $onlyName = true): array
+    {
+        if ($this->cachedAllModules === null) {
+            $this->cachedAllModules = get_all_modules($onlyName);
         }
-        return false;
+        return $this->cachedAllModules;
+    }
+
+    /**
+     * Check if a specific module exists
+     */
+    protected function moduleExists(string $moduleName): bool
+    {
+        return in_array($moduleName, $this->getAllModules(true), true);
+    }
+
+    /**
+     * Execute a closure and measure execution time in milliseconds
+     */
+    protected function measureExecutionTime(\Closure $callback): float
+    {
+        $startTime = Carbon::now();
+        $callback();
+        return $startTime->diffInMilliseconds(Carbon::now());
     }
 
 
-    public function handle()
+    /**
+     * Execute callback with a specific database connection
+     */
+    protected function usingDatabase(string $database, \Closure $callback): mixed
     {
-        $this->installMigrateTable();
+        $resolver = app('db');
+        $previousConnection = $resolver->getDefaultConnection();
 
-        $modules = $this->getModules();
-        if (count($modules)) {
-            $mdls = [];
-            foreach ($modules as $module) {
-                $correctedModule = $this->checkModule($module);
-                if (!$correctedModule) {
-                    $this->error("The module '" . $module . "' does not exist.");
-                    return 0;
-                } else {
-                    $mdls[] = $correctedModule;
-                }
+        try {
+            $resolver->setDefaultConnection($database);
+            return $callback();
+        } finally {
+            $resolver->setDefaultConnection($previousConnection);
+        }
+    }
+    private function parseModuleOption(): array
+    {
+        $moduleOption = $this->option('module');
+
+        if (empty($moduleOption)) {
+            return $this->getAllModules(true);
+        }
+
+        return Collection::make($moduleOption)
+                         ->flatMap(fn($module) => $this->splitAndTrimModuleString($module))
+                         ->unique()
+                         ->values()
+                         ->all();
+    }
+
+    /**
+     * Split comma-separated module string and trim each item
+     */
+    private function splitAndTrimModuleString(string $moduleString): array
+    {
+        return Collection::make(explode(',', $moduleString))
+                         ->map('trim')
+                         ->filter()
+                         ->values()
+                         ->all();
+    }
+
+    /**
+     * Validate that all requested modules exist
+     *
+     * @throws InvalidArgumentException
+     */
+    private function validateModulesExist(array $modules): void
+    {
+        $invalidModules = array_diff($modules, $this->getAllModules(true));
+
+        if (!empty($invalidModules)) {
+            throw new InvalidArgumentException(
+                sprintf('Modules not found or disabled: [%s]', implode(', ', $invalidModules))
+            );
+        }
+    }
+
+    /**
+     * Update the module option value in input
+     */
+    private function updateModuleOption(array $modules): void
+    {
+        $this->input->setOption('module', $modules);
+    }
+
+    /**
+     * Display a two-column detail with timing
+     */
+    protected function showTimedDetail(string $label, \Closure $callback, ?string $errorMessage = null): float
+    {
+        try {
+            $time = $this->measureExecutionTime($callback);
+            $this->components->twoColumnDetail($label, "<fg=green>{$time}ms</>");
+            return $time;
+        } catch (\Throwable $e) {
+            if ($errorMessage) {
+                $this->components->twoColumnDetail($label, "<fg=red>Failed: {$errorMessage}</>");
             }
-            $this->runTheCommand();
-        } else {
-            $this->error("no module exist.");
-            return 0;
+            throw $e;
         }
+    }
+
+
+    //
+    //
+    //
+
+    /**
+     * Show seeding summary
+     */
+    protected function showSummary(): void
+    {
+        $this->newLine(2);
+
+        $this->components->twoColumnDetail(
+            '<fg=yellow>Summary</>',
+            sprintf(
+                '✅ Success: %d | ❌ Failed: %d',
+                $this->successCount,
+                $this->failureCount
+            )
+        );
+
+        if (!empty($this->failedModules)) {
+            $this->components->warn('Failed modules: ' . implode(', ', $this->failedModules));
+        }
+
         $this->newLine();
     }
 
-
     /**
-     * @param $file
-     * @return mixed
+     * Get the database connection name
      */
-    public function resolve($file): mixed
+    protected function getDatabaseConnection(): string
     {
-        return class_exists($file) ? new $file : include $file;
+        return $this->option('database') ?: $this->laravel['config']['database.default'];
     }
-
-    /**
-     * @param string|array $module
-     * @return void
-     */
-    public function down(): void
-    {
-        $this->downModules();
-    }
-
-    /**
-     * @return void
-     */
-    public function up(): void
-    {
-        $batch = DB::table('migrations')->max('batch') + 1;
-        $this->upModules($batch);
-
-    }
-
-    public function rollback(int $step = 1): void
-    {
-        $migrationTables = collect($this->moduleMigrationFiles())->select(['path', 'name', 'path']);
-        $this->rollingBackMigration($migrationTables, $step);
-    }
-
-    public function removeFromMigrationTable(string $migrateFileName): void
-    {
-        DB::table('migrations')->where('migration', $migrateFileName)->delete();
-    }
-
-    public function addToMigrationTable(string $migrateFileName, $batch = 1): void
-    {
-        DB::table('migrations')->insert([
-            'migration' => $migrateFileName,
-            'batch' => $batch,
-        ]);
-
-    }
-
-
-    /**
-     * @return void
-     */
-    public function installMigrateTable(): void
-    {
-        Schema::hasTable('migrations') ?: $this->call('migrate:install');
-    }
-
-
-    /**
-     * @return void
-     */
-    public function seeding(): void
-    {
-       $this->seedingModules();
-    }
-
 }
