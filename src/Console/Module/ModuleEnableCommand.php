@@ -22,11 +22,15 @@ class ModuleEnableCommand extends Command
     public function handle(): void
     {
         $moduleName = Str::studly($this->argument('name'));
+
         $modulePath = $this->getModulePath($moduleName);
+
+        $this->newLine();
 
         if (!$this->validating($moduleName, $modulePath)) return;
 
         $this->enableModule($moduleName);
+
         $this->newLine();
 
         $this->dumpingComposer();
@@ -35,6 +39,7 @@ class ModuleEnableCommand extends Command
         $this->newLine();
 
         $this->info("<success>SUCCESS</success> Module $moduleName is enabled successfully.");
+        $this->newLine();
     }
 
     private function validating(string $moduleName, $modulePath): bool
@@ -58,14 +63,16 @@ class ModuleEnableCommand extends Command
 
     private function enableModule(string $moduleName): void
     {
+        $this->line("enabling $moduleName");
+
         try {
             Module::enable($moduleName);
-            $this->info("modules bootstrap file is updated.");
+            $this->components->twoColumnDetail("<fg=gray>  └─ updating bootstrap file</>", "<fg=green>✓ DONE</>");
 
             return;
         }catch (\Exception $exception){
             Log::error($exception);
-            $this->error("$moduleName is not enabled.");
+            $this->components->twoColumnDetail("<fg=gray>  └─ updating bootstrap file</>", "<fg=red>✗  failed</>");
             return;
         }
     }
