@@ -116,6 +116,9 @@ trait ModuleGeneratorCommandTrait
         Process::path(base_path())
                ->command('composer dump-autoload')
                ->run()->output();
+
+        $this->newLine();
+
     }
 
     protected function getArguments(): array

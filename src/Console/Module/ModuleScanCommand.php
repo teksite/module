@@ -33,7 +33,7 @@ class ModuleScanCommand extends Command
         $this->line("** now we are trying to validate and register them");
         $this->newLine();
         foreach ($widowedModules as $module) {
-            $this->line("<fg=cyan;options=bold>{$module}</>");
+            $this->line("scaning <fg=cyan;options=bold>{$module}</>");
 
             $serviceProviderNameNamespace = module_namespace($module) . '\\App\\Providers\\' . $module . "ServiceProvider";
             $serviceProviderName = $module . "ServiceProvider";

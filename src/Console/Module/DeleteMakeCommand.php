@@ -77,7 +77,7 @@ class DeleteMakeCommand extends Command
             $this->deletingDirectory($module);
             $this->unregister($module, $bootstrapFile);
         }
-$this->newLine();
+        $this->newLine();
         $this->dumpingComposer();
 
     }
