@@ -11,7 +11,6 @@ use Teksite\Module\Facade\Module;
 
 class ModuleDisableCommand extends Command
 {
-
     use ModuleGeneratorCommandTrait;
 
     protected $name = 'module:disable';
@@ -23,11 +22,15 @@ class ModuleDisableCommand extends Command
     public function handle(): void
     {
         $moduleName = Str::studly($this->argument('name'));
+
         $modulePath = $this->getModulePath($moduleName);
+
+        $this->newLine();
 
         if (!$this->validating($moduleName, $modulePath)) return;
 
         $this->disableModule($moduleName);
+
         $this->newLine();
 
         $this->dumpingComposer();
@@ -36,6 +39,7 @@ class ModuleDisableCommand extends Command
         $this->newLine();
 
         $this->info("<success>SUCCESS</success> Module $moduleName is disabled successfully.");
+        $this->newLine();
     }
 
     private function validating(string $moduleName, $modulePath): bool
@@ -59,14 +63,16 @@ class ModuleDisableCommand extends Command
 
     private function disableModule(string $moduleName): void
     {
+        $this->warn("diabling $moduleName");
+
         try {
             Module::disable($moduleName);
-            $this->info("modules bootstrap file is updated.");
+            $this->components->twoColumnDetail("<fg=gray>  └─ updating bootstrap file</>", "<fg=green>✓ DONE</>");
 
             return;
         }catch (\Exception $exception){
             Log::error($exception);
-            $this->error("$moduleName is not disabled.");
+            $this->components->twoColumnDetail("<fg=gray>  └─ updating bootstrap file</>", "<fg=red>✗  failed</>");
             return;
         }
     }
