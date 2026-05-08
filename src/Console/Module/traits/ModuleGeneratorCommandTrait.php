@@ -59,10 +59,9 @@ trait ModuleGeneratorCommandTrait
                 $bootstrapFile,
                 '<?php return ' . humanReadableVarExport($registeredModule, true) . ';'
             );
-            $this->newLine();
-            $this->components->twoColumnDetail("registering: module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php", '<fg=green;options=bold>DONE</>');
+            $this->line(" └─ updating bootstrap file", );
+            $this->components->twoColumnDetail("<fg=gray>  └─ module <fg=cyan;options=bold>$moduleName</> is added to bootstrap/modules.php</>", '<fg=green;options=bold>✓ DONE</>');
         } else {
-            $this->newLine();
             $this->error("Module $moduleName is already in bootstrap/modules.php");
         }
     }

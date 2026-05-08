@@ -26,11 +26,16 @@ class ModuleMakeCommand extends Command
     {
         $moduleName = Str::studly($this->argument('name'));
         $modulePath = $this->getModulePath($moduleName);
+        $moduleType= $this->option('steward') ? 'steward' : 'self';
 
         if (!$this->validating($modulePath, $modulePath)) return;
 
-        $this->createDirectories($modulePath);
-        $this->createFiles($modulePath, $moduleName);
+        $this->newLine();
+        $this->line("making <fg=cyan;options=bold>$moduleName</> module:");
+
+        $this->createDirectories($modulePath , $moduleName);
+        $this->createFiles($modulePath, $moduleName , $moduleType);
+        $this->registerModule($moduleName , $moduleType);
 
         $this->newLine();
         $this->dumpingComposer();
@@ -62,7 +67,7 @@ class ModuleMakeCommand extends Command
     }
 
 
-    private function createDirectories(string $path): void
+    private function createDirectories(string $path , string $moduleName): void
     {
         $directories = [
             '',
@@ -86,23 +91,25 @@ class ModuleMakeCommand extends Command
             'tests/Unit',
         ];
 
-        $module = $this->argument('name');
 
+        $this->line(" └─ making directories", );
         foreach ($directories as $directory) {
             File::makeDirectory("{$path}/{$directory}", 0755, true);
-            $this->components->twoColumnDetail("Directory: <fg=white;options=bold>$module/$directory</>", '<fg=green;options=bold>DONE</>');
+            $this->components->twoColumnDetail("<fg=gray>  └─ " . "$moduleName/$directory</>", "<fg=green>✓ DONE</>");
+
         }
     }
 
-    private function createFiles(string $path, string $moduleName): void
+    private function createFiles(string $path, string $moduleName ,string $moduleType): void
     {
         $namespace = Module::moduleNamespace($moduleName);
 
         $modulePath = Module::modulePath($moduleName, absolute: false);
 
-        $moduleType= $this->option('steward') ? 'steward' : 'self';
 
         /* Register Composer file  */
+        $this->line(" └─ making files", );
+
         $this->generateFile(
             'stubs/composer.stub',
             [
@@ -227,14 +234,13 @@ class ModuleMakeCommand extends Command
             "{$path}/info.json"
         );
 
-        $this->registerModule($moduleName , $moduleType);
     }
 
     private function generateFile(string $stub, array $replacements, string $destination): void
     {
         $this->replaceStub($stub, $replacements, $destination);
         $relativePath = normalizeSlashPath(str_replace(base_path(), '', $destination));
-        $this->components->twoColumnDetail("File: <fg=white;options=bold>$relativePath</>", '<fg=green;options=bold>DONE</>');
+        $this->components->twoColumnDetail("<fg=gray>  └─ $relativePath</>", "<fg=green>✓ DONE</>");
 
     }
 
