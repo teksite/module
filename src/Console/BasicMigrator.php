@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Console\Prohibitable;
 use Illuminate\Contracts\Console\Isolatable;
+use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -22,11 +23,17 @@ abstract class BasicMigrator extends Command implements Isolatable
     private ?array $cachedEnabledModules = null;
     private ?array $cachedDisabledModules = null;
 
-
     protected int $successCount = 0;
     protected int $failureCount = 0;
     protected array $successItems = [];
     protected array $failedItems = [];
+
+
+    /**
+     * @var Migrator|null The migrator instance for database operations
+     */
+    protected ?Migrator $migrator = null;
+
 
     /**
      * Execute the console command.
@@ -38,6 +45,11 @@ abstract class BasicMigrator extends Command implements Isolatable
             return Command::FAILURE;
         }
         $this->newLine();
+
+        if (method_exists($this, 'needsMigrator') && $this->needsMigrator()) {
+            $this->migrator = app('migrator');
+        }
+
         return $this->handler($this->getModules());
     }
 
@@ -46,10 +58,20 @@ abstract class BasicMigrator extends Command implements Isolatable
      */
     abstract protected function handler(array $modules): int;
 
+
+    /**
+     * Set the migrator instance
+     */
+    public function setMigrator(Migrator $migrator): self
+    {
+        $this->migrator = $migrator;
+        return $this;
+    }
+
+
     /**
      * get modules name from the command or get all
      *
-     * @return array
      */
     protected function getModules(): array
     {
@@ -191,9 +213,108 @@ abstract class BasicMigrator extends Command implements Isolatable
     }
 
 
-    //
-    //
-    //
+
+    protected function getMigrationPath(string $module): string
+    {
+        if ($module === 'steward') {
+            return steward_path(config('modules.steward.migration_path', 'database/migrations'), false);
+        }
+        return module_path($module, config('modules.module.migration_path', 'database/migrations'), false);
+    }
+
+
+    /**
+     * Validate if migration path exists and is readable
+     */
+    protected function isValidMigrationPath(string $path): bool
+    {
+        return is_dir($path) && is_readable($path);
+    }
+
+    /**
+     * Format migration name for display
+     */
+    protected function formatMigrationName(string $migration): string
+    {
+        $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $migration);
+        $name = str_replace('_', ' ', $name);
+        return ucwords($name);
+    }
+
+    /**
+     * Get ran migrations for a specific path
+     */
+    protected function getRanMigrationsForPath(string $migrationPath): array
+    {
+        if (!$this->migrator) {
+            return [];
+        }
+
+        try {
+            $repository = $this->migrator->getRepository();
+
+            if (!$repository->repositoryExists()) {
+                return [];
+            }
+
+            $ran = $repository->getRan();
+            $migrationFiles = $this->migrator->getMigrationFiles($migrationPath);
+
+            // Return only migrations that belong to this path
+            return array_intersect($ran, array_keys($migrationFiles));
+
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+
+    /**
+     * Process a single module migration/rollback operation
+     */
+    protected function processModuleOperation(
+        string $module,
+        string $operation, // 'migrate', 'reset', 'rollback', 'fresh'
+        array $options,
+        callable $operationCallback
+    ): bool {
+        $migrationPath = $this->getMigrationPath($module);
+
+        if (!$this->isValidMigrationPath($migrationPath)) {
+            $this->warn("No migration path found for module: {$module}");
+            $this->failureCount++;
+            $this->failedItems[] = $module;
+            return false;
+        }
+
+        try {
+            $this->components->twoColumnDetail("<fg=cyan;options=bold>{$module}</>", "$migrationPath");
+
+            $time = $this->measureExecutionTime(function () use ($operationCallback, $module, $migrationPath, $options) {
+                $operationCallback($module, $migrationPath, $options);
+            });
+
+            $this->components->twoColumnDetail("<fg=green>✓ {$module} {$operation} completed</>", "<fg=green>{$time}ms</>");
+
+            $this->successCount++;
+            $this->successItems[] = $module;
+
+            return true;
+
+        } catch (\Throwable $e) {
+            $this->components->error("✗ {$module} failed: " . $e->getMessage());
+            $this->failureCount++;
+            $this->failedItems[] = $module;
+
+            if (!$this->option('force')) {
+                throw $e;
+            }
+
+            return false;
+        }
+    }
+
+
 
     /**
      * Show seeding summary
@@ -214,14 +335,6 @@ abstract class BasicMigrator extends Command implements Isolatable
             )
         );
 
-        if (!empty($this->successItems)) {
-            $this->newLine();
-            $this->components->bulletList(
-                collect($this->successItems)
-                    ->map(fn($item) => "<fg=green>✓ {$item}</>")
-                    ->toArray()
-            );
-        }
 
         if (!empty($this->failedItems)) {
             $this->newLine();

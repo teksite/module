@@ -17,10 +17,12 @@ class MigrateCommands extends BasicMigrator
 
     protected array $migrationNotes = [];
 
-    public function __construct(private readonly Migrator $migrator)
+
+    protected function needsMigrator(): bool
     {
-        parent::__construct();
+        return true;
     }
+
 
     /**
      * @throws \Throwable
@@ -28,7 +30,8 @@ class MigrateCommands extends BasicMigrator
     protected function handler(array $modules): int
     {
         $this->resetStats();
-        $this->components->info('migrating module(s)...');
+
+        $this->components->info('Migrating module(s)...');
 
         $options = array_filter([
             'pretend' => $this->option('pretend'),
@@ -37,7 +40,9 @@ class MigrateCommands extends BasicMigrator
         ]);
 
         foreach ($modules as $module) {
-            $this->migrateModule($module, $options);
+            $this->processModuleOperation($module, 'migration', $options, function ($module, $path, $opts) {
+                $this->executeMigration($path, $opts);
+            });
         }
 
         $this->showSummary('migration');
@@ -45,141 +50,27 @@ class MigrateCommands extends BasicMigrator
 
     }
 
-
-    /**
-     * Migrate a single module
-     */
-    private function migrateModule(string $module, array $options): void
+    private function executeMigration(string $migrationPath, array $options): void
     {
-        $migrationPath = $this->getMigrationPath($module);
+        $beforeMigrations = $this->getRanMigrationsForPath($migrationPath);
 
-        if (!$this->isValidMigrationPath($migrationPath)) {
-            $this->warn("No migration path found for module: {$module}");
-            $this->failureCount++;
-            $this->failedItems[] = $module;
-            return;
-        }
-
-        try {
-            $this->components->twoColumnDetail("<fg=cyan;options=bold>{$module}</>", "$migrationPath");
-
-            $this->migrationNotes = [];
-
-            $beforeMigrations = $this->getRanMigrations();
-
-            $time = $this->measureExecutionTime(function () use ($module, $migrationPath, $options) {
-                $this->executeMigration($module, $migrationPath, $options);
-            });
-
-            $afterMigrations = $this->getRanMigrations();
-            $newMigrations = array_diff($afterMigrations, $beforeMigrations);
-
-
-            if (!empty($newMigrations)) {
-                foreach ($newMigrations as $migration) {
-                    $this->components->twoColumnDetail("  └─ " . $this->formatMigrationName($migration), "<fg=green>✓ migrated</>");
-                }
-            } else {
-                $this->components->twoColumnDetail("  └─ No new migrations", "<fg=yellow>⏭ skipped</>");
-            }
-
-            $this->components->twoColumnDetail("<fg=green>✓ {$module} completed</>", "<fg=green>{$time}ms</>");
-
-
-            $this->successCount++;
-            $this->successItems[] = $module;
-
-        } catch (\Throwable $e) {
-            $this->components->error("✗ {$module} failed: " . $e->getMessage());
-            $this->failureCount++;
-            $this->failedItems[] = $module;
-
-            if (!$this->option('force')) {
-                throw $e;
-            }
-        }
-    }
-
-    /**
-     * Get list of already ran migrations
-     */
-    private function getRanMigrations(): array
-    {
-        try {
-            $repository = $this->migrator->getRepository();
-
-            if ($repository->repositoryExists()) {
-                return $repository->getRan();
-            }
-        } catch (\Exception $e) {
-            return [];
-        }
-
-        return [];
-    }
-
-    /**
-     * Format migration name for display
-     */
-    private function formatMigrationName(string $migration): string
-    {
-        $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $migration);
-
-        $name = str_replace('_', ' ', $name);
-
-        return ucwords($name);
-    }
-
-    /**
-     * Get the migration path for a module
-     */
-    private function getMigrationPath(string $module): string
-    {
-        if ($module === 'steward') {
-            return steward_path(config('modules.steward.migration_path', 'database/migrations'), false);
-        }
-        return module_path($module, config('modules.module.migration_path', 'database/migrations'), false);
-    }
-
-    /**
-     * Validate if migration path exists and is readable
-     */
-    private function isValidMigrationPath(string $path): bool
-    {
-        return is_dir($path) && is_readable($path);
-    }
-
-
-    /**
-     * Parse migrated files from output
-     */
-    private function parseMigratedFiles(string $output): array
-    {
-        $files = [];
-        $lines = explode("\n", $output);
-
-        foreach ($lines as $line) {
-            if (preg_match('/Migrated:\s+(.+?\.php)/', $line, $matches)) {
-                $files[] = basename($matches[1]);
-            }
-        }
-
-        return $files;
-    }
-
-    /**
-     * Execute migration for a module
-     */
-    private function executeMigration(string $module, string $migrationPath, array $options): void
-    {
         $database = $this->getDatabaseConnection();
 
         $this->usingDatabase($database, function () use ($migrationPath, $options) {
-
             $this->migrator->path($migrationPath);
             $this->migrator->run([$migrationPath], $options);
-
         });
+
+        $afterMigrations = $this->getRanMigrationsForPath($migrationPath);
+        $newMigrations = array_diff($afterMigrations, $beforeMigrations);
+
+        if (!empty($newMigrations)) {
+            foreach ($newMigrations as $migration) {
+                $this->components->twoColumnDetail("  └─ " . $this->formatMigrationName($migration), "<fg=green>✓ migrated</>");
+            }
+        } else {
+            $this->components->twoColumnDetail("  └─ No new migrations", "<fg=yellow>⏭ skipped</>");
+        }
     }
 
 
