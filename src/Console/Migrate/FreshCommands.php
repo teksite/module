@@ -25,6 +25,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
      */
     protected function handler(array $modules): int
     {
+        // Todo add migrate
+
         $this->resetStats();
         $this->components->info('Fresh migrating module(s)...');
 
