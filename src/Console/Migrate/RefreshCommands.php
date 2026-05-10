@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
+use Teksite\Module\Console\Migrate\traits\TrackOperationStatusTrait;
 
 class RefreshCommands extends BasicMigrator
 {
@@ -60,8 +61,8 @@ class RefreshCommands extends BasicMigrator
         if ($this->option('seed')) {
             try {
                 $this->call('module:db-seed', [
-                    '--module'  => $modules,
-                    '--force' => $this->option('force'),
+                    '--module' => $modules,
+                    '--force'  => $this->option('force'),
                 ]);
             } catch (\Exception $e) {
                 $this->components->error("✗ seeding failed: " . $e->getMessage());
