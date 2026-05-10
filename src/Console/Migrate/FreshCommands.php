@@ -48,8 +48,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
         }
 
         if ($this->option('seed')) {
-            $this->call('module:seed', [
-                'module' => $modules,
+            $this->call('module:db-seed', [
+                '--module' => $modules,
                 '--force' => $this->option('force'),
             ]);
         }
@@ -71,6 +71,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
                 $this->dropTables($tables);
                 $tablesDropped = true;
             }
+
+            $this->ensureMigrationRepositoryExists();
 
             // Clear migration repository for this path
             $this->clearMigrationRepository($migrationPath);
@@ -144,6 +146,21 @@ class FreshCommands extends BasicMigrator implements MigrationContract
             }
         }
     }
+
+    /**
+     * Ensure migration repository exists (create if not exists)
+     */
+    private function ensureMigrationRepositoryExists(): void
+    {
+        $repository = $this->migrator->getRepository();
+
+        if (!$repository->repositoryExists()) {
+            $this->components->twoColumnDetail("  └─ Creating migration repository", "<fg=yellow>creating...</>");
+            $repository->createRepository();
+            $this->components->twoColumnDetail("  └─ Migration repository created", "<fg=green>✓</>");
+        }
+    }
+
 
     private function clearMigrationRepository(string $migrationPath): void
     {
