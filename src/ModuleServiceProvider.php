@@ -137,12 +137,12 @@ class ModuleServiceProvider extends ServiceProvider
 
 
             /* Module -> Migration and Seeds */
-            SeedCommand::class,
             MigrateCommands::class,
             ResetCommands::class,
+            SeedCommand::class,
+//            FreshCommands::class,
+             RefreshCommands::class,
             // RollbackCommands::class,
-            // FreshCommands::class,
-            // RefreshCommands::class,
 
 
             /* Module -> Generator commands */

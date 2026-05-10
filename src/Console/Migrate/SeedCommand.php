@@ -42,8 +42,7 @@ class SeedCommand extends BasicMigrator implements MigrationContract
 
         if (!$seederClass) {
             $this->warn("Seeder not found for module: {$module}");
-            $this->failureCount++;
-            $this->failedModules[] = $module;
+            $this->addFailureItem($module);
             return;
         }
 
@@ -57,14 +56,14 @@ class SeedCommand extends BasicMigrator implements MigrationContract
                 }
             );
 
-            $this->successCount++;
+           $this->addSuccessItem($module);
+
         } catch (\Throwable $e) {
             $this->components->twoColumnDetail(
                 "Seeding: {$module}",
                 "<fg=red>Error: {$e->getMessage()}</>"
             );
-            $this->failureCount++;
-            $this->failedModules[] = $module;
+            $this->addFailureItem($module);
 
             if (!$this->option('force')) {
                 throw $e;

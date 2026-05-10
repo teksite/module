@@ -67,7 +67,7 @@ class ResetCommands extends BasicMigrator
         $rolledBackMigrations = array_diff($beforeMigrations, $afterMigrations);
 
         foreach ($rolledBackMigrations as $migration) {
-            $this->components->twoColumnDetail("  └─ " . $this->formatMigrationName($migration), "<fg=yellow>✓ rolled back</>");
+            $this->components->twoColumnDetail("<fg=gray>  └─ $migration</>", "<fg=yellow>✓ rolled back</>");
         }
     }
 

@@ -3,91 +3,102 @@
 namespace Teksite\Module\Console\Migrate;
 
 use Illuminate\Console\Command;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
+use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\Console\Input\InputOption;
-use Teksite\Module\Facade\Module;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
+use Teksite\Module\Console\BasicMigrator;
 
-class RefreshCommands extends Command
+class RefreshCommands extends BasicMigrator
 {
-    use ModuleNameValidator, ModuleCommandsTrait;
 
-    protected $signature = 'module:migrate-refresh {module?}
-        {--database=}
-        {--seed}
-        {--seeder=}
-        {--force}
-        {--step=1}'
-    ;
+    protected $name = 'module:migrate-refresh';
 
-    protected $description = 'Rollback and re-run migrations for a specific module or all modules';
+    protected $description = 'Reset and re-run all migrations for a specific module or all modules';
 
-    public function handle()
+    protected function handler(array $modules): int
     {
-        $module = $this->argument('module');
-        if ($module) {
-            $this->refreshMigrationsForModule($module);
-        } else {
-            $this->refreshMigrationsForAllModules();
+        $this->resetStats();
+        $this->components->info('Refreshing module migrations...');
+
+        $step = $this->option('step');
+
+        try {
+            $resetResult = $this->call('module:migrate-reset', [
+                '--module'   => $modules,
+                '--database' => $this->option('database'),
+                '--force'    => $this->option('force'),
+                '--pretend'  => $this->option('pretend'),
+                '--step'     => $step,
+            ]);
+
+            if ($resetResult !== CommandAlias::SUCCESS) {
+                throw new \Exception('reset failed');
+            }
+
+            $migrateResult = $this->call('module:migrate', [
+                '--module'   => $modules,
+                '--database' => $this->option('database'),
+                '--force'    => $this->option('force'),
+                '--pretend'  => $this->option('pretend'),
+                '--step'     => $step,
+            ]);
+
+            if ($migrateResult !== CommandAlias::SUCCESS) {
+                throw new \Exception('Migration failed');
+            }
+            $this->successCount++;
+
+
+        } catch (\Throwable $e) {
+            $this->failureCount++;
+            if (!$this->option('force')) {
+                $this->showSummary('refresh');
+                return CommandAlias::FAILURE;
+            }
+
         }
+
+        if ($this->option('seed')) {
+            try {
+                $this->call('module:db-seed', [
+                    '--module'  => $modules,
+                    '--force' => $this->option('force'),
+                ]);
+            } catch (\Exception $e) {
+                $this->components->error("✗ seeding failed: " . $e->getMessage());
+
+
+                if (!$this->option('force')) {
+                    $this->showSummary('refresh');
+                    return CommandAlias::FAILURE;
+                }
+            }
+        }
+
+
+        return $this->failureCount === 0 ? CommandAlias::SUCCESS : CommandAlias::FAILURE;
     }
 
-    protected function refreshMigrationsForModule($module)
+    protected function getOptions(): array
     {
-
-        [$isValid, $suggestedName] = $this->validateModuleName($module);
-        if ($isValid) {
-            $this->runMigrationsForModule($module);
-            return;
-        }
-
-        if ($suggestedName && $this->confirm("Did you mean '{$suggestedName}'?")) {
-            $this->runMigrationsForModule($suggestedName);
-            return;
-        }
-        $this->error("The module '" . $module . "' does not exist.");
-        return 1;
-    }
-
-
-    protected function refreshMigrationsForAllModules()
-    {
-        foreach (Module::all() as $module) {
-            $this->info("Dropping all tables and re-running migrations for module: " . $module);
-            $this->runMigrationsForModule($module);
-        }
-    }
-
-    protected function runMigrationsForModule($module)
-    {
-        $options = [
-            '--database' => $this->option('database'),
-            '--force' => $this->option('force'),
-            '--seeder' => $this->option('seeder'),
-            '--step' => $this->option('step'),
+        return [
+            ['module', 'M', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Specific modules to refresh (comma-separated or multiple values)', []],
+            ['database', null, InputOption::VALUE_OPTIONAL, 'Database connection to use for migrations'],
+            ['force', null, InputOption::VALUE_NONE, 'Force refresh operation even in production'],
+            ['pretend', null, InputOption::VALUE_NONE, 'Do not actually run migrations, just show SQL'],
+            ['seed', null, InputOption::VALUE_NONE, 'Indicates if the seed task should be re-run'],
+            ['seeder', null, InputOption::VALUE_OPTIONAL, 'The class name of the root seeder', 'DatabaseSeeder'],
+            ['step', null, InputOption::VALUE_OPTIONAL, 'Number of migrations to rollback before refreshing', 0],
         ];
+    }
 
-        $migrationsPath = module_path($module, 'Database/Migrations');
-        $seedersPath = module_path($module, "Database/Seeders");
-
-        $migration_list = File::allFiles($migrationsPath);
-
-        $allFiles = [];
-        foreach ($migration_list as $migrateFile) {
-            $allFiles[] = str_replace(base_path(), '', $migrateFile);
-        }
-        $options['--path'] = $allFiles;
-
-        Artisan::call('migrate:refresh', $options, $this->output);
-
-        if ($this->option('seed') && File::exists($seedersPath)) {
-            Artisan::call('module:seed', [
-                '--module' => "$module"
-            ], $this->output);
-        }
+    protected function promptForMissingArgumentsUsing(): array
+    {
+        return [
+            'module' => fn() => $this->components->choice(
+                'Which module(s) do you want to refresh?',
+                $this->getAllModules(true),
+                multiple: true
+            ),
+        ];
     }
 }

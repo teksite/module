@@ -28,7 +28,6 @@ abstract class BasicMigrator extends Command implements Isolatable
     protected array $successItems = [];
     protected array $failedItems = [];
 
-
     /**
      * @var Migrator|null The migrator instance for database operations
      */
@@ -213,7 +212,6 @@ abstract class BasicMigrator extends Command implements Isolatable
     }
 
 
-
     protected function getMigrationPath(string $module): string
     {
         if ($module === 'steward') {
@@ -273,17 +271,17 @@ abstract class BasicMigrator extends Command implements Isolatable
      * Process a single module migration/rollback operation
      */
     protected function processModuleOperation(
-        string $module,
-        string $operation, // 'migrate', 'reset', 'rollback', 'fresh'
-        array $options,
+        string   $module,
+        string   $operation, // 'migrate', 'reset', 'rollback', 'fresh'
+        array    $options,
         callable $operationCallback
-    ): bool {
+    ): bool
+    {
         $migrationPath = $this->getMigrationPath($module);
 
         if (!$this->isValidMigrationPath($migrationPath)) {
             $this->warn("No migration path found for module: {$module}");
-            $this->failureCount++;
-            $this->failedItems[] = $module;
+            $this->addFailureItem($module);
             return false;
         }
 
@@ -296,32 +294,40 @@ abstract class BasicMigrator extends Command implements Isolatable
 
             $this->components->twoColumnDetail("<fg=green>✓ {$module} {$operation} completed</>", "<fg=green>{$time}ms</>");
 
-            $this->successCount++;
-            $this->successItems[] = $module;
+            $this->addSuccessItem($module);
 
             return true;
 
         } catch (\Throwable $e) {
             $this->components->error("✗ {$module} failed: " . $e->getMessage());
-            $this->failureCount++;
-            $this->failedItems[] = $module;
+            $this->addFailureItem($module);
 
             if (!$this->option('force')) {
                 throw $e;
             }
-
             return false;
         }
     }
 
+    protected function addFailureItem($module): void
+    {
+        $this->failureCount++;
+        $this->failedItems[] = $module;
+    }
 
+    protected function addSuccessItem($module): void
+    {
+        $this->successCount++;
+        $this->successItems[] = $module;
+
+    }
 
     /**
      * Show seeding summary
      */
     protected function showSummary(null|string $operationType = null): void
     {
-        $this->newLine(2);
+        $this->newLine();
 
         $total = $this->successCount + $this->failureCount;
 
@@ -360,6 +366,7 @@ abstract class BasicMigrator extends Command implements Isolatable
         $this->successItems = [];
         $this->failedItems = [];
     }
+
     /**
      * Get the database connection name
      */

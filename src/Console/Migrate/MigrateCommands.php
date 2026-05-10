@@ -2,7 +2,6 @@
 
 namespace Teksite\Module\Console\Migrate;
 
-use Illuminate\Database\Migrations\Migrator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
@@ -66,7 +65,7 @@ class MigrateCommands extends BasicMigrator
 
         if (!empty($newMigrations)) {
             foreach ($newMigrations as $migration) {
-                $this->components->twoColumnDetail("  └─ " . $this->formatMigrationName($migration), "<fg=green>✓ migrated</>");
+                $this->components->twoColumnDetail("<fg=gray> └─" . $migration."</>", "<fg=green>✓ migrated</>");
             }
         } else {
             $this->components->twoColumnDetail("  └─ No new migrations", "<fg=yellow>⏭ skipped</>");
