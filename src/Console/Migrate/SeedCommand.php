@@ -49,8 +49,9 @@ class SeedCommand extends BasicMigrator implements MigrationContract
         $database = $this->getDatabaseConnection();
 
         try {
+            $this->line("<fg=cyan;options=bold> $module</>");
             $time = $this->showTimedDetail(
-                "$module| Seeding: {$seederClass}",
+                "<fg=gray> └─$seederClass</>",
                 function () use ($seederClass, $database, $isForce) {
                     $this->executeSeeder($seederClass, $database, $isForce);
                 }

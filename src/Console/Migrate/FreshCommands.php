@@ -2,11 +2,13 @@
 
 namespace Teksite\Module\Console\Migrate;
 
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
 use Teksite\Module\Contract\MigrationContract;
+use Illuminate\Contracts\Events\Dispatcher;
 
 class FreshCommands extends BasicMigrator implements MigrationContract
 {
@@ -14,6 +16,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     protected $name = 'module:migrate-fresh';
 
     protected $description = 'Drop all tables and re-run all migrations for a specific module or all modules';
+
+
 
     protected function needsMigrator(): bool
     {
@@ -25,196 +29,119 @@ class FreshCommands extends BasicMigrator implements MigrationContract
      */
     protected function handler(array $modules): int
     {
-        // Todo add migrate
+        if ($this->isProhibited() || !$this->confirmToProceed()) {
+            return CommandAlias::FAILURE;
+        }
 
         $this->resetStats();
-        $this->components->info('Fresh migrating module(s)...');
+        $database = $this->getDatabaseConnection();
 
-        if ($this->option('drop-views')) {
-            $this->dropAllViews();
-        }
+        $this->migrator->usingConnection($database, function () use ($database) {
+            try {
+                $repositoryExists = $this->migrator->repositoryExists();
+            } catch (\Throwable) {
+                $repositoryExists = false;
+            }
 
-        if ($this->option('drop-types')) {
-            $this->dropAllTypes();
-        }
+            if ($repositoryExists) {
+                $this->wipeDB($database);
+            }
+        });
 
-        $options = array_filter([
-            'pretend' => $this->option('pretend'),
-            'force'   => $this->option('force'),
-        ]);
+        $this->ensureMigrationTableExists($database);
 
-        foreach ($modules as $module) {
-            $this->processModuleOperation($module, 'fresh', $options, function ($module, $path, $opts) {
-                $this->executeFresh($module, $path, $opts);
-            });
-        }
 
-        if ($this->option('seed')) {
-            $this->call('module:db-seed', [
-                '--module' => $modules,
-                '--force' => $this->option('force'),
-            ]);
-        }
+        $this->migrateModules($database);
 
-        $this->showSummary('fresh migration');
+        $this->seeding($database);
+
+        $this->showSummary('fresh');
         return $this->failureCount === 0 ? CommandAlias::SUCCESS : CommandAlias::FAILURE;
     }
 
-    private function executeFresh(string $module, string $migrationPath, array $options): void
+
+    /**
+     * @param string $database
+     * @return void
+     */
+    function wipeDB(string $database): void
     {
-        $database = $this->getDatabaseConnection();
-        $tablesDropped = false;
+        $this->line("<fg=cyan;options=bold> dropping tables</>");
 
-        $this->usingDatabase($database, function () use ($module, $migrationPath, $options, &$tablesDropped) {
-            // Get all tables for this module's migrations
-            $tables = $this->getModuleTables($module);
-
-            if (!empty($tables)) {
-                $this->dropTables($tables);
-                $tablesDropped = true;
-            }
-
-            $this->ensureMigrationRepositoryExists();
-
-            // Clear migration repository for this path
-            $this->clearMigrationRepository($migrationPath);
+        $this->components->task('<fg=gray> └─dropped</>', function () use ($database) {
+            return $this->callSilent('db:wipe', array_filter([
+                    '--database'   => $database,
+                    '--drop-views' => $this->option('drop-views'),
+                    '--drop-types' => $this->option('drop-types'),
+                    '--force'      => true,
+                ])) === 0;
         });
-
-        if ($tablesDropped) {
-            $this->components->twoColumnDetail("  └─ Tables dropped", "<fg=green>✓ cleaned</>");
-        }
-
-        // Now run migrations fresh
-        $this->usingDatabase($database, function () use ($migrationPath, $options) {
-            $this->migrator->path($migrationPath);
-            $this->migrator->run([$migrationPath], $options);
-        });
-
-        $newMigrations = $this->getRanMigrationsForPath($migrationPath);
-        foreach ($newMigrations as $migration) {
-            $this->components->twoColumnDetail("  └─ " . $this->formatMigrationName($migration), "<fg=green>✓ migrated</>");
-        }
-    }
-
-    private function getModuleTables(string $module): array
-    {
-        $connection = $this->getDatabaseConnection();
-        $schema = Schema::connection($connection);
-
-        $allTables = $schema->getTables();
-        $moduleTables = [];
-
-        // Get prefix if configured
-        $prefix = config("{$module}.table_prefix", '');
-
-        foreach ($allTables as $table) {
-            $tableName = $table['name'] ?? $table;
-            // If module has prefix, filter tables that start with prefix
-            if ($prefix && str_starts_with($tableName, $prefix)) {
-                $moduleTables[] = $tableName;
-            } elseif (!$prefix && $this->isTableFromModule($module, $tableName)) {
-                $moduleTables[] = $tableName;
-            }
-        }
-
-        return $moduleTables;
-    }
-
-    private function isTableFromModule(string $module, string $tableName): bool
-    {
-        // You can implement custom logic here to determine if a table belongs to a module
-        // For example, check against migration files or naming conventions
-        $migrationPath = $this->getMigrationPath($module);
-        $migrationFiles = $this->migrator->getMigrationFiles($migrationPath);
-
-        foreach ($migrationFiles as $migration) {
-            if (str_contains($migration, $tableName)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function dropTables(array $tables): void
-    {
-        $connection = $this->getDatabaseConnection();
-        $schema = Schema::connection($connection);
-
-        foreach ($tables as $table) {
-            if ($schema->hasTable($table)) {
-                $schema->drop($table);
-                $this->components->twoColumnDetail("    └─ Dropped table: {$table}", "<fg=red>✓</>");
-            }
-        }
     }
 
     /**
-     * Ensure migration repository exists (create if not exists)
+     * @param string $database
+     * @return void
      */
-    private function ensureMigrationRepositoryExists(): void
+    public function migrateModules(string $database): void
     {
-        $repository = $this->migrator->getRepository();
-
-        if (!$repository->repositoryExists()) {
-            $this->components->twoColumnDetail("  └─ Creating migration repository", "<fg=yellow>creating...</>");
-            $repository->createRepository();
-            $this->components->twoColumnDetail("  └─ Migration repository created", "<fg=green>✓</>");
-        }
+        $this->newLine();
+        $this->call('module:migrate', array_filter([
+            '--module'   => $this->option('module'),
+            '--database' => $database,
+            '--force'    => true,
+            '--step'     => $this->option('step'),
+            '--pretend'  => $this->option('pretend'),
+            '--realpath' => $this->option('realpath'),
+        ]));
     }
 
 
-    private function clearMigrationRepository(string $migrationPath): void
+    private function ensureMigrationTableExists(?string $database): void
     {
-        $migrations = $this->getRanMigrationsForPath($migrationPath);
+        $this->line("<fg=cyan;options=bold> migrations table</>");
 
-        if (empty($migrations)) {
-            return;
-        }
+        $this->components->task('<fg=gray> └─creating migration table</>', function () use ($database) {
+            $this->usingDatabase($database, function () use ($database) {
+                $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
 
-        $repository = $this->migrator->getRepository();
-        foreach ($migrations as $migration) {
-            $repository->delete($repository->find($migration));
-        }
+                if (!$schema->hasTable('migrations')) {
+                    $schema->create('migrations', function (Blueprint $table) {
+                        $table->increments('id');
+                        $table->string('migration');
+                        $table->integer('batch');
+                    });
+                }
+            });
+        });
     }
 
-    private function dropAllViews(): void
+    /**
+     * @param string $database
+     * @return void
+     */
+    public function seeding(string $database): void
     {
-        $connection = $this->getDatabaseConnection();
-        $schema = Schema::connection($connection);
-
-        $views = $schema->getViews();
-        foreach ($views as $view) {
-            $schema->dropView($view['name'] ?? $view);
-        }
-
-        $this->components->info('Dropped all views.');
-    }
-
-    private function dropAllTypes(): void
-    {
-        // PostgreSQL specific
-        if ($this->getDatabaseConnection() === 'pgsql') {
-            $connection = $this->getDatabaseConnection();
-            $types = \DB::connection($connection)->select('SELECT typname FROM pg_type WHERE typtype = \'e\'');
-            foreach ($types as $type) {
-                \DB::connection($connection)->statement("DROP TYPE IF EXISTS {$type->typname} CASCADE");
-            }
-
-            $this->components->info('Dropped all custom types.');
+        if ($this->option('seed')) {
+            $this->call('module:db-seed', array_filter([
+                '--module'   => $this->option('module'),
+                '--database' => $database,
+                '--force'    => true,
+            ]));
         }
     }
 
     protected function getOptions(): array
     {
         return [
-            ['module', 'M', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Specific modules to fresh migrate (comma-separated or multiple values)', []],
-            ['database', null, InputOption::VALUE_OPTIONAL, 'Database connection to use for migrations'],
-            ['force', null, InputOption::VALUE_NONE, 'Force fresh migration operation even in production'],
+            ['module', 'M', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Specific modules to migrate', []],
+            ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to use'],
+            ['drop-views', null, InputOption::VALUE_NONE, 'Drop all tables and views'],
+            ['drop-types', null, InputOption::VALUE_NONE, 'Drop all tables and types (Postgres only)'],
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production'],
             ['pretend', null, InputOption::VALUE_NONE, 'Do not actually run migrations, just show SQL'],
+            ['step', null, InputOption::VALUE_NONE, 'Force the migrations to be run so they can be rolled back individually'],
+            ['realpath', null, InputOption::VALUE_NONE, 'Indicate any provided migration file paths are pre-resolved absolute paths'],
             ['seed', null, InputOption::VALUE_NONE, 'Indicates if the seed task should be re-run'],
-            ['drop-views', null, InputOption::VALUE_NONE, 'Drop all views when refreshing database'],
-            ['drop-types', null, InputOption::VALUE_NONE, 'Drop all custom types when refreshing database (PostgreSQL only)'],
         ];
     }
 

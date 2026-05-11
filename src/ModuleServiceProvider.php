@@ -141,7 +141,7 @@ class ModuleServiceProvider extends ServiceProvider
             ResetCommands::class,
             SeedCommand::class,
             FreshCommands::class,
-             RefreshCommands::class,
+            RefreshCommands::class,
             // RollbackCommands::class,
 
 
