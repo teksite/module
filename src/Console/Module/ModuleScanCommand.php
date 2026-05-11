@@ -58,7 +58,7 @@ class ModuleScanCommand extends Command
     {
         $servicePath = module_path($moduleName, "app/Providers/$serviceProviderFileName.php");
         if (!File::exists($servicePath)) {
-            $this->components->twoColumnDetail("$serviceProviderFileName.php", "<fg=red>x file can not be found</>");
+            $this->components->twoColumnDetail("$serviceProviderFileName.php", "<fg=red>✗file can not be found</>");
             return false;
 
         }
@@ -70,7 +70,7 @@ class ModuleScanCommand extends Command
         require_once $serviceProviderPath;
 
         if (!class_exists($serviceProviderNameNamespace)) {
-            $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>x class is not exists</>");
+            $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>✗class is not exists</>");
             return false;
         }
         $ref = new ReflectionClass($serviceProviderNameNamespace);
@@ -79,7 +79,7 @@ class ModuleScanCommand extends Command
 
         $type = $defaultProperties['type'] ?? false;
         if (!(bool)$type) {
-            $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>x module type is not valid or not set</>");
+            $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>✗module type is not valid or not set</>");
             $this->line("<fg=gray>module should be self(manged bt itself) or steward (managed by steward)</>");
             return false;
         }

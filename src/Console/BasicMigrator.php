@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
-use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
+use Symfony\Component\Console\Command\Command as CommandAlias;
 
 abstract class BasicMigrator extends Command implements Isolatable
 {
@@ -42,7 +42,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     public function handle(): int
     {
         if ($this->isProhibited() || !$this->confirmToProceed()) {
-            return Command::FAILURE;
+            return CommandAlias::FAILURE;
         }
         $this->newLine();
 
@@ -278,7 +278,7 @@ abstract class BasicMigrator extends Command implements Isolatable
      */
     protected function processModuleOperation(
         string   $module,
-        string   $operation, // 'migrate', 'reset', 'rollback', 'fresh'
+        string   $operationType, // 'migrate', 'reset', 'rollback', 'fresh'
         array    $options,
         callable $operationCallback
     ): bool
@@ -298,7 +298,7 @@ abstract class BasicMigrator extends Command implements Isolatable
                 $operationCallback($module, $migrationPath, $options);
             });
 
-            $this->components->twoColumnDetail("<fg=green>✓ {$module} {$operation} completed</>", "<fg=green>{$time}ms</>");
+            $this->components->twoColumnDetail("<fg=green>✓ {$module} {$operationType} completed</>", "<fg=green>{$time}ms</>");
 
             $this->addSuccessItem($module);
 
