@@ -77,7 +77,6 @@ class RefreshCommands extends BasicMigrator
                 Log::error($e);
                 $this->components->error("✗ seeding failed: " . $e->getMessage());
 
-
                 if (!$this->option('force')) {
                     $this->showSummary('refresh');
                     return CommandAlias::FAILURE;

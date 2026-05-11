@@ -19,7 +19,6 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     protected $description = 'Drop all tables and re-run all migrations for a specific module or all modules';
 
 
-
     protected function needsMigrator(): bool
     {
         return true;
@@ -40,8 +39,10 @@ class FreshCommands extends BasicMigrator implements MigrationContract
         $this->migrator->usingConnection($database, function () use ($database) {
             try {
                 $repositoryExists = $this->migrator->repositoryExists();
+                $this->successCount++;
             } catch (\Throwable $e) {
                 Log::error($e);
+                $this->failureCount++;
                 $repositoryExists = false;
             }
 
@@ -70,14 +71,22 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     {
         $this->line("<fg=cyan;options=bold> dropping tables</>");
 
-        $this->components->task('<fg=gray> └─dropped</>', function () use ($database) {
-            return $this->callSilent('db:wipe', array_filter([
-                    '--database'   => $database,
-                    '--drop-views' => $this->option('drop-views'),
-                    '--drop-types' => $this->option('drop-types'),
-                    '--force'      => true,
-                ])) === 0;
-        });
+        try {
+            $this->components->task('<fg=gray> └─dropped</>', function () use ($database) {
+                return $this->callSilent('db:wipe', array_filter([
+                        '--database'   => $database,
+                        '--drop-views' => $this->option('drop-views'),
+                        '--drop-types' => $this->option('drop-types'),
+                        '--force'      => true,
+                    ])) === 0;
+            });
+            $this->successCount++;
+        } catch (\Throwable $e) {
+            Log::error($e);
+            $this->failureCount++;
+
+        }
+
     }
 
     /**
@@ -87,14 +96,24 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     public function migrateModules(string $database): void
     {
         $this->newLine();
-        $this->call('module:migrate', array_filter([
-            '--module'   => $this->option('module'),
-            '--database' => $database,
-            '--force'    => true,
-            '--step'     => $this->option('step'),
-            '--pretend'  => $this->option('pretend'),
-            '--realpath' => $this->option('realpath'),
-        ]));
+        try {
+            $result = $this->call('module:migrate', array_filter([
+                '--module'   => $this->option('module'),
+                '--database' => $database,
+                '--force'    => true,
+                '--step'     => $this->option('step'),
+                '--pretend'  => $this->option('pretend'),
+                '--realpath' => $this->option('realpath'),
+            ]));
+            if ($result !== CommandAlias::SUCCESS) {
+                throw new \Exception('seeding failed');
+            }
+            $this->successCount++;
+
+        } catch (\Throwable $e) {
+            Log::error($e);
+            $this->failureCount++;
+        }
     }
 
 
@@ -112,6 +131,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
                         $table->string('migration');
                         $table->integer('batch');
                     });
+                    $this->successCount++;
+
                 }
             });
         });
@@ -124,11 +145,22 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     public function seeding(string $database): void
     {
         if ($this->option('seed')) {
-            $this->call('module:db-seed', array_filter([
-                '--module'   => $this->option('module'),
-                '--database' => $database,
-                '--force'    => true,
-            ]));
+            try {
+                $result = $this->call('module:db-seed', array_filter([
+                    '--module'   => $this->option('module'),
+                    '--database' => $database,
+                    '--force'    => true,
+                ]));
+                if ($result !== CommandAlias::SUCCESS) {
+                    throw new \Exception('seeding failed');
+                }
+                $this->successCount++;
+
+            } catch (\Throwable $e) {
+                Log::error($e);
+                $this->failureCount++;
+
+            }
         }
     }
 
