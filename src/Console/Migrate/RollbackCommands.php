@@ -4,12 +4,9 @@ namespace Teksite\Module\Console\Migrate;
 
 use Teksite\Module\Console\BasicMigrator;
 use Teksite\Module\Contract\MigrationContract;
-use Teksite\Module\Traits\ModuleCommandsTrait;
-use Teksite\Module\Traits\ModuleNameValidator;
 
 class RollbackCommands extends BasicMigrator implements MigrationContract
 {
-    use ModuleCommandsTrait;
 
     protected $signature = 'module:migrate-rollback {module?}
         {--step=1}
@@ -21,5 +18,10 @@ class RollbackCommands extends BasicMigrator implements MigrationContract
     public function runTheCommand()
     {
         $this->rollback($this->option('step'));
+    }
+
+    protected function handler(array $modules): int
+    {
+        // TODO: Implement handler() method.
     }
 }

@@ -3,6 +3,7 @@
 namespace Teksite\Module\Console\Migrate;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\Console\Input\InputOption;
@@ -39,7 +40,8 @@ class FreshCommands extends BasicMigrator implements MigrationContract
         $this->migrator->usingConnection($database, function () use ($database) {
             try {
                 $repositoryExists = $this->migrator->repositoryExists();
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                Log::error($e);
                 $repositoryExists = false;
             }
 

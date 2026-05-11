@@ -3,6 +3,7 @@
 namespace Teksite\Module\Console\Migrate;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
@@ -60,6 +61,8 @@ class SeedCommand extends BasicMigrator implements MigrationContract
            $this->addSuccessItem($module);
 
         } catch (\Throwable $e) {
+            Log::error($e);
+
             $this->components->twoColumnDetail(
                 "Seeding: {$module}",
                 "<fg=red>Error: {$e->getMessage()}</>"

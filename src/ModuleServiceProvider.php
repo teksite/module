@@ -142,7 +142,7 @@ class ModuleServiceProvider extends ServiceProvider
             SeedCommand::class,
             FreshCommands::class,
             RefreshCommands::class,
-            // RollbackCommands::class,
+            RollbackCommands::class,
 
 
             /* Module -> Generator commands */
