@@ -9,6 +9,7 @@ use Illuminate\Contracts\Console\Isolatable;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Teksite\Module\Traits\Migration\ModuleMigrationTrait;
 
@@ -196,6 +197,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     /**
      * Display a two-column detail with timing
+     * @throws \Throwable
      */
     protected function showTimedDetail(string $label, \Closure $callback, ?string $errorMessage = null): float
     {
@@ -204,6 +206,7 @@ abstract class BasicMigrator extends Command implements Isolatable
             $this->components->twoColumnDetail($label, "<fg=green>{$time}ms</>");
             return $time;
         } catch (\Throwable $e) {
+            Log::error($e);
             if ($errorMessage) {
                 $this->components->twoColumnDetail($label, "<fg=red>Failed: {$errorMessage}</>");
             }
@@ -262,6 +265,8 @@ abstract class BasicMigrator extends Command implements Isolatable
             return array_intersect($ran, array_keys($migrationFiles));
 
         } catch (\Exception $e) {
+            Log::error($e);
+
             return [];
         }
     }
@@ -269,6 +274,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     /**
      * Process a single module migration/rollback operation
+     * @throws \Throwable
      */
     protected function processModuleOperation(
         string   $module,
@@ -299,6 +305,7 @@ abstract class BasicMigrator extends Command implements Isolatable
             return true;
 
         } catch (\Throwable $e) {
+            Log::error($e);
             $this->components->error("✗ {$module} failed: " . $e->getMessage());
             $this->addFailureItem($module);
 
