@@ -74,6 +74,9 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $configPath = config_path('modules.php');
         $this->mergeConfigFrom(file_exists($configPath) ? $configPath : __DIR__ . '/config/modules.php', 'modules');
+
+        $hqConfigPath = config_path('module-hq.php');
+        $this->mergeConfigFrom(file_exists($hqConfigPath) ? $hqConfigPath : __DIR__ . '/config/module-hq.php', 'module-hq.php');
     }
 
     public function registerFacades(): void
@@ -170,6 +173,10 @@ class ModuleServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/config/modules.php' => config_path('modules.php'),
         ], 'modules');
+
+        $this->publishes([
+            __DIR__ . '/config/module-hq.php' => config_path('module-hq.php'),
+        ], 'module-hq');
     }
 
 

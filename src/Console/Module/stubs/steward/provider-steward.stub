@@ -23,7 +23,7 @@ class StewardServiceProvider extends ServiceProvider
      */
     protected array $providers = [
         EventServiceProvider::class,
-        RouteServiceProvider::class,
+        RoutesHeadquarterServiceProvider::class,
         ModulesHeadquarterServiceProvider::class,
     ];
 

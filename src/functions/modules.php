@@ -263,14 +263,14 @@ if (!function_exists('steward_resource_path')) {
 
 }
 
-if (!function_exists('steward_resource_path')) {
+if (!function_exists('isStewardInstalled')) {
 
     /**
      * @return bool
      */
     function isStewardInstalled(): bool
     {
-        return is_dir(steward_path()) && class_exists(steward_namespace() . '\\App\\Providers\\StewardServiceProvider\\StewardServiceProvider');
+        return is_dir(steward_path());
     }
 }
 

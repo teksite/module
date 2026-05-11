@@ -67,6 +67,7 @@ class ModuleServices
      */
     public function registeredModules(): array
     {
+        $provider = config('modules.steward.');
         return get_modules();
     }
 

@@ -89,7 +89,7 @@ class StewardInitialize extends Command
         $this->line(" └─ making files");
 
         $this->generateFile(
-            'stubs/composer.stub',
+            'stubs/steward/composer.stub',
             [
                 '{{ moduleLowerName }}' => strtolower($stewardName),
                 '{{ moduleName }}'      => $stewardName,
@@ -101,7 +101,7 @@ class StewardInitialize extends Command
 
         /* Register ServiceProvider files  */
         $this->generateFile(
-            'stubs/provider-steward.stub',
+            'stubs/steward/provider-steward.stub',
             [
                 '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                 '{{ class }}'           => "{$stewardName}ServiceProvider",
@@ -112,7 +112,7 @@ class StewardInitialize extends Command
             "{$path}/app/Providers/StewardServiceProvider.php"
         );
         $this->generateFile(
-            'stubs/provider-modules-hq.stub',
+            'stubs/steward/provider-modules-hq.stub',
             [
                 '{{ namespace }}'       => "{$namespace}\\App\\Providers",
                 '{{ class }}'           => "ModulesHeadquarterServiceProvider",
@@ -121,6 +121,17 @@ class StewardInitialize extends Command
 
             ],
             "{$path}/app/Providers/ModulesHeadquarterServiceProvider.php"
+        );
+        $this->generateFile(
+            'stubs/steward/provider-route.stub',
+            [
+                '{{ namespace }}'       => "{$namespace}\\App\\Providers",
+                '{{ class }}'           => "RoutesHeadquarterServiceProvider",
+                '{{ module }}'          => $stewardName,
+                '{{ moduleLowerName }}' => strtolower($stewardName),
+
+            ],
+            "{$path}/app/Providers/RoutesHeadquarterServiceProvider.php"
         );
 
         /* Register Event ServiceProvider file  */

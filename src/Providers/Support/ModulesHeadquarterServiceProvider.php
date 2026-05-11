@@ -32,9 +32,12 @@ class ModulesHeadquarterServiceProvider extends ServiceProvider
         if (!empty($this->cachedAvailableModule)) {
             return $this->cachedAvailableModule;
         }
-        $modules = get_enabled_modules(true);
+        $modules = get_enabled_modules();
+        $modules = array_filter($modules, function ($module) {
+            return ($module['type'] ?? 'self') === 'steward';
+        });
         $result = [];
-        foreach ($modules as $module) {
+        foreach (array_keys($modules) as $module) {
             $result[$module] = strtolower($module);
         }
         $this->cachedAvailableModule = $result;

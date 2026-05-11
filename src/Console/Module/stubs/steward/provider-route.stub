@@ -1,0 +1,14 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Facades\Route;
+use Teksite\Module\Providers\Support\RoutesHeadquarterServiceProvider as ServiceProvider;
+
+class {{ class }} extends ServiceProvider
+{
+     public function map(): void
+     {
+        parent::map();
+     }
+}

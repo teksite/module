@@ -23,7 +23,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "{{ namespace }}\\App\\Providers\\{{ moduleName }}ServiceProvider"
+                "{{ namespace }}\\App\\Providers\\StewardServiceProvider"
             ],
             "aliases": {
 
