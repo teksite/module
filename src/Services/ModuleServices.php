@@ -13,7 +13,7 @@ class ModuleServices
     public function __construct()
     {
         $this->bootstrapFilePath = config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
-        $this->bootstrapFile =file_exists($this->bootstrapFilePath) ? require $this->bootstrapFilePath : [];
+        $this->bootstrapFile = file_exists($this->bootstrapFilePath) ? require $this->bootstrapFilePath : [];
     }
 
     /**
@@ -27,6 +27,11 @@ class ModuleServices
         return module_path($moduleName, $path, $absolute);
     }
 
+    public function stewardPath(?string $path = null, bool $absolute = true): string
+    {
+        return steward_path($path, $absolute);
+    }
+
     /**
      * @param string|null $moduleName
      * @return string
@@ -37,13 +42,24 @@ class ModuleServices
     }
 
     /**
+     * @param string|null $moduleName
+     * @return string
+     */
+    public function stewardNamespace(): string
+    {
+        return steward_namespace();
+    }
+
+    /**
      * get all modules in bootstrap modules file
      *
      * @return array|string[]
      */
-    public function all(): array
+    public function all(bool $steward = false): array
     {
-        return array_keys(get_modules());
+        $modules = array_keys(get_modules());
+
+        return ($steward && $this->isStewardInstalled()) ? array_merge($modules, ['Steward']) : $modules;
     }
 
     /**
@@ -52,7 +68,6 @@ class ModuleServices
     public function registeredModules(): array
     {
         return get_modules();
-
     }
 
 
@@ -70,7 +85,7 @@ class ModuleServices
      * @param bool $onlyName
      * @return array
      */
-    public function enables(bool $onlyName =false): array
+    public function enables(bool $onlyName = false): array
     {
         return get_enabled_modules($onlyName);
     }
@@ -79,7 +94,7 @@ class ModuleServices
      * @param bool $onlyName
      * @return array
      */
-    public function disables(bool $onlyName =false): array
+    public function disables(bool $onlyName = false): array
     {
         return get_disabled_modules($onlyName);
     }
@@ -189,6 +204,14 @@ class ModuleServices
             '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
         );
         return 0;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isStewardInstalled(): bool
+    {
+        return is_dir($this->stewardPath()) && class_exists(steward_namespace().'\\App\\Providers\\StewardServiceProvider\\StewardServiceProvider');
     }
 
 }

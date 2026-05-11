@@ -14,6 +14,11 @@ trait ModuleGeneratorCommandTrait
         return Module::modulePath($moduleName);
     }
 
+    private function getStewardPath(): string
+    {
+        return Module::stewardPath();
+    }
+
     protected function isModuleDirectoryExists(string $modulePath): bool
     {
         if (File::exists($modulePath)) return true;
@@ -44,7 +49,7 @@ trait ModuleGeneratorCommandTrait
     private function registerModule(string $moduleName , string $type , bool $active= true): void
     {
         $bootstrapFile = module_bootstrap_path();
-        $registeredModule = get_module_bootstrap();
+        $registeredModule = get_modules_bootstrap();
 
         $namespace = Module::moduleNamespace($moduleName);
 

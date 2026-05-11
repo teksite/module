@@ -15,14 +15,14 @@ if (!function_exists('module_bootstrap_path')) {
     }
 }
 
-if (!function_exists('get_module_bootstrap')) {
+if (!function_exists('get_modules_bootstrap')) {
     /**
      * get arrays of installed modules
      *
      * @param string|array $modules
      * @return array|null
      */
-    function get_module_bootstrap(string|array $modules = ['*']): null|array
+    function get_modules_bootstrap(string|array $modules = ['*']): null|array
     {
         $bootstrapContent = File::exists(module_bootstrap_path()) ? require module_bootstrap_path() : [];
 
@@ -46,7 +46,7 @@ if (!function_exists('get_modules')) {
      */
     function get_modules(string|array $modules = ['*']): array
     {
-        return get_module_bootstrap($modules);
+        return get_modules_bootstrap($modules);
     }
 }
 
@@ -59,11 +59,11 @@ if (!function_exists('get_modules_status')) {
      */
     function get_modules_status(bool $steward = false): array
     {
-        $modules = get_module_bootstrap();
+        $modules = get_modules_bootstrap();
         return collect($modules)
             ->map(fn($module) => $module['active'] ?? false)
-            ->when($steward, function ($collection) {
-                return $collection->merge(['Steward' => true]);
+            ->when($steward && isStewardInstalled(), function ($collection) {
+                return collect(['Steward' => true])->merge($collection);
             })
             ->toArray();
     }
@@ -90,7 +90,7 @@ if (!function_exists('get_enabled_modules')) {
      */
     function get_enabled_modules(bool $onlyName = false): array
     {
-        $modules= collect(get_module_bootstrap())
+        $modules = collect(get_modules_bootstrap())
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
             ->toArray();
         return $onlyName ? array_keys($modules) : $modules;
@@ -106,7 +106,7 @@ if (!function_exists('get_disabled_modules')) {
      */
     function get_disabled_modules(bool $onlyName = false): array
     {
-        $modules= collect(get_module_bootstrap())
+        $modules = collect(get_modules_bootstrap())
             ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)
             ->toArray();
         return $onlyName ? array_keys($modules) : $modules;
@@ -123,7 +123,7 @@ if (!function_exists('get_all_modules')) {
      */
     function get_all_modules(bool $onlyName = false): array
     {
-        $modules= get_module_bootstrap();
+        $modules = get_modules_bootstrap();
 
         return $onlyName ? array_keys($modules) : $modules;
 
@@ -139,7 +139,7 @@ if (!function_exists('get_module_type')) {
      */
     function get_module_type(string $modules): null|string
     {
-        return (get_module_bootstrap($modules))['type'] ?? null;
+        return (get_modules_bootstrap($modules))['type'] ?? null;
     }
 }
 
@@ -262,3 +262,30 @@ if (!function_exists('steward_resource_path')) {
     }
 
 }
+
+if (!function_exists('steward_resource_path')) {
+
+    /**
+     * @return bool
+     */
+    function isStewardInstalled(): bool
+    {
+        return is_dir(steward_path()) && class_exists(steward_namespace() . '\\App\\Providers\\StewardServiceProvider\\StewardServiceProvider');
+    }
+}
+
+
+if (!function_exists('modulePath')) {
+    function modulePath(string $module, bool $absolute = false): ?string
+    {
+        if ($module === 'steward' && isStewardInstalled()) {
+            return steward_path($module, $absolute);
+        } elseif ($module === 'steward' && !isStewardInstalled()) {
+            return null;
+        } else {
+            return module_path($module, $absolute);
+        }
+    }
+}
+
+

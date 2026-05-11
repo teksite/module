@@ -209,7 +209,7 @@ class RollbackCommands extends BasicMigrator
         $database = $this->getDatabaseConnection();
 
         $this->usingDatabase($database, function () use ($path, $migration) {
-            $this->migrator->rollbackMigrations([$path], $migration, false);
+//            $this->migrator->rollbackMigrations([$path], $migration, false);
         });
     }
 

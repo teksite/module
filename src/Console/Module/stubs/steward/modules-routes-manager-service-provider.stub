@@ -1,0 +1,57 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Facades\Route;
+use Teksite\Module\Facade\Module;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+
+class {{ class }} extends ServiceProvider
+{
+     /**
+        * Register routes for all modules
+        */
+       public function boot(): void
+       {
+           parent::boot();
+
+           $this->loadModuleRoutes();
+       }
+
+       /**
+        * Dynamically load routes from each module
+        */
+       protected function loadModuleRoutes(): void
+       {
+           $routesConfig = config('lareon.modules.routes', []);
+           $modules      = lareonModules();
+
+           foreach ($modules as $module => $data) {
+
+               foreach ($routesConfig as $routeItem) {
+
+                   $routePath = Module::modulePath(
+                       $module,
+                       'routes' . DIRECTORY_SEPARATOR . ($routeItem['path'] ?? '')
+                   );
+
+                   if (!file_exists($routePath)) {
+                       continue;
+                   }
+
+                   // merge middleware level of module + route level
+                   $mergedMiddleware = array_merge(
+                       $data['middleware'] ?? [],
+                       $routeItem['middleware'] ?? []
+                   );
+
+                   Route::middleware($mergedMiddleware)
+                       ->prefix($routeItem['prefix'] ?? '')
+                       ->name($routeItem['name'] ?? '')
+                       ->namespace($routeItem['namespace'] ?? null)
+                       ->domain($routeItem['domain'] ?? null)
+                       ->group($routePath);
+               }
+           }
+       }
+}

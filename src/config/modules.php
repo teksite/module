@@ -24,12 +24,12 @@ return [
     "registration_modules_file" => base_path('bootstrap') . '/modules.php',
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Module and Steward configuration
-    |--------------------------------------------------------------------------
-    |
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Module and Steward configuration
+        |--------------------------------------------------------------------------
+        |
+        */
     'module'                    => [
         "directory"      => "modules",
         'namespace'      => 'Lareon\Modules',
@@ -38,7 +38,9 @@ return [
         'config_path'    => 'config',
         'migration_path' => 'database/migrations',
     ],
+
     'steward'                   => [
+        "Name"           => "Steward",
         "directory"      => "steward",
         'namespace'      => 'Lareon\Steward',
         'lang_path'      => 'lang',
@@ -46,6 +48,7 @@ return [
         'config_path'    => 'config',
         'migration_path' => 'database/migrations',
         'module_manager' => '\\Lareon\\CMS\\App\\Providers\\ModulesManagerServiceProvider',
+
     ],
 
 ];
