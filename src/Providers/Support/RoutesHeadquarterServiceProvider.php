@@ -2,9 +2,9 @@
 
 namespace Teksite\Module\Providers\Support;
 
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Teksite\Module\Facade\Module;
 
 class RoutesHeadquarterServiceProvider extends ServiceProvider
 {
@@ -14,31 +14,40 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
      */
     public function map(): void
     {
-        $this->mapApiRoutes();
-        $this->mapWebRoutes();
-    }
+        $modules = collect(get_modules())->filter(function ($module) {
+            return ($module['type'] === 'steward' && ($module['active'] ?? false) === true);
+        })->toArray();
+        $routsArray = config('modules.hq', []);
 
-    /**
-     * Define the "web" routes for the application.
-     *
-     * These routes all receive session state, CSRF protection, etc.
-     */
-    protected function mapWebRoutes(): void
-    {
-        if (file_exists(module_path($this->moduleName, '/routes/web.php'))) {
-            Route::middleware('web')->group(module_path($this->moduleName, '/routes/web.php'));
+        $this->mappingRoutes($routsArray['steward']['routes'] ?? [], 'steward');
+
+        foreach ($modules as $module) {
+            $this->mappingRoutes($routsArray['modules']['routes'] ?? [], $module);
         }
     }
 
-    /**
-     * Define the "api" routes for the application.
-     *
-     * These routes are typically stateless.
-     */
-    protected function mapApiRoutes(): void
+    protected function mappingRoutes(array $routsArray, $module): void
     {
-        if (file_exists(module_path($this->moduleName, '/routes/api.php'))) {
-            Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->moduleName, '/routes/api.php'));
+
+        foreach ($routsArray as $route) {
+            if (empty($route['path'])) continue;
+
+
+            $file = $module === 'steward'
+                ? steward_path('routes' . DIRECTORY_SEPARATOR . $route['path'])
+                : module_path($module, 'routes' . DIRECTORY_SEPARATOR . $route['path']);
+
+            if (!file_exists($file)) continue;
+
+            $middleware = $route['middleware'] ?? [];
+
+            Route::middleware($middleware)
+                 ->prefix($route['prefix'] ?? '')
+                 ->name($route['name'] ?? '')
+                 ->namespace($route['namespace'] ?? null)
+                 ->domain($route['domain'] ?? null)
+                 ->group($file);
         }
     }
+
 }

@@ -50,7 +50,6 @@ use Teksite\Module\Console\Module\ModuleEnableCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Console\Module\ModuleScanCommand;
 use Teksite\Module\Console\Module\StewardInitialize;
-use Teksite\Module\Providers\EventServiceProvider;
 use Teksite\Module\Providers\ModuleManagerServiceProvider;
 use Teksite\Module\Services\ModuleServices;
 
@@ -76,7 +75,7 @@ class ModuleServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(file_exists($configPath) ? $configPath : __DIR__ . '/config/modules.php', 'modules');
 
         $hqConfigPath = config_path('module-hq.php');
-        $this->mergeConfigFrom(file_exists($hqConfigPath) ? $hqConfigPath : __DIR__ . '/config/module-hq.php', 'module-hq.php');
+        $this->mergeConfigFrom(file_exists($hqConfigPath) ? $hqConfigPath : __DIR__ . '/config/module-hq.php', 'modules.hq');
     }
 
     public function registerFacades(): void
@@ -87,7 +86,6 @@ class ModuleServiceProvider extends ServiceProvider
     public function registerProviders(): void
     {
         $this->app->register(ModuleManagerServiceProvider::class);
-        $this->app->register(EventServiceProvider::class);
     }
 
     public function registerStubPath(): void
@@ -139,7 +137,6 @@ class ModuleServiceProvider extends ServiceProvider
             ViewMakeCommand::class,
             TrashControllerMakeCommand::class,
 
-
             /* Module -> Migration and Seeds */
             MigrateCommands::class,
             ResetCommands::class,
@@ -148,9 +145,7 @@ class ModuleServiceProvider extends ServiceProvider
             RefreshCommands::class,
 
             //Todo refactor Rollback (think about scenario module:step, all module or specific module ,  --step)
-
-           // RollbackCommands::class,
-
+            // RollbackCommands::class,
 
             /* Module -> Generator commands */
             ModuleMakeCommand::class,
@@ -159,10 +154,8 @@ class ModuleServiceProvider extends ServiceProvider
             ModuleDisableCommand::class,
             ModuleScanCommand::class,
 
-
-
             /* Steward -> Generator commands */
-            StewardInitialize::class
+            StewardInitialize::class,
 
 
         ]);
@@ -177,45 +170,5 @@ class ModuleServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/config/module-hq.php' => config_path('module-hq.php'),
         ], 'module-hq');
-    }
-
-
-    protected function promptForMissingArgumentsUsing()
-    {
-        return [
-            'name'   => [
-                'What should the ' . strtolower($this->type) . ' be named?',
-                match ($this->type) {
-                    'Cast'            => 'E.g. Json',
-                    'Channel'         => 'E.g. OrderChannel',
-                    'Console command' => 'E.g. SendEmails',
-                    'Component'       => 'E.g. Alert',
-                    'Controller'      => 'E.g. UserController',
-                    'Event'           => 'E.g. PodcastProcessed',
-                    'Exception'       => 'E.g. InvalidOrderException',
-                    'Factory'         => 'E.g. PostFactory',
-                    'Job'             => 'E.g. ProcessPodcast',
-                    'Listener'        => 'E.g. SendPodcastNotification',
-                    'Mailable'        => 'E.g. OrderShipped',
-                    'Middleware'      => 'E.g. EnsureTokenIsValid',
-                    'Model'           => 'E.g. Flight',
-                    'Notification'    => 'E.g. InvoicePaid',
-                    'Observer'        => 'E.g. UserObserver',
-                    'Policy'          => 'E.g. PostPolicy',
-                    'Provider'        => 'E.g. ElasticServiceProvider',
-                    'Request'         => 'E.g. StorePodcastRequest',
-                    'Resource'        => 'E.g. UserResource',
-                    'Rule'            => 'E.g. Uppercase',
-                    'Scope'           => 'E.g. TrendingScope',
-                    'Seeder'          => 'E.g. UserSeeder',
-                    'Test'            => 'E.g. UserTest',
-                    default           => '',
-                },
-            ],
-            'module' => [
-                'What should the module be named?',
-
-            ],
-        ];
     }
 }

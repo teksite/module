@@ -11,7 +11,6 @@ return [
    */
     "main_path"                 => 'lareon',
 
-
     /*
    |--------------------------------------------------------------------------
    | registration
@@ -23,6 +22,8 @@ return [
    */
     "registration_modules_file" => base_path('bootstrap') . '/modules.php',
 
+    "boot_all_modules"          => 1, //1 for all modules (enabled and disabled)
+                                      //0 only for enabled modules
 
     /*
     |--------------------------------------------------------------------------

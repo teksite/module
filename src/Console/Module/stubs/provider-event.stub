@@ -2,6 +2,8 @@
 
 namespace {{ namespace }};
 
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class {{ class }}  extends ServiceProvider
