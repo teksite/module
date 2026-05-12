@@ -22,8 +22,8 @@ return [
    */
     "registration_modules_file" => base_path('bootstrap') . '/modules.php',
 
-    "boot_all_modules"          => 1, //1 for all modules (enabled and disabled)
-                                      //0 only for enabled modules
+    "boot_all_modules" => 1, //1 for all modules (enabled and disabled)
+    //0 only for enabled modules
 
     /*
     |--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ return [
     |--------------------------------------------------------------------------
     |
     */
-    'module'                    => [
+    'module'           => [
         "directory"      => "modules",
         'namespace'      => 'Lareon\Modules',
         'lang_path'      => 'lang',
@@ -41,6 +41,7 @@ return [
     ],
 
     'steward' => [
+        "enable"           => true,
         "Name"             => "Steward",
         "directory"        => "steward",
         'namespace'        => 'Lareon\Steward',

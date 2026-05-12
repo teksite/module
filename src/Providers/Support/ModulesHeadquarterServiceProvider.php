@@ -19,6 +19,8 @@ class ModulesHeadquarterServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (!isStewardInstalled()) return;
+
         $this->bootTranslations();
         $this->bootConfig();
         $this->bootViews();

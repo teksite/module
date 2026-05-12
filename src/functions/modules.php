@@ -270,7 +270,7 @@ if (!function_exists('isStewardInstalled')) {
      */
     function isStewardInstalled(): bool
     {
-        return is_dir(steward_path());
+        return config('modules.steward.enable', true) && is_dir(steward_path());
     }
 }
 

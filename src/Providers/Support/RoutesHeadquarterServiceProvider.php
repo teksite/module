@@ -14,6 +14,7 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
      */
     public function map(): void
     {
+        if (!isStewardInstalled()) return;
         $modules = collect(get_modules())->filter(function ($module) {
             return ($module['type'] === 'steward' && ($module['active'] ?? false) === true);
         })->keys()->toArray();
