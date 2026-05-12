@@ -100,7 +100,7 @@ class StewardServiceProvider extends ServiceProvider
             $this->loadTranslationsFrom($langPath, $this->lowerModuleName);
             $this->loadJsonTranslationsFrom($langPath);
         } else {
-            $moduleLangPath = module_path($this->lowerModuleName, config('modules.module.lang_path', 'lang'));
+            $moduleLangPath = steward_path(config('modules.steward.lang_path', 'lang'));
             $this->loadTranslationsFrom($moduleLangPath);
             $this->loadJsonTranslationsFrom($moduleLangPath);
         }
@@ -111,7 +111,7 @@ class StewardServiceProvider extends ServiceProvider
      */
     protected function bootConfig(): void
     {
-        $configPath = steward_path(config('modules.module.config_path', 'config'));
+        $configPath = steward_path(config('modules.steward.config_path', 'config'));
 
         if (is_dir($configPath)) {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($configPath));
@@ -163,12 +163,12 @@ class StewardServiceProvider extends ServiceProvider
     protected function bootViews(): void
     {
         $viewPath = resource_path('views/modules/' . $this->lowerModuleName);
-        $sourcePath = module_path($this->moduleName, config('modules.module.view', 'resources/views'));
+        $sourcePath = steward_path( config('modules.steward.view', 'resources/views'));
 
         $this->publishes([$sourcePath => $viewPath], ['views', $this->lowerModuleName . '-module-views']);
         $this->loadViewsFrom(array_merge($this->publishableViewPaths(), [$sourcePath]), $this->lowerModuleName);
 
-        $componentNamespace = module_namespace($this->moduleName) . '\\App\\View\\Components';
+        $componentNamespace = steward_namespace() . '\\App\\View\\Components';
 
         Blade::componentNamespace($componentNamespace, $this->lowerModuleName);
     }
@@ -195,7 +195,7 @@ class StewardServiceProvider extends ServiceProvider
      */
     protected function bootMigrations(): void
     {
-        $generatorMigrationPath = config('modules.module.migration_path') ?? 'database/migrations';
-        $this->loadMigrationsFrom(module_path($this->lowerModuleName, $generatorMigrationPath));
+        $generatorMigrationPath = config('modules.steward.migration_path') ?? 'database/migrations';
+        $this->loadMigrationsFrom(steward_path($generatorMigrationPath));
     }
 }

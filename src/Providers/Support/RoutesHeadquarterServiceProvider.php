@@ -16,7 +16,7 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
     {
         $modules = collect(get_modules())->filter(function ($module) {
             return ($module['type'] === 'steward' && ($module['active'] ?? false) === true);
-        })->toArray();
+        })->keys()->toArray();
         $routsArray = config('modules.hq', []);
 
         $this->mappingRoutes($routsArray['steward']['routes'] ?? [], 'steward');
@@ -28,10 +28,8 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
 
     protected function mappingRoutes(array $routsArray, $module): void
     {
-
         foreach ($routsArray as $route) {
             if (empty($route['path'])) continue;
-
 
             $file = $module === 'steward'
                 ? steward_path('routes' . DIRECTORY_SEPARATOR . $route['path'])
