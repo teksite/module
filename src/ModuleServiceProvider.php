@@ -145,6 +145,7 @@ class ModuleServiceProvider extends ServiceProvider
             RefreshCommands::class,
 
             //Todo refactor Rollback (think about scenario module:step, all module or specific module ,  --step)
+
             // RollbackCommands::class,
 
             /* Module -> Generator commands */

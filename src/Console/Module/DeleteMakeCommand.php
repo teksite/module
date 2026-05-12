@@ -4,6 +4,7 @@ namespace Teksite\Module\Console\Module;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,6 +21,8 @@ class DeleteMakeCommand extends Command
     protected $description = 'delete a module';
 
     protected string $type = 'Module';
+
+    protected ?string $confirmRollback = null;
 
     /**
      * Execute the console command.
@@ -61,6 +64,29 @@ class DeleteMakeCommand extends Command
         return $this->confirm("Are you sure you want to delete the module ($moduleName)? [y|n]?", "n");
     }
 
+    private function rollBackConfirmation($moduleName): bool
+    {
+        if ($this->confirmRollback == 'ya' || $this->option('rollback')) return true;
+        if ($this->confirmRollback == 'na')  return false;
+
+        if ($this->option('rollback')) return true;
+        $options = ['y', 'n', 'ya', 'na'];
+        $answer = $this->ask("Do you want to rollback the module ($moduleName) migrations? [y|n|ya|na] (yes|y,no|n ,yes for all|ya , no for all|na)?");
+
+        while (!in_array($answer, $options)) {
+            $answer = $this->ask("Invalid option. Please choose from [y|n|ya|na] (yes|y,no|n ,yes for all|ya , no for all|na) :");
+        }
+        if ($answer === 'ya'){
+            $this->confirmRollback = 'ya';
+        }
+        if ($answer === 'na'){
+            $this->confirmRollback = 'na';
+        }
+
+        return in_array($answer, ['y', 'ya']);
+    }
+
+
     /**
      * Handle the deletion process for the given modules.
      */
@@ -69,6 +95,15 @@ class DeleteMakeCommand extends Command
         $modulesName = array_map(fn($module) => Str::studly(trim($module)), $modulesName);
 
         foreach ($modulesName as $module) {
+            if ($this->rollBackConfirmation($module)){
+                try {
+                    $this->call('module:migrate-reset', ['--module' => $module]);
+                }catch (\Throwable $exception){
+                    Log::error($exception);
+                    $this->error($exception->getMessage());
+                }
+            }
+
             if (!$this->deleteConfirmation($module)) continue;
 
             $this->newLine();
@@ -147,7 +182,6 @@ class DeleteMakeCommand extends Command
 
     protected function getOptions(): array
     {
-        //TODO rollback in deleting module(s)
         return [
             ['all', 'a', InputOption::VALUE_NONE, 'delete all modules without confirmation'],
             ['rollback', 'r', InputOption::VALUE_NONE, 'rollback module(s)'],
