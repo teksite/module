@@ -95,6 +95,9 @@ class DeleteMakeCommand extends Command
         $modulesName = array_map(fn($module) => Str::studly(trim($module)), $modulesName);
 
         foreach ($modulesName as $module) {
+
+            if (!$this->deleteConfirmation($module)) continue;
+
             if ($this->rollBackConfirmation($module)){
                 try {
                     $this->call('module:migrate-reset', ['--module' => $module]);
@@ -104,7 +107,6 @@ class DeleteMakeCommand extends Command
                 }
             }
 
-            if (!$this->deleteConfirmation($module)) continue;
 
             $this->newLine();
             $this->line("<fg=yellow> Deleting module $module</>");
