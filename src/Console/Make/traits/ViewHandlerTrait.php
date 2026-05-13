@@ -68,7 +68,12 @@ trait ViewHandlerTrait
 
         $stubPath = $this->resolveStubPath('stubs/markdown.stub');
 
-        $filePath = module_view_path($module , false) . DIRECTORY_SEPARATOR. "\\" . $this->viewPathDir($dir);
+
+        $filePath = $this->getModuleInput() === 'Steward'
+            ? steward_view_path($module, false)
+            : module_view_path($module, false);
+
+        $filePath = $filePath . DIRECTORY_SEPARATOR . "\\" . $this->viewPathDir($dir);
         $filepath = normalizeSlashPath($filePath) . $extension;
 
         if ($this->files->exists($filepath)) {
@@ -80,7 +85,7 @@ trait ViewHandlerTrait
 
 
         $content = str_replace(
-            ['{{ quote }}' , '{{quote}}'],
+            ['{{ quote }}', '{{quote}}'],
             Inspiring::quotes()->random(),
             file_get_contents($stubPath)
         );
@@ -102,7 +107,12 @@ trait ViewHandlerTrait
 
         $stubPath = $this->resolveStubPath('stubs/view.stub');
 
-        $filePath = module_view_path($module , false) . DIRECTORY_SEPARATOR. "\\" . $this->viewPathDir($dir);
+        $filePath = $this->getModuleInput() === 'Steward'
+            ? steward_view_path($module, false)
+            : module_view_path($module, false);
+
+        $filePath = $filePath . DIRECTORY_SEPARATOR . "\\" . $this->viewPathDir($dir);
+
         $filepath = normalizeSlashPath($filePath) . $extension;
 
         if ($this->files->exists($filepath)) {
@@ -114,7 +124,7 @@ trait ViewHandlerTrait
 
 
         $content = str_replace(
-            ['{{ quote }}' , '{{quote}}'],
+            ['{{ quote }}', '{{quote}}'],
             Inspiring::quotes()->random(),
             file_get_contents($stubPath)
         );
