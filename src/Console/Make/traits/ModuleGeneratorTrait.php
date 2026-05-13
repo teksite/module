@@ -72,7 +72,7 @@ trait ModuleGeneratorTrait
      */
     private function getComposer(string $module): mixed
     {
-        $modulePath = $module === 'steward' ? steward_path() : module_path($module);
+        $modulePath = $module === 'Steward' ? steward_path() : module_path($module);
         $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
 
         if (!file_exists($composerPath)) throw new FileNotFoundException('composer.json not found.');
