@@ -387,9 +387,8 @@ abstract class GeneratorModuleCommand extends Command
         $this->files->put($path, $content);
     }
 
-
     /**
-     * integrate module and steward pathes
+     * integrate module and steward paths
      *
      * @param string $module
      * @param string|null $path
