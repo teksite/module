@@ -106,7 +106,7 @@ trait ModuleValidationGeneratorTrait
      */
     protected function isModuleExist(string $module): bool
     {
-        if ($module === 'steward' && !isStewardInstalled()) {
+        if ($module === 'Steward' && !isStewardInstalled()) {
             return false;
         }
         $modules = get_modules_status(true);

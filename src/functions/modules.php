@@ -278,9 +278,9 @@ if (!function_exists('isStewardInstalled')) {
 if (!function_exists('modulePath')) {
     function modulePath(string $module, bool $absolute = false): ?string
     {
-        if ($module === 'steward' && isStewardInstalled()) {
+        if ($module === 'Steward' && isStewardInstalled()) {
             return steward_path($module, $absolute);
-        } elseif ($module === 'steward' && !isStewardInstalled()) {
+        } elseif ($module === 'Steward' && !isStewardInstalled()) {
             return null;
         } else {
             return module_path($module, $absolute);

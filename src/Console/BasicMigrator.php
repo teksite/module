@@ -217,7 +217,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     protected function getMigrationPath(string $module): string
     {
-        if ($module === 'steward') {
+        if ($module === 'Steward') {
             return steward_path(config('modules.steward.migration_path', 'database/migrations'), false);
         }
         return module_path($module, config('modules.module.migration_path', 'database/migrations'), false);
