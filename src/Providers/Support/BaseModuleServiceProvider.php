@@ -114,7 +114,7 @@ class BaseModuleServiceProvider extends ServiceProvider
             $this->loadJsonTranslationsFrom($langPath);
         } else {
             $moduleLangPath = module_path($this->lowerModuleName, config('modules.module.lang_path', 'lang'));
-            $this->loadTranslationsFrom($moduleLangPath);
+            $this->loadTranslationsFrom($moduleLangPath, $this->lowerModuleName);
             $this->loadJsonTranslationsFrom($moduleLangPath);
         }
     }

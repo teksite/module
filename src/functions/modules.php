@@ -276,6 +276,12 @@ if (!function_exists('isStewardInstalled')) {
 
 
 if (!function_exists('modulePath')) {
+    /**
+     * return path for both modules or steward
+     * @param string $module
+     * @param bool $absolute
+     * @return string|null
+     */
     function modulePath(string $module, bool $absolute = false): ?string
     {
         if ($module === 'Steward' && isStewardInstalled()) {

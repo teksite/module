@@ -101,7 +101,7 @@ class StewardServiceProvider extends ServiceProvider
             $this->loadJsonTranslationsFrom($langPath);
         } else {
             $moduleLangPath = steward_path(config('modules.steward.lang_path', 'lang'));
-            $this->loadTranslationsFrom($moduleLangPath);
+            $this->loadTranslationsFrom($moduleLangPath , $this->lowerModuleName);
             $this->loadJsonTranslationsFrom($moduleLangPath);
         }
     }
