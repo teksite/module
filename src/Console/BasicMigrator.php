@@ -7,6 +7,7 @@ use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Console\Prohibitable;
 use Illuminate\Contracts\Console\Isolatable;
 use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -360,6 +361,28 @@ abstract class BasicMigrator extends Command implements Isolatable
         }
 
         $this->newLine();
+    }
+
+
+    protected function ensureMigrationTableExists(?string $database): void
+    {
+        $this->line("<fg=cyan;options=bold> migrations table</>");
+
+        $this->components->task('<fg=gray> └─creating migration table</>', function () use ($database) {
+            $this->usingDatabase($database, function () use ($database) {
+                $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
+
+                if (!$schema->hasTable('migrations')) {
+                    $schema->create('migrations', function (Blueprint $table) {
+                        $table->increments('id');
+                        $table->string('migration');
+                        $table->integer('batch');
+                    });
+                    $this->successCount++;
+
+                }
+            });
+        });
     }
 
 

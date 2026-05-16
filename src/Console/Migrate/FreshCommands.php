@@ -117,27 +117,6 @@ class FreshCommands extends BasicMigrator implements MigrationContract
     }
 
 
-    private function ensureMigrationTableExists(?string $database): void
-    {
-        $this->line("<fg=cyan;options=bold> migrations table</>");
-
-        $this->components->task('<fg=gray> └─creating migration table</>', function () use ($database) {
-            $this->usingDatabase($database, function () use ($database) {
-                $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
-
-                if (!$schema->hasTable('migrations')) {
-                    $schema->create('migrations', function (Blueprint $table) {
-                        $table->increments('id');
-                        $table->string('migration');
-                        $table->integer('batch');
-                    });
-                    $this->successCount++;
-
-                }
-            });
-        });
-    }
-
     /**
      * @param string $database
      * @return void

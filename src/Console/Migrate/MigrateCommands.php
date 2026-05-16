@@ -38,6 +38,9 @@ class MigrateCommands extends BasicMigrator
             'force'   => $this->option('force'),
         ]);
 
+        $database = $this->getDatabaseConnection();
+        $this->ensureMigrationTableExists($database);
+
         foreach ($modules as $module) {
             $this->processModuleOperation($module, 'migration', $options, function ($module, $path, $opts) {
                 $this->executeMigration($path, $opts);

@@ -159,9 +159,7 @@ class RollbackCommands extends BasicMigrator
         }
     }
 
-    /**
-     * پیدا کردن مسیر migration بر اساس نام فایل
-     */
+
     private function findModulePathForMigration(string $migrationName): ?string
     {
         $allModules = $this->getEnabledModules();
@@ -183,9 +181,7 @@ class RollbackCommands extends BasicMigrator
         return null;
     }
 
-    /**
-     * گرفتن نام ماژول از مسیر
-     */
+
     private function getModuleNameFromPath(string $path): string
     {
         // فرض کنید مسیرها به صورت: .../Modules/Post/Database/Migrations
@@ -201,9 +197,7 @@ class RollbackCommands extends BasicMigrator
         return 'unknown';
     }
 
-    /**
-     * اجرای rollback برای یک migration خاص
-     */
+
     private function rollbackMigration(string $path, string $migration): void
     {
         $database = $this->getDatabaseConnection();
