@@ -38,7 +38,7 @@ class ResetCommands extends BasicMigrator
         $database = $this->getDatabaseConnection();
         $this->ensureMigrationTableExists($database);
 
-        foreach ($modules as $module) {
+        foreach (array_reverse($modules) as $module) {
             $this->processModuleOperation($module, 'reset', $options, function ($module, $path, $opts) {
                 $this->executeReset($path, $opts);
             });

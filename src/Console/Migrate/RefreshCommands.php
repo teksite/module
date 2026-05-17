@@ -27,7 +27,7 @@ class RefreshCommands extends BasicMigrator
 
         try {
             $resetResult = $this->call('module:migrate-reset', array_filter([
-                '--module'   => $modules,
+                '--module'   => array_reverse($modules),
                 '--database' => $this->option('database'),
                 '--force'    => $this->option('force'),
                 '--step'     => $this->option('step'),

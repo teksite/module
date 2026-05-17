@@ -101,14 +101,15 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Get all modules (cached)
      */
-    protected function getAllModules(bool $onlyName = true ): array
+    protected function getAllModules(bool $onlyName = true , bool $onlyEnabled = true ): array
     {
         if ($this->cachedAllModules === null) {
-            $modules=get_all_modules($onlyName);
+            $modules=$onlyEnabled ? get_enabled_modules(true ) : get_all_modules($onlyName);
             if (isStewardInstalled()) {
                 $modules= array_merge(['Steward'] , $modules);
             }
             $this->cachedAllModules =  $modules;
+            $this->cachedEnabledModules =  $modules;
         }
 
         return $this->cachedAllModules;

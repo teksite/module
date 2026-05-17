@@ -35,7 +35,7 @@ class RollbackCommands extends BasicMigrator
         ]);
 
         if ($hasModuleOption) {
-            foreach ($modules as $module) {
+            foreach (array_reverse($modules) as $module) {
                 $this->rollbackSpecificModule($module, $step);
             }
         } else {
