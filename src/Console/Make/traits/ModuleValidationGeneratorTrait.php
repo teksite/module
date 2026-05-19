@@ -106,22 +106,18 @@ trait ModuleValidationGeneratorTrait
      */
     protected function isModuleExist(string $module): bool
     {
-        if ($module === 'Steward' && !isStewardInstalled()) {
-            return false;
-        }
-        $modules = getModulesStatus();
+        $modules = getAllModules();
         $modulesList = array_keys($modules);
 
         if (!$this->validationExactMatch($modulesList, $module)) {
             if ($this->validateSimilarMatches($modulesList, $module)) {
-
                 return true;
             }
             return false;
 
 
         };
-        if (($modules[$module] ?? false) === false) $this->line("<fg=yellow;options=bold>{$module} in not active<>");
+        if (($modules[$module] ?? false) === false) $this->line("<fg=yellow;options=bold>{$module} is not active");
         return true;
     }
 
@@ -150,7 +146,7 @@ trait ModuleValidationGeneratorTrait
     protected function checkForce(string $path): bool
     {
         if ($this->alreadyExists($path)) {
-            if (!$this->hasOption('force')  || !$this->option('force')) {
+            if (!$this->hasOption('force') || !$this->option('force')) {
                 $this->components->error($this->type . ' already exists in ' . $path . '.');
                 return false;
             }

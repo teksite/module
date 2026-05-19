@@ -175,6 +175,7 @@ if (!function_exists('module_namespace')) {
      *
      * @param string|null $moduleName
      * @return string
+     * @throws Exception
      */
     function module_namespace(?string $moduleName = null): string
     {
@@ -353,7 +354,7 @@ if (!function_exists('getAllModules')) {
      * @param bool $onlyName
      * @return array
      */
-    function getAllModules(bool $onlyName): array
+    function getAllModules(bool $onlyName = false): array
     {
         $modules = get_modules_bootstrap();
         if (isStewardInstalled()) {
@@ -371,19 +372,20 @@ if (!function_exists('modulePath')) {
     /**
      * return path for both modules or steward
      * @param string $module
+     * @param string|null $path
      * @param bool $absolute
      * @param bool $throwOnSteward
      * @return string|null
      * @throws Exception
      */
-    function modulePath(string $module, bool $absolute = false , bool $throwOnSteward=true): ?string
+    function modulePath(string $module ,?string $path = null, bool $absolute = false , bool $throwOnSteward=true): ?string
     {
         if ($module === 'Steward' && isStewardInstalled()) {
-            return steward_path($module, $absolute);
+            return steward_path($path,$absolute);
         } elseif ($module === 'Steward' && !isStewardInstalled()) {
             return $throwOnSteward ? throw new Exception('Steward is not installed') : null;
         } else {
-            return module_path($module, $absolute);
+            return module_path($module, $path,$absolute);
         }
     }
 }
@@ -397,7 +399,7 @@ if (!function_exists('moduleNamespace')) {
      * @return string|null
      * @throws Exception
      */
-    function module_namespace(string $moduleName = null ,bool $throwOnSteward=true): string|null
+    function moduleNamespace(string $moduleName = null ,bool $throwOnSteward=true): string|null
     {
         if ($moduleName === 'Steward' && isStewardInstalled()) {
             return steward_namespace();

@@ -154,6 +154,7 @@ abstract class GeneratorModuleCommand extends Command
 
     /**
      * Generate and write the file content.
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
     private function generateAndWriteFile(string $fullFilePath): void
     {
@@ -188,7 +189,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     private function errorReservedName(string $name): void
     {
-        $this->components->error("The name \"{$name}\" is reserved by PHP.");
+        $this->components->error("The name \"{$name}\" is reserved by PHP or Lareon.");
     }
 
     /**
@@ -197,21 +198,19 @@ abstract class GeneratorModuleCommand extends Command
     private function errorModuleNotExists(string $module): void
     {
         $this->components->error("The module \"{$module}\" is not registered or does not exist.");
-        $this->components->error("Use 'Steward' instead of module name to make {$this->type} in steward.");
     }
 
     /**
      * Prepare namespace configurations.
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
     private function prepareNamespaces(string $module, string $name): void
     {
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
 
-            $isSteward = $this->getModuleInput() === 'Steward';
-            $this->modulesNamespace = $isSteward ? steward_namespace() : module_namespace();
-            $this->moduleNamespace = $isSteward ? steward_namespace() : module_namespace($module);
-
+            $this->moduleNamespace = moduleNamespace($module);
         }
     }
 
@@ -241,10 +240,11 @@ abstract class GeneratorModuleCommand extends Command
 
     /**
      * Get the full file path for generation.
+     * @throws \Exception
      */
     protected function getPath(string $name, string $module): string
     {
-        return $this->module_path($module, $this->path() . DIRECTORY_SEPARATOR . $name, false);
+        return modulePath($module, $this->path() . DIRECTORY_SEPARATOR . $name, false);
     }
 
     /**
@@ -394,7 +394,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected function module_path(string $module, null|string $path = null, bool $absolute = false): string
     {
-        if ($module === 'Steward') {
+        if ($module === 'Steward' && isStewardInstalled()) {
             return steward_path($path, $absolute);
         }
         return module_path($module, $path, $absolute);
@@ -406,14 +406,13 @@ abstract class GeneratorModuleCommand extends Command
      * @param string $module
      * @param string|null $path
      * @return string
+     * @throws \Exception
      */
     protected function module_namespace(string $module, null|string $path = null): string
     {
         $pathNamespace = $path ? "\\" . normalizeSlashNamespace($path) : '';
-        if ($module === 'Steward') {
-            return steward_namespace() . $pathNamespace;
-        }
-        return module_namespace($module) . $pathNamespace;
+
+        return moduleNamespace($module) . $pathNamespace;
     }
 
     /**
