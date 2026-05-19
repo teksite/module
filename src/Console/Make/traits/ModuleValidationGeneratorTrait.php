@@ -155,21 +155,6 @@ trait ModuleValidationGeneratorTrait
     }
 
 
-    protected function validateModuleName(string $moduleName): array
-    {
-        // Exact match
-        if ($this->exactMatch($moduleName)) {
-            return [true, $moduleName];
-        }
-        // Check for similar matches
-        if ($suggest = $this->getSimilarMatches($moduleName)) {
-            return [false, $suggest];
-        }
-
-        return [false, null];
-    }
-
-
     /**
      * Check if the given name matches any module name exactly.
      *

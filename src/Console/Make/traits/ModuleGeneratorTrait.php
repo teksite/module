@@ -50,7 +50,7 @@ trait ModuleGeneratorTrait
                 $remainingPath = substr($normalizedInputPath, strlen($normalizedBaseDir));
                 $remainingPath = trim($remainingPath, '/');
 
-                $finalNamespace = rtrim($namespacePrefix, '\\') . '\\'; // اطمینان از وجود بک‌اسلش در انتهای پیشوند namespace
+                $finalNamespace = rtrim($namespacePrefix, '\\') . '\\';
 
                 if (!empty($remainingPath)) {
                     $finalNamespace .= str_replace('/', '\\', $remainingPath);
@@ -69,10 +69,11 @@ trait ModuleGeneratorTrait
      * @param string $module
      * @return mixed
      * @throws FileNotFoundException
+     * @throws \Exception
      */
     private function getComposer(string $module): mixed
     {
-        $modulePath = $module === 'Steward' ? steward_path() : module_path($module);
+        $modulePath = modulePath($module);
         $composerPath = $modulePath . DIRECTORY_SEPARATOR . 'composer.json';
 
         if (!file_exists($composerPath)) throw new FileNotFoundException('composer.json not found.');

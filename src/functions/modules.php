@@ -380,13 +380,11 @@ if (!function_exists('modulePath')) {
      */
     function modulePath(string $module ,?string $path = null, bool $absolute = false , bool $throwOnSteward=true): ?string
     {
-        if ($module === 'Steward' && isStewardInstalled()) {
-            return steward_path($path,$absolute);
-        } elseif ($module === 'Steward' && !isStewardInstalled()) {
-            return $throwOnSteward ? throw new Exception('Steward is not installed') : null;
-        } else {
-            return module_path($module, $path,$absolute);
-        }
+       return match (true){
+            ($module === 'Steward' && isStewardInstalled()) => steward_path($path,$absolute),
+            ($module === 'Steward' && !isStewardInstalled()) => $throwOnSteward ? throw new Exception('Steward is not installed') : null,
+            default => module_path($module, $path,$absolute),
+        };
     }
 }
 
@@ -394,20 +392,18 @@ if (!function_exists('moduleNamespace')) {
     /**
      *  get namespace of module
      *
-     * @param string|null $moduleName
+     * @param string|null $module
      * @param bool $throwOnSteward
      * @return string|null
      * @throws Exception
      */
-    function moduleNamespace(string $moduleName = null ,bool $throwOnSteward=true): string|null
+    function moduleNamespace(string $module = null ,bool $throwOnSteward=true): string|null
     {
-        if ($moduleName === 'Steward' && isStewardInstalled()) {
-            return steward_namespace();
-        } elseif ($moduleName === 'Steward' && !isStewardInstalled()) {
-            return $throwOnSteward ? throw new Exception('Steward is not installed') : null;
-        } else {
-            return module_namespace($moduleName);
-        }
+        return match (true){
+            ($module === 'Steward' && isStewardInstalled()) => steward_namespace(),
+            ($module === 'Steward' && !isStewardInstalled()) => $throwOnSteward ? throw new Exception('Steward is not installed') : null,
+            default =>module_namespace($module),
+        };
     }
 }
 

@@ -103,6 +103,8 @@ abstract class GeneratorModuleCommand extends Command
 
     /**
      * Execute the console command.
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
     public function handle(): void
     {
