@@ -22,18 +22,9 @@ if (!function_exists('get_modules_bootstrap')) {
      * @param string|array $modules
      * @return array|null
      */
-    function get_modules_bootstrap(string|array $modules = ['*']): null|array
+    function get_modules_bootstrap(): null|array
     {
-        $bootstrapContent = File::exists(module_bootstrap_path()) ? require module_bootstrap_path() : [];
-
-        $modulesArray = is_array($modules) ? $modules : [$modules];
-
-        if (in_array('*', $modulesArray)) return $bootstrapContent;
-
-        $filteredModules = collect($bootstrapContent)
-            ->filter(fn($data, $key) => in_array($key, $modulesArray))
-            ->toArray();
-        return is_array($modules) ? $filteredModules : array_first($filteredModules ?? []);
+        return File::exists(module_bootstrap_path()) ? require module_bootstrap_path() : [];
     }
 }
 
@@ -41,12 +32,28 @@ if (!function_exists('get_modules')) {
     /**
      * get arrays of installed modules
      *
-     * @param string|array $modules
      * @return array
      */
-    function get_modules(string|array $modules = ['*']): array
+    function get_modules(): array
     {
-        return get_modules_bootstrap($modules);
+        return get_modules_bootstrap();
+    }
+}
+
+if (!function_exists('get_module')) {
+    /**
+     * get data of the module
+     *
+     * @param string $moduleName
+     * @return array
+     */
+    function get_module(string $moduleName): array
+    {
+        $allModules = get_modules();
+        return in_array($moduleName, array_keys($allModules))
+            ? $allModules[$moduleName]
+            : [];
+
     }
 }
 
@@ -54,13 +61,11 @@ if (!function_exists('get_modules_status')) {
     /**
      * get arrays of modules and their activation status
      *
-     * @param bool $steward
      * @return array
      */
-    function get_modules_status(bool $steward = false): array
+    function get_modules_status(): array
     {
-        $modules = get_modules_bootstrap();
-        return collect($modules)
+        return collect(get_modules())
             ->map(fn($module) => $module['active'] ?? false)
             ->toArray();
     }
@@ -87,7 +92,7 @@ if (!function_exists('get_enabled_modules')) {
      */
     function get_enabled_modules(bool $onlyName = false): array
     {
-        $modules = collect(get_modules_bootstrap())
+        $modules = collect(get_modules())
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
             ->toArray();
         return $onlyName ? array_keys($modules) : $modules;
@@ -103,7 +108,7 @@ if (!function_exists('get_disabled_modules')) {
      */
     function get_disabled_modules(bool $onlyName = false): array
     {
-        $modules = collect(get_modules_bootstrap())
+        $modules = collect(get_modules())
             ->filter(fn($data, $key) => !isset($data['active']) || $data['active'] === false)
             ->toArray();
         return $onlyName ? array_keys($modules) : $modules;
@@ -136,7 +141,8 @@ if (!function_exists('get_module_type')) {
      */
     function get_module_type(string $modules): null|string
     {
-        return (get_modules_bootstrap($modules))['type'] ?? null;
+        $moduleData = get_module($modules) ?? [];
+        return $moduleData['type'] ?? null;
     }
 }
 
@@ -205,6 +211,32 @@ if (!function_exists('module_resource_path')) {
 }
 
 
+if (!function_exists('steward_data')) {
+    /**
+     * get arrays of steward data and its activation status
+     *
+     * @return array
+     */
+    function steward_data(): array
+    {
+        $stewardData = [];
+        if (isStewardInstalled()) {
+            $stewardData['Steward'] = [
+                'provider' => 'Lareon\\Steward\\App\\Providers\\StewardServiceProvider',
+                'active'   => true,
+                'type'     => 'steward',
+            ];
+        } else {
+            $stewardData['Steward'] = [
+                'provider' => null,
+                'active'   => false,
+                'type'     => 'null',
+            ];
+        }
+        return $stewardData;
+    }
+}
+
 if (!function_exists('steward_namespace')) {
     /**
      *  get namespace steward
@@ -272,24 +304,6 @@ if (!function_exists('isStewardInstalled')) {
 }
 
 
-if (!function_exists('modulePath')) {
-    /**
-     * return path for both modules or steward
-     * @param string $module
-     * @param bool $absolute
-     * @return string|null
-     */
-    function modulePath(string $module, bool $absolute = false): ?string
-    {
-        if ($module === 'Steward' && isStewardInstalled()) {
-            return steward_path($module, $absolute);
-        } elseif ($module === 'Steward' && !isStewardInstalled()) {
-            return null;
-        } else {
-            return module_path($module, $absolute);
-        }
-    }
-}
 
 
 if (!function_exists('getModulesStatus')) {
@@ -322,7 +336,8 @@ if (!function_exists('getEnabledModules')) {
         $stewardData = steward_data();
         $modules = get_modules_bootstrap();
 
-        $allModules = collect($modules)
+        $allModules = collect($stewardData)
+            ->merge($modules)
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
             ->toArray();
         return $onlyName ? array_keys($allModules) : $allModules;
@@ -331,28 +346,62 @@ if (!function_exists('getEnabledModules')) {
     }
 }
 
-if (!function_exists('steward_data')) {
+if (!function_exists('getAllModules')) {
     /**
-     * get arrays of steward data and its activation status
+     * get arrays of modules and steward and their activation status
      *
+     * @param bool $onlyName
      * @return array
      */
-    function steward_data(): array
+    function getAllModules(bool $onlyName): array
     {
-        $stewardData = [];
+        $modules = get_modules_bootstrap();
         if (isStewardInstalled()) {
-            $stewardData['Steward'] = [
-                'provider' => 'Lareon\\Steward\\App\\Providers\\StewardServiceProvider',
-                'active'   => true,
-                'type'     => 'steward',
-            ];
-        } else {
-            $stewardData['Steward'] = [
-                'provider' => null,
-                'active'   => false,
-                'type'     => 'null',
-            ];
+            $modules = array_merge(steward_data(), $modules);
         }
-        return $stewardData;
+        $modules = collect($modules)
+            ->map(fn($module) => $module['active'] ?? false)
+            ->toArray();
+
+        return $onlyName ? array_keys($modules) : $modules;
     }
 }
+
+if (!function_exists('modulePath')) {
+    /**
+     * return path for both modules or steward
+     * @param string $module
+     * @param bool $absolute
+     * @return string|null
+     */
+    function modulePath(string $module, bool $absolute = false): ?string
+    {
+        if ($module === 'Steward' && isStewardInstalled()) {
+            return steward_path($module, $absolute);
+        } elseif ($module === 'Steward' && !isStewardInstalled()) {
+            return null;
+        } else {
+            return module_path($module, $absolute);
+        }
+    }
+}
+
+if (!function_exists('moduleNamespace')) {
+    /**
+     *  get namespace of module
+     *
+     * @param string|null $moduleName
+     * @return string|null
+     */
+    function module_namespace(string $moduleName = null): string|null
+    {
+        if ($moduleName === 'Steward' && isStewardInstalled()) {
+            return steward_namespace();
+        } elseif ($moduleName === 'Steward' && !isStewardInstalled()) {
+            return null;
+        } else {
+            return module_namespace($moduleName);
+        }
+    }
+}
+

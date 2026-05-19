@@ -132,7 +132,7 @@ class DeleteMakeCommand extends Command
      */
     private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): bool
     {
-        $modules = get_all_modules();
+        $modules = get_modules();
 
         unset($modules[$moduleName]);
 
@@ -164,7 +164,7 @@ class DeleteMakeCommand extends Command
      */
     public function unregister(string $module, string $bootstrapFile): void
     {
-        $isRegistered = (in_array($module, get_all_modules(true)));
+        $isRegistered = (in_array($module, get_modules_name()));
         if ($isRegistered) {
             $this->updateModuleBootstrap($module, $bootstrapFile);
             $this->components->twoColumnDetail("<fg=gray> └─ unregistering $module</>", "<fg=green>✓ DONE</>");

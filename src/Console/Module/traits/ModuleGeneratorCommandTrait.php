@@ -49,7 +49,7 @@ trait ModuleGeneratorCommandTrait
     private function registerModule(string $moduleName , string $type , bool $active= true): void
     {
         $bootstrapFile = module_bootstrap_path();
-        $registeredModule = get_modules_bootstrap();
+        $registeredModule = get_modules();
 
         $namespace = Module::moduleNamespace($moduleName);
 
