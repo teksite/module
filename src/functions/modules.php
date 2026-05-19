@@ -62,9 +62,6 @@ if (!function_exists('get_modules_status')) {
         $modules = get_modules_bootstrap();
         return collect($modules)
             ->map(fn($module) => $module['active'] ?? false)
-            ->when($steward && isStewardInstalled(), function ($collection) {
-                return collect(['Steward' => true])->merge($collection);
-            })
             ->toArray();
     }
 }
@@ -295,3 +292,67 @@ if (!function_exists('modulePath')) {
 }
 
 
+if (!function_exists('getModulesStatus')) {
+    /**
+     * get arrays of modules and steward and their activation status
+     *
+     * @return array
+     */
+    function getModulesStatus(): array
+    {
+        $modules = get_modules_bootstrap();
+        return collect($modules)
+            ->map(fn($module) => $module['active'] ?? false)
+            ->when(isStewardInstalled(), function ($collection) {
+                return collect(['Steward' => true])->merge($collection);
+            })
+            ->toArray();
+    }
+}
+
+if (!function_exists('getEnabledModules')) {
+    /**
+     * get arrays of installed and enabled modules
+     *
+     * @param bool $onlyName
+     * @return array
+     */
+    function getEnabledModules(bool $onlyName = false): array
+    {
+        $stewardData = steward_data();
+        $modules = get_modules_bootstrap();
+
+        $allModules = collect($modules)
+            ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
+            ->toArray();
+        return $onlyName ? array_keys($allModules) : $allModules;
+
+
+    }
+}
+
+if (!function_exists('steward_data')) {
+    /**
+     * get arrays of steward data and its activation status
+     *
+     * @return array
+     */
+    function steward_data(): array
+    {
+        $stewardData = [];
+        if (isStewardInstalled()) {
+            $stewardData['Steward'] = [
+                'provider' => 'Lareon\\Steward\\App\\Providers\\StewardServiceProvider',
+                'active'   => true,
+                'type'     => 'steward',
+            ];
+        } else {
+            $stewardData['Steward'] = [
+                'provider' => null,
+                'active'   => false,
+                'type'     => 'null',
+            ];
+        }
+        return $stewardData;
+    }
+}

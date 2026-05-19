@@ -45,6 +45,7 @@ abstract class BasicMigrator extends Command implements Isolatable
         if ($this->isProhibited() || !$this->confirmToProceed()) {
             return CommandAlias::FAILURE;
         }
+
         $this->newLine();
 
         if (method_exists($this, 'needsMigrator') && $this->needsMigrator()) {
@@ -156,7 +157,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     {
         $moduleOption = $this->option('module');
         if (empty($moduleOption)) {
-            return $this->getAllModules(true);
+            return get_modules();
         }
 
         return Collection::make($moduleOption)

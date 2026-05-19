@@ -109,7 +109,7 @@ trait ModuleValidationGeneratorTrait
         if ($module === 'Steward' && !isStewardInstalled()) {
             return false;
         }
-        $modules = get_modules_status(true);
+        $modules = getModulesStatus();
         $modulesList = array_keys($modules);
 
         if (!$this->validationExactMatch($modulesList, $module)) {
