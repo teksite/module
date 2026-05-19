@@ -211,6 +211,7 @@ if (!function_exists('module_resource_path')) {
 }
 
 
+
 if (!function_exists('steward_data')) {
     /**
      * get arrays of steward data and its activation status
@@ -305,7 +306,6 @@ if (!function_exists('isStewardInstalled')) {
 
 
 
-
 if (!function_exists('getModulesStatus')) {
     /**
      * get arrays of modules and steward and their activation status
@@ -372,14 +372,16 @@ if (!function_exists('modulePath')) {
      * return path for both modules or steward
      * @param string $module
      * @param bool $absolute
+     * @param bool $throwOnSteward
      * @return string|null
+     * @throws Exception
      */
-    function modulePath(string $module, bool $absolute = false): ?string
+    function modulePath(string $module, bool $absolute = false , bool $throwOnSteward=true): ?string
     {
         if ($module === 'Steward' && isStewardInstalled()) {
             return steward_path($module, $absolute);
         } elseif ($module === 'Steward' && !isStewardInstalled()) {
-            return null;
+            return $throwOnSteward ? throw new Exception('Steward is not installed') : null;
         } else {
             return module_path($module, $absolute);
         }
@@ -391,14 +393,16 @@ if (!function_exists('moduleNamespace')) {
      *  get namespace of module
      *
      * @param string|null $moduleName
+     * @param bool $throwOnSteward
      * @return string|null
+     * @throws Exception
      */
-    function module_namespace(string $moduleName = null): string|null
+    function module_namespace(string $moduleName = null ,bool $throwOnSteward=true): string|null
     {
         if ($moduleName === 'Steward' && isStewardInstalled()) {
             return steward_namespace();
         } elseif ($moduleName === 'Steward' && !isStewardInstalled()) {
-            return null;
+            return $throwOnSteward ? throw new Exception('Steward is not installed') : null;
         } else {
             return module_namespace($moduleName);
         }
