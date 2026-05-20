@@ -390,7 +390,7 @@ if (!function_exists('moduleNamespace')) {
      * @return string|null
      * @throws Exception
      */
-    function moduleNamespace(string $module = null ,bool $throwOnSteward=true): string|null
+    function moduleNamespace(string|null $module = null ,bool $throwOnSteward=true): string|null
     {
         return match (true){
             ($module === 'Steward' && isStewardInstalled()) => steward_namespace(),
