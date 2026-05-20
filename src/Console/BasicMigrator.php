@@ -99,21 +99,24 @@ abstract class BasicMigrator extends Command implements Isolatable
         return $this->cachedDisabledModules ??= get_disabled_modules(true);
     }
 
+
     /**
      * Get all modules (cached)
      */
-    protected function getAllModules(bool $onlyName = true , bool $onlyEnabled = true ): array
+    protected function getAllModules(bool $onlyName = true, bool $onlyEnabled = true): array
     {
         if ($this->cachedAllModules === null) {
-            $modules=$onlyEnabled ? getEnabledModules(true ) : get_all_modules($onlyName);
-            if (isStewardInstalled()) {
-                $modules= array_merge(['Steward'] , $modules);
-            }
-            $this->cachedAllModules =  $modules;
-            $this->cachedEnabledModules =  $modules;
+
+            $allModules = getEnabledModules($onlyName);
+            $enabledModules = getAllModules($onlyName);
+
+            $this->cachedAllModules = $allModules;
+            $this->cachedEnabledModules = $enabledModules;
         }
 
-        return $this->cachedAllModules;
+        return $onlyEnabled
+            ? $this->cachedEnabledModules
+            : $this->cachedAllModules;
     }
 
     /**
@@ -156,9 +159,8 @@ abstract class BasicMigrator extends Command implements Isolatable
     private function parseModuleOption(): array
     {
         $moduleOption = $this->option('module');
-        if (empty($moduleOption)) {
-            return get_modules();
-        }
+
+        if (empty($moduleOption)) return getAllModules();
 
         return Collection::make($moduleOption)
                          ->flatMap(fn($module) => $this->splitAndTrimModuleString($module))

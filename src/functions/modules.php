@@ -334,11 +334,7 @@ if (!function_exists('getEnabledModules')) {
      */
     function getEnabledModules(bool $onlyName = false): array
     {
-        $stewardData = steward_data();
-        $modules = get_modules_bootstrap();
-
-        $allModules = collect($stewardData)
-            ->merge($modules)
+        $allModules = collect(getAllModules())
             ->filter(fn($data, $key) => isset($data['active']) && $data['active'] === true)
             ->toArray();
         return $onlyName ? array_keys($allModules) : $allModules;
@@ -360,9 +356,6 @@ if (!function_exists('getAllModules')) {
         if (isStewardInstalled()) {
             $modules = array_merge(steward_data(), $modules);
         }
-        $modules = collect($modules)
-            ->map(fn($module) => $module['active'] ?? false)
-            ->toArray();
 
         return $onlyName ? array_keys($modules) : $modules;
     }
