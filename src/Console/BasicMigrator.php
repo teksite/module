@@ -160,7 +160,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     {
         $moduleOption = $this->option('module');
 
-        if (empty($moduleOption)) return getAllModules();
+        if (empty($moduleOption)) return $this->getAllModules(true , false);
 
         return Collection::make($moduleOption)
                          ->flatMap(fn($module) => $this->splitAndTrimModuleString($module))
@@ -375,22 +375,21 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     protected function ensureMigrationTableExists(?string $database): void
     {
-        $this->line("<fg=cyan;options=bold> migrations table</>");
+        $this->usingDatabase($database, function () use ($database) {
+            $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
+            if (!$schema->hasTable('migrations')) {
+                $this->line("<fg=cyan;options=bold> migrations table</>");
 
-        $this->components->task('<fg=gray> └─creating migration table</>', function () use ($database) {
-            $this->usingDatabase($database, function () use ($database) {
-                $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
+                $this->components->task('<fg=gray> └─creating migration table</>', function () use ($schema, $database) {
 
-                if (!$schema->hasTable('migrations')) {
                     $schema->create('migrations', function (Blueprint $table) {
                         $table->increments('id');
                         $table->string('migration');
                         $table->integer('batch');
                     });
                     $this->successCount++;
-
-                }
-            });
+                });
+            }
         });
     }
 
