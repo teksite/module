@@ -2,6 +2,7 @@
 
 namespace Teksite\Module\Console\Migrate;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command;
@@ -77,16 +78,18 @@ class SeedCommand extends BasicMigrator implements MigrationContract
 
     /**
      * Get the fully qualified seeder class name for a module
+     * @throws \Exception
      */
     private function getSeederClass(string $module): ?string
     {
-        $seederClass = module_namespace($module) . "\\Database\\Seeders\\{$module}DatabaseSeeder";
+        $seederClass = moduleNamespace($module) . "\\Database\\Seeders\\{$module}DatabaseSeeder";
 
         return class_exists($seederClass) ? $seederClass : null;
     }
 
     /**
      * Execute the seeder
+     * @throws BindingResolutionException
      */
     private function executeSeeder(string $seederClass, string $database, bool $isForce): void
     {
