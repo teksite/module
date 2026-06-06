@@ -59,7 +59,7 @@ class ModulesHeadquarterServiceProvider extends ServiceProvider
                 $this->loadJsonTranslationsFrom($langPath);
             } else {
                 $moduleLangPath = module_path($name, config('modules.module.lang_path', 'lang'));
-                $this->loadTranslationsFrom($moduleLangPath);
+                $this->loadTranslationsFrom($moduleLangPath , $name);
                 $this->loadJsonTranslationsFrom($moduleLangPath);
             }
         }
