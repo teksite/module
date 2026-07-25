@@ -4,7 +4,6 @@ namespace {{ namespace }};
 
 use {{ defaultController }};
 use Illuminate\Http\RedirectResponse;
-use Teksite\Lareon\Facade\WebResponse;
 
 class {{ class }} extends Controller
 {

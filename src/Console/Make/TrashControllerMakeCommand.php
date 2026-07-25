@@ -44,7 +44,7 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return 'app/HTTP/Controllers';
+        return 'app/Http/Controllers';
     }
 
     /**
@@ -54,7 +54,7 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $defaultControllerPath = module_path($this->getModuleInput() , 'app\Http\Controllers\Controller.php');
+        $defaultControllerPath = module_path($this->getModuleInput() , 'App\Http\Controllers\Controller.php');
         if (file_exists($defaultControllerPath)) {
             $defaultController = $this->defaultNamespaceController($defaultControllerPath);
         } else {
