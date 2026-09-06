@@ -42,7 +42,6 @@ use Teksite\Module\Console\Migrate\FreshCommands;
 use Teksite\Module\Console\Migrate\MigrateCommands;
 use Teksite\Module\Console\Migrate\RefreshCommands;
 use Teksite\Module\Console\Migrate\ResetCommands;
-use Teksite\Module\Console\Migrate\RollbackCommands;
 use Teksite\Module\Console\Migrate\SeedCommand;
 use Teksite\Module\Console\Module\DeleteMakeCommand;
 use Teksite\Module\Console\Module\ModuleDisableCommand;
@@ -144,9 +143,6 @@ class ModuleServiceProvider extends ServiceProvider
             FreshCommands::class,
             RefreshCommands::class,
 
-            //Todo refactor Rollback (think about scenario module:step, all module or specific module ,  --step)
-
-            // RollbackCommands::class,
 
             /* Module -> Generator commands */
             ModuleMakeCommand::class,
@@ -166,10 +162,10 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/config/modules.php' => config_path('modules.php'),
-        ], 'modules');
+        ], ['modules', 'modules-config']);
 
         $this->publishes([
             __DIR__ . '/config/module-hq.php' => config_path('module-hq.php'),
-        ], 'module-hq');
+        ], ['modules', 'module-hq']);
     }
 }

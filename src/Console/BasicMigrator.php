@@ -38,6 +38,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     /**
      * Execute the console command.
+     *
      * @return int
      */
     public function handle(): int
@@ -107,8 +108,8 @@ abstract class BasicMigrator extends Command implements Isolatable
     {
         if ($this->cachedAllModules === null) {
 
-            $allModules = getEnabledModules($onlyName);
-            $enabledModules = getAllModules($onlyName);
+            $enabledModules = getEnabledModules($onlyName);
+            $allModules = getAllModules($onlyName);
 
             $this->cachedAllModules = $allModules;
             $this->cachedEnabledModules = $enabledModules;
@@ -160,7 +161,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     {
         $moduleOption = $this->option('module');
 
-        if (empty($moduleOption)) return $this->getAllModules(true , false);
+        if (empty($moduleOption)) return $this->getAllModules(true, false);
 
         return Collection::make($moduleOption)
                          ->flatMap(fn($module) => $this->splitAndTrimModuleString($module))
@@ -207,6 +208,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     /**
      * Display a two-column detail with timing
+     *
      * @throws \Throwable
      */
     protected function showTimedDetail(string $label, \Closure $callback, ?string $errorMessage = null): float
@@ -284,6 +286,7 @@ abstract class BasicMigrator extends Command implements Isolatable
 
     /**
      * Process a single module migration/rollback operation
+     *
      * @throws \Throwable
      */
     protected function processModuleOperation(

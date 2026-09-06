@@ -96,7 +96,7 @@ class ModuleScanCommand extends Command
         $modulesNeedToBeRegistered = [];
         foreach ($directories as $dir) {
             $explodePath = explode('\\', $dir);
-            $moduleName = array_last($explodePath);
+            $moduleName = end($explodePath);
             if (in_array($moduleName, $registeredModules)) continue;
             $modulesNeedToBeRegistered[] = $moduleName;
         }

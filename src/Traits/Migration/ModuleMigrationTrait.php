@@ -65,18 +65,18 @@ trait ModuleMigrationTrait
      */
     public function moduleMigrationFiles(?string $moduleName = null): array
     {
-        $modules = is_string($moduleName) ? [$moduleName] : $this->getModules();
+        $migrations = [];
 
-            $migrationsPath = module_path($moduleName, 'Database/Migrations');
-            $migration_list = File::allFiles($migrationsPath);
-            foreach ($migration_list as $key=>$migrateFile) {
-                $absPath = $migrateFile->getPathname();
-                $fileName = $migrateFile->getFilename();
-                $migrationName = str_replace('.php', '', $fileName);
-                $migrations[$key]['path'] = $absPath;
-                $migrations[$key]['file'] = $fileName;
-                $migrations[$key]['name'] = $migrationName;
-            }
+        $migrationsPath = module_path($moduleName, 'Database/Migrations');
+        $migration_list = File::allFiles($migrationsPath);
+        foreach ($migration_list as $key => $migrateFile) {
+            $absPath = $migrateFile->getPathname();
+            $fileName = $migrateFile->getFilename();
+            $migrationName = str_replace('.php', '', $fileName);
+            $migrations[$key]['path'] = $absPath;
+            $migrations[$key]['file'] = $fileName;
+            $migrations[$key]['name'] = $migrationName;
+        }
 
         return $migrations;
     }
@@ -94,8 +94,8 @@ trait ModuleMigrationTrait
         }
 
         $records = DB::table('migrations')
-            ->whereIn('migration', $migrationTables->pluck('name'))
-            ->orderBy('batch', 'desc')->get();
+                     ->whereIn('migration', $migrationTables->pluck('name'))
+                     ->orderBy('batch', 'desc')->get();
         if ($records->isEmpty()) {
             $this->info("No matching migrations found in the database.");
             return;
@@ -120,7 +120,7 @@ trait ModuleMigrationTrait
 
         $this->runAndCalculate(function () use ($selectingRecord) {
             DB::table('migrations')
-                ->whereIn('migration', $selectingRecord->pluck('migration')->toArray())->delete();
+              ->whereIn('migration', $selectingRecord->pluck('migration')->toArray())->delete();
         }, 'updating migration table');
 
         $this->info("Rollback completed for lareon: ($step steps)");
@@ -135,7 +135,7 @@ trait ModuleMigrationTrait
 
         $modules = $this->getModules();
         foreach ($modules as $module) {
-            $mainSeeder = module_namespace($module, "Database\\Seeders\\" . $module . "DatabaseSeeder");
+            $mainSeeder = module_namespace($module);
             if (class_exists($mainSeeder)) {
                 $this->runAndCalculate(function () use ($mainSeeder) {
                     $this->call($mainSeeder);
