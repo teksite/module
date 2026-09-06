@@ -25,6 +25,23 @@ return [
     "boot_all_modules" => 1, //1 for all modules (enabled and disabled)
     //0 only for enabled modules
 
+
+    /*
+   |--------------------------------------------------------------------------
+   | Livewire
+   |--------------------------------------------------------------------------
+   |
+   | If livewire/livewire is installed in the host application, module and
+   | steward components placed in "directory" below are auto-registered
+   | as <module-alias>::<component-name> (e.g. blog::post-card).
+   | Set "enable" to false to opt out even if livewire/livewire is installed.
+   |
+   */
+    "livewire" => [
+        "enable"    => true,
+        "directory" => "app/Livewire",
+    ],
+ 
     /*
     |--------------------------------------------------------------------------
     | Module and Steward configuration
