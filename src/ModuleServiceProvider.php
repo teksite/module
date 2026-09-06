@@ -99,6 +99,7 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function bootCommands(): void
     {
+
         $this->commands([
             AttributeMakeCommand::class,
             CastMakeCommand::class,

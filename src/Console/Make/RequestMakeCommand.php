@@ -37,14 +37,18 @@ class RequestMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
+        if (!$this->hasApiFormRequest()) return $this->resolveStubPath('stubs/request.stub');
+
         return $this->option('api')
             ? $this->resolveStubPath('stubs/request.api.stub')
             : $this->resolveStubPath('stubs/request.stub');
+
+
     }
 
     protected function path(): string
     {
-        return  'app/Http/Requests';
+        return 'app/Http/Requests';
     }
 
     /**
@@ -65,9 +69,22 @@ class RequestMakeCommand extends GeneratorModuleCommand
      */
     protected function getOptions(): array
     {
-        return [
-            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
-            ['api', null, InputOption::VALUE_NONE, 'Generate api form request class class'],
+        $options = [
+            ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists",],
         ];
+
+        if ($this->hasApiFormRequest()) {
+            $options[] = ['api', null, InputOption::VALUE_NONE, 'Generate an API form request class',];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Determine whether the API form request class is available.
+     */
+    protected function hasApiFormRequest(): bool
+    {
+        return class_exists('Teksite\Extralaravel\Http\ApiFormRequest');
     }
 }
