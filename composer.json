@@ -1,12 +1,14 @@
 {
     "name": "teksite/module",
-    "description": "a package to create modules for a laravel project",
+    "description": "a package to create modules for a Laravel project",
     "keywords": [
         "modules",
         "laravel",
         "lareon",
         "module",
-        "modularity"
+        "modularity",
+        "laravel-modularity",
+        "laravel-module"
     ],
     "authors": [
         {
@@ -15,8 +17,8 @@
         }
     ],
     "minimum-stability": "stable",
-    "license": "MIT",
     "prefer-stable": true,
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Teksite\\Module\\": "src/"
@@ -38,6 +40,9 @@
         "friendsofphp/php-cs-fixer": "^v3.52",
         "spatie/phpunit-snapshot-assertions": "^5.0"
     },
+    "suggest": {
+        "livewire/livewire": "Required to auto-register module and steward Livewire components (^3.0)."
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -50,6 +55,7 @@
             "wikimedia/composer-merge-plugin": true
         }
     },
+
     "scripts": {
         "update-snapshots": "./phpunit --no-coverage -d --update-snapshots",
         "lint": "pint",

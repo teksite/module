@@ -42,8 +42,6 @@ class RequestMakeCommand extends GeneratorModuleCommand
         return $this->option('api')
             ? $this->resolveStubPath('stubs/request.api.stub')
             : $this->resolveStubPath('stubs/request.stub');
-
-
     }
 
     protected function path(): string
@@ -59,7 +57,6 @@ class RequestMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

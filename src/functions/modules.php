@@ -19,7 +19,6 @@ if (!function_exists('get_modules_bootstrap')) {
     /**
      * get arrays of installed modules
      *
-     * @param string|array $modules
      * @return array|null
      */
     function get_modules_bootstrap(): null|array
