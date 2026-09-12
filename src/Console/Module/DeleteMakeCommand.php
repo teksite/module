@@ -2,6 +2,7 @@
 
 namespace Teksite\Module\Console\Module;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,6 @@ use Teksite\Module\Facade\Module;
 
 class DeleteMakeCommand extends Command
 {
-
     use ModuleGeneratorCommandTrait;
 
     protected $name = 'module:delete';
@@ -42,71 +42,68 @@ class DeleteMakeCommand extends Command
     /**
      * Ask for confirmation before deleting.
      */
-    private function validating(array $modulesName, $bootstrapFile): bool
+    private function validating(array $modulesName, $bootstrapFile,): bool
     {
         if (!File::exists($bootstrapFile)) {
             $this->error("The file bootstrap/modules.php does not exist!");
             return false;
         }
+
         foreach ($modulesName as $module) {
             if (!$this->isAllowedName($module)) {
                 $this->error("$module is not allowed");
                 return false;
             }
         }
-        return true;
 
+        return true;
     }
 
-    private function deleteConfirmation($moduleName): bool
+    private function deleteConfirmation($moduleName,): bool
     {
         if ($this->option('all')) return true;
         return $this->confirm("Are you sure you want to delete the module ($moduleName)? [y|n]?", "n");
     }
 
-    private function rollBackConfirmation($moduleName): bool
+    private function rollBackConfirmation($moduleName,): bool
     {
         if ($this->confirmRollback == 'ya' || $this->option('rollback')) return true;
-        if ($this->confirmRollback == 'na')  return false;
+        if ($this->confirmRollback == 'na') return false;
 
-        if ($this->option('rollback')) return true;
+
         $options = ['y', 'n', 'ya', 'na'];
-        $answer = $this->ask("Do you want to rollback the module ($moduleName) migrations? [y|n|ya|na] (yes|y,no|n ,yes for all|ya , no for all|na)?");
+        $answer = $this->ask("Do you want to rollback the module ($moduleName) migrations? [y|n|ya|na] (yes|y, no|n, yes for all|ya, no for all|na)?");
 
         while (!in_array($answer, $options)) {
             $answer = $this->ask("Invalid option. Please choose from [y|n|ya|na] (yes|y,no|n ,yes for all|ya , no for all|na) :");
         }
-        if ($answer === 'ya'){
-            $this->confirmRollback = 'ya';
-        }
-        if ($answer === 'na'){
-            $this->confirmRollback = 'na';
-        }
+
+        if ($answer === 'ya') $this->confirmRollback = 'ya';
+
+        if ($answer === 'na') $this->confirmRollback = 'na';
 
         return in_array($answer, ['y', 'ya']);
     }
 
-
     /**
      * Handle the deletion process for the given modules.
      */
-    private function deleteModules(array $modulesName, string $bootstrapFile): void
+    private function deleteModules(array $modulesName, string $bootstrapFile,): void
     {
-        $modulesName = array_map(fn($module) => Str::studly(trim($module)), $modulesName);
+        $modulesName = array_map(fn($module,) => Str::studly(trim($module)), $modulesName);
 
         foreach ($modulesName as $module) {
 
             if (!$this->deleteConfirmation($module)) continue;
 
-            if ($this->rollBackConfirmation($module)){
+            if ($this->rollBackConfirmation($module)) {
                 try {
                     $this->call('module:migrate-reset', ['--module' => $module]);
-                }catch (\Throwable $exception){
+                } catch (\Throwable $exception) {
                     Log::error($exception);
                     $this->error($exception->getMessage());
                 }
             }
-
 
             $this->newLine();
             $this->line("<fg=yellow> Deleting module $module</>");
@@ -116,13 +113,12 @@ class DeleteMakeCommand extends Command
         }
         $this->newLine();
         $this->dumpingComposer();
-
     }
 
     /**
      * Remove the module directory and update configuration.
      */
-    private function removeDirectory(string $path): void
+    private function removeDirectory(string $path,): void
     {
         File::deleteDirectory($path);
     }
@@ -130,45 +126,46 @@ class DeleteMakeCommand extends Command
     /**
      * Remove the module from config/modules.php if it exists.
      */
-    private function updateModuleBootstrap(string $moduleName, string $bootstrapFile): bool
+    private function updateModuleBootstrap(string $moduleName, string $bootstrapFile,): bool
     {
         $modules = get_modules();
 
         unset($modules[$moduleName]);
 
-        File::put($bootstrapFile, '<?php return ' . humanReadableVarExport($modules, true) . ';');
+        File::put($bootstrapFile, '<?php return '.humanReadableVarExport($modules, true).';');
+
         return true;
     }
-
 
     /**
      * @param mixed $module
      * @return void
+     * @throws Exception
      */
-    public function deletingDirectory(mixed $module): void
+    public function deletingDirectory(mixed $module,): void
     {
         $pathExist = is_dir(Module::modulePath($module)) ? Module::modulePath($module) : false;
+
         if (!!$pathExist) {
             $this->removeDirectory($pathExist);
             $this->components->twoColumnDetail("<fg=gray> └─ deleting $module directory</>", "<fg=green>✓ DONE</>");
-
         } else {
             $this->components->twoColumnDetail("<fg=gray> └─ deleting $module directory", "<fg=red>✘ directory not found!</>");
         }
     }
 
     /**
-     * @param mixed $module
+     * @param mixed  $module
      * @param string $bootstrapFile
      * @return void
      */
-    public function unregister(string $module, string $bootstrapFile): void
+    public function unregister(string $module, string $bootstrapFile,): void
     {
         $isRegistered = (in_array($module, get_modules_name()));
+
         if ($isRegistered) {
             $this->updateModuleBootstrap($module, $bootstrapFile);
             $this->components->twoColumnDetail("<fg=gray> └─ unregistering $module</>", "<fg=green>✓ DONE</>");
-
         } else {
             $this->components->twoColumnDetail("<fg=gray> └─ unregistering $module</>", "<fg=red>✘ not found in bootstrap/modules.php!</>");
         }
