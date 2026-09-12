@@ -126,11 +126,19 @@ trait ModuleGeneratorCommandTrait
 
     }
 
+
+    private function isSteward(): bool
+    {
+        return $this->hasOption('steward') && $this->option('steward');
+    }
+
+
     protected function getArguments(): array
     {
         return [
             ['name', InputArgument::REQUIRED, 'The name of the ' . strtolower($this->type)],
         ];
     }
+
 
 }
