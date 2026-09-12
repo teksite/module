@@ -21,19 +21,19 @@ return [
                 //Admin Routes
                 [
                     'path'       => 'admin/web.php',
-                    'middleware' => ['web', 'auth', 'verified'],
+                    'middleware' => ['web', 'auth',],
                     'prefix'     => 'tkadmin',
                     'name'       => 'admin.',  //DO NOT CHANGE IT,
                 ],
                 [
                     'path'       => 'admin/ajax.php',
-                    'middleware' => ['api', 'web', 'auth', 'verified'],
+                    'middleware' => ['api', 'web', 'auth',],
                     'prefix'     => 'tkadmin/ajax',
                     'name'       => 'admin.ajax.',  //DO NOT CHANGE IT,
                 ],
                 [
                     'path'       => 'admin/api.php',
-                    'middleware' => ['api', 'auth', 'verified', 'auth:sanctum'],
+                    'middleware' => ['api', 'auth', 'auth:sanctum'],
                     'prefix'     => 'admin/api/v1',
                     'name'       => 'admin.api.v1.',  //DO NOT CHANGE IT,
                 ],
@@ -41,19 +41,19 @@ return [
                 //Panel Routes
                 [
                     'path'       => 'panel/web.php',
-                    'middleware' => ['web', 'auth', 'verified'],
+                    'middleware' => ['web', 'auth',],
                     'prefix'     => 'panel',
                     'name'       => 'panel.',  //DO NOT CHANGE IT,
                 ],
                 [
                     'path'       => 'panel/ajax.php',
-                    'middleware' => ['api', 'web', 'auth', 'verified'],
+                    'middleware' => ['api', 'web', 'auth',],
                     'prefix'     => 'panel/ajax',
                     'name'       => 'admin.ajax.',  //DO NOT CHANGE IT,
                 ],
                 [
                     'path'       => 'panel/api.php',
-                    'middleware' => ['api', 'auth', 'verified', 'auth:sanctum'],
+                    'middleware' => ['api', 'auth', 'auth:sanctum'],
                     'prefix'     => 'panel/api/v1',
                     'name'       => 'panel.api.v1.',  //DO NOT CHANGE IT,
                 ],
@@ -123,19 +123,19 @@ return [
             //Admin Routes
             [
                 'path'       => 'admin/web.php',
-                'middleware' => ['web', 'auth', 'verified'],
+                'middleware' => ['web', 'auth',],
                 'prefix'     => 'tkadmin',
                 'name'       => 'admin.',  //DO NOT CHANGE IT,
             ],
             [
                 'path'       => 'admin/ajax.php',
-                'middleware' => ['api', 'web', 'auth', 'verified'],
+                'middleware' => ['api', 'web', 'auth',],
                 'prefix'     => 'tkadmin/ajax',
                 'name'       => 'admin.ajax.',  //DO NOT CHANGE IT,
             ],
             [
                 'path'       => 'admin/api.php',
-                'middleware' => ['api', 'auth', 'verified', 'auth:sanctum'],
+                'middleware' => ['api', 'auth', 'auth:sanctum'],
                 'prefix'     => 'admin/api/v1',
                 'name'       => 'admin.api.v1.',  //DO NOT CHANGE IT,
             ],
@@ -143,19 +143,19 @@ return [
             //Panel Routes
             [
                 'path'       => 'panel/web.php',
-                'middleware' => ['web', 'auth', 'verified'],
+                'middleware' => ['web', 'auth',],
                 'prefix'     => 'panel',
                 'name'       => 'panel.',  //DO NOT CHANGE IT,
             ],
             [
                 'path'       => 'panel/ajax.php',
-                'middleware' => ['api', 'web', 'auth', 'verified'],
+                'middleware' => ['api', 'web', 'auth',],
                 'prefix'     => 'panel/ajax',
                 'name'       => 'admin.ajax.',  //DO NOT CHANGE IT,
             ],
             [
                 'path'       => 'panel/api.php',
-                'middleware' => ['api', 'auth', 'verified', 'auth:sanctum'],
+                'middleware' => ['api', 'auth', 'auth:sanctum'],
                 'prefix'     => 'panel/api/v1',
                 'name'       => 'panel.api.v1.',  //DO NOT CHANGE IT,
             ],

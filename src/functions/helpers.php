@@ -6,25 +6,27 @@ if (!function_exists('normalizeSlashPath')) {
      * @param string $separator
      * @return string
      */
-    function normalizeSlashPath(string $path ,string $separator = DIRECTORY_SEPARATOR): string
+    function normalizeSlashPath(string $path, string $separator = DIRECTORY_SEPARATOR,): string
     {
-        // Replace all "/" and "\" with DIRECTORY_SEPARATOR
-        $normalizedPath = str_replace(['/' ,'//', '\\', '/\\', '\\/' ,'\\\\'], DIRECTORY_SEPARATOR, $path);
+        // Collapse any run of "/" and "\" into a single DIRECTORY_SEPARATOR
+        $normalizedPath = preg_replace('#[\\\\/]+#', DIRECTORY_SEPARATOR, $path);
 
-        // Ensure the path ends with DIRECTORY_SEPARATOR
+        // Trim a trailing separator
         return rtrim($normalizedPath, $separator);
     }
 }
 
 if (!function_exists('normalizeSlashNamespace')) {
     /**
+     *  Normalize any mix of "/" and "\" into a valid PHP namespace separator ("\").
+     *
      * @param string $namespace
      * @return string
      */
-    function normalizeSlashNamespace(string $namespace): string
+    function normalizeSlashNamespace(string $namespace,): string
     {
         // Replace all "/" and "\" with DIRECTORY_SEPARATOR
-        $normalizedNamespace = str_replace(['/' ,'//', '\\', '/\\', '\\/' ,'\\\\'], '\\', $namespace);
+        $normalizedNamespace = preg_replace('#[\\\\/]+#', '\\', $namespace);
 
         // Ensure the path ends with DIRECTORY_SEPARATOR
         return rtrim($normalizedNamespace, '\\');
@@ -32,15 +34,13 @@ if (!function_exists('normalizeSlashNamespace')) {
 }
 
 
-
-
 if (!function_exists('humanReadableVarExport')) {
     /**
-     * @param $expression
+     * @param      $expression
      * @param bool $return
      * @return array|string|string[]|void|null
      */
-    function humanReadableVarExport($expression, bool $return = false)
+    function humanReadableVarExport($expression, bool $return = false,)
     {
 
         $export = var_export($expression, true);
