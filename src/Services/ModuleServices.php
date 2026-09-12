@@ -8,33 +8,36 @@ use Illuminate\Support\Facades\File;
 class ModuleServices
 {
     private string $bootstrapFilePath;
-    private array $bootstrapFile;
 
     public function __construct()
     {
-        $this->bootstrapFilePath = config('modules.registration_modules_file', base_path('bootstrap') . '/modules.php');
-        $this->bootstrapFile = file_exists($this->bootstrapFilePath) ? require $this->bootstrapFilePath : [];
+        $this->bootstrapFilePath = module_bootstrap_path();
     }
 
     /**
      * @param string|null $moduleName
      * @param string|null $path
-     * @param bool $absolute
+     * @param bool        $absolute
      * @return string
+     * @throws \Exception
      */
     public function modulePath(?string $moduleName = null, ?string $path = null, bool $absolute = true): string
     {
-        return module_path($moduleName, $path, $absolute);
+        return modulePath($moduleName, $path, $absolute);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function stewardPath(?string $path = null, bool $absolute = true): string
     {
-        return steward_path($path, $absolute);
+        return modulePath('Steward', $path, $absolute);
     }
 
     /**
      * @param string|null $moduleName
      * @return string
+     * @throws \Exception
      */
     public function moduleNamespace(string $moduleName = null): string
     {
@@ -42,7 +45,6 @@ class ModuleServices
     }
 
     /**
-     * @param string|null $moduleName
      * @return string
      */
     public function stewardNamespace(): string
@@ -140,9 +142,10 @@ class ModuleServices
 
 
     /**
-     * @param string $moduleName
+     * @param string       $moduleName
      * @param string|array $key
      * @return mixed
+     * @throws \Exception
      */
     public function info(string $moduleName, string|array $key = ['*']): mixed
     {
@@ -171,17 +174,21 @@ class ModuleServices
      */
     public function enable($moduleName): int
     {
-        if (!$this->isRegistered($moduleName)) return throw new \Exception('the module is not registered or installed');
+        if (!$this->isRegistered($moduleName)) throw new \Exception('the module is not registered or installed');
 
         if ($this->isEnabled($moduleName)) return 1;
 
-        $registeredModules = $this->bootstrapFile;
+        $registeredModules = get_modules();
+
         $registeredModules[$moduleName]['active'] = true;
 
         File::put(
             $this->bootstrapFilePath,
             '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
         );
+
+        reset_modules_cache();
+
         return 1;
     }
 
@@ -192,17 +199,21 @@ class ModuleServices
      */
     public function disable($moduleName): int
     {
-        if (!$this->isRegistered($moduleName)) return throw new \Exception('the module is not registered or installed');
+        if (!$this->isRegistered($moduleName)) throw new \Exception('the module is not registered or installed');
 
         if ($this->isDisable($moduleName)) return 0;
 
-        $registeredModules = $this->bootstrapFile;
+        $registeredModules = get_modules();
+
         $registeredModules[$moduleName]['active'] = false;
 
         File::put(
             $this->bootstrapFilePath,
             '<?php return ' . humanReadableVarExport($registeredModules, true) . ';'
         );
+
+        reset_modules_cache();
+
         return 0;
     }
 
@@ -211,7 +222,7 @@ class ModuleServices
      */
     public function isStewardInstalled(): bool
     {
-        return is_dir($this->stewardPath()) && class_exists(steward_namespace().'\\App\\Providers\\StewardServiceProvider\\StewardServiceProvider');
+        return isStewardInstalled();
     }
 
 }

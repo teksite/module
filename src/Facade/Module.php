@@ -2,6 +2,8 @@
 
 namespace Teksite\Module\Facade;
 
+use Illuminate\Support\Facades\Facade;
+
 /**
  * @method static string modulePath(?string $moduleName = null, bool $absolute=true)
  * @method static string moduleNamespace(?string $moduleName = null, ?string $path=null)
@@ -16,11 +18,11 @@ namespace Teksite\Module\Facade;
  *
  * @see \Teksite\Module\Services\ModuleServices
  */
-use Illuminate\Support\Facades\Facade;
 
 class Module extends Facade
 {
-    protected static function getFacadeAccessor(){
+    protected static function getFacadeAccessor(): string
+    {
         return 'Module';
     }
 
