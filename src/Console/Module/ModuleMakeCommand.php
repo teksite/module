@@ -46,12 +46,10 @@ class ModuleMakeCommand extends Command
         $this->info("<success>SUCCESS</success> Module $moduleName created successfully.");
     }
 
-
     private function validating(string $moduleName, $modulePath,): bool
     {
         return $this->validateModuleState($moduleName, $modulePath, shouldAlreadyExist: false, shouldAlreadyBeRegistered: false);
     }
-
 
     private function createDirectories(string $path, string $moduleName,): void
     {
@@ -193,8 +191,6 @@ class ModuleMakeCommand extends Command
     {
         $this->generateScaffoldFile($stub, $replacements, $destination);
     }
-
-
 
     protected function getOptions(): array
     {
