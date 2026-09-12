@@ -24,7 +24,7 @@ if (!function_exists('normalizeSlashNamespace')) {
     function normalizeSlashNamespace(string $namespace): string
     {
         // Replace all "/" and "\" with DIRECTORY_SEPARATOR
-        $normalizedNamespace = str_replace(['/' ,'//', '\\', '/\\', '\\/' ,'\\\\'], DIRECTORY_SEPARATOR, $namespace);
+        $normalizedNamespace = str_replace(['/' ,'//', '\\', '/\\', '\\/' ,'\\\\'], '\\', $namespace);
 
         // Ensure the path ends with DIRECTORY_SEPARATOR
         return rtrim($normalizedNamespace, '\\');
