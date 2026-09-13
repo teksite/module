@@ -93,7 +93,7 @@ abstract class GeneratorModuleCommand extends Command
     {
         parent::__construct();
 
-        if ($this->usesCreatesMatchingTestTrait())  $this->addTestOptions();
+        if ($this->usesCreatesMatchingTestTrait()) $this->addTestOptions();
 
         $this->files = $files;
     }
@@ -106,6 +106,8 @@ abstract class GeneratorModuleCommand extends Command
      */
     public function handle(): void
     {
+        $this->prepareToProcess();
+
         $this->newLine();
 
         $name = $this->getNameInput();
@@ -176,7 +178,7 @@ abstract class GeneratorModuleCommand extends Command
      */
     private function displaySuccessMessage(string $module, string $fullFilePath,): void
     {
-        $this->components->twoColumnDetail("{$module} | the {$this->type} file has been created.", $fullFilePath,);
+        $this->components->twoColumnDetail("{$module} | the {$this->type} file has been created.", $fullFilePath);
     }
 
     /**
@@ -344,7 +346,7 @@ abstract class GeneratorModuleCommand extends Command
     {
         $stub = $this->files->get($this->getStub());
 
-        $replacements = array_merge($this->getDefaultReplacements(), $this->replacements(),);
+        $replacements = array_merge($this->getDefaultReplacements(), $this->replacements());
 
         return str_replace(
             array_keys($replacements),
@@ -405,15 +407,24 @@ abstract class GeneratorModuleCommand extends Command
         return moduleNamespace($module).$pathNamespace;
     }
 
+
+    protected function needNameArgument(): bool
+    {
+        return true;
+    }
+
     /**
      * Get console command arguments.
      */
     protected function getArguments(): array
     {
-        return [
-            ['name', InputArgument::REQUIRED, "The name of the ".strtolower($this->type)],
-            ['module', InputArgument::REQUIRED, 'The name of the module or steward'],
-        ];
+        $arguments = [];
+        if ($this->needNameArgument()) $arguments[] = ['name', InputArgument::REQUIRED, "The name of the ".strtolower($this->type)];
+
+        $arguments[] = ['module', InputArgument::REQUIRED, 'The name of the module or steward'];
+
+
+        return $arguments;
     }
 
     /**
@@ -423,4 +434,6 @@ abstract class GeneratorModuleCommand extends Command
     {
         // Override in child classes
     }
+
+    protected function prepareToProcess() {}
 }

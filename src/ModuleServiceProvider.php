@@ -31,6 +31,7 @@ use Teksite\Module\Console\Make\PolicyMakeCommand;
 use Teksite\Module\Console\Make\ProviderMakeCommand;
 use Teksite\Module\Console\Make\RequestMakeCommand;
 use Teksite\Module\Console\Make\ResourceMakeCommand;
+use Teksite\Module\Console\Make\RouteChannelMakeCommand;
 use Teksite\Module\Console\Make\RuleMakeCommand;
 use Teksite\Module\Console\Make\ScopeMakeCommand;
 use Teksite\Module\Console\Make\SeederMakeCommand;
@@ -137,6 +138,7 @@ class ModuleServiceProvider extends ServiceProvider
             TraitMakeCommand::class,
             ViewMakeCommand::class,
             TrashControllerMakeCommand::class,
+            RouteChannelMakeCommand::class,
 
             /* Module -> Migration and Seeds */
             MigrateCommands::class,
