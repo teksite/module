@@ -50,7 +50,7 @@ class ConfigMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-       return  'config';
+        return 'config';
     }
 
     /**
@@ -61,7 +61,6 @@ class ConfigMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

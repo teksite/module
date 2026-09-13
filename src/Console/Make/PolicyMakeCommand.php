@@ -59,16 +59,10 @@ class PolicyMakeCommand extends GeneratorModuleCommand implements PromptsForMiss
      */
     protected function replacements(): array
     {
-
         $modelReplacements = $this->option('model') ? $this->modelNameReplaces() : [];
         $userReplacements = $this->userNameReplaces();
 
-
-        return [
-            ...$modelReplacements,
-            ...$userReplacements,
-        ];
-
+        return [...$modelReplacements, ...$userReplacements,];
     }
 
     /**
@@ -85,20 +79,12 @@ class PolicyMakeCommand extends GeneratorModuleCommand implements PromptsForMiss
         ];
     }
 
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
-        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) return;
 
-        $model = suggest(
-            'What model should this policy apply to? (Optional)',
-            $this->findAvailableModels(),
-        );
+        $model = suggest('What model should this policy apply to? (Optional)', $this->findAvailableModels());
 
-        if ($model) {
-            $input->setOption('model', $model);
-        }
+        if ($model) $input->setOption('model', $model);
     }
-
 }

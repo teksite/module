@@ -10,6 +10,7 @@ use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 class ViewMakeCommand extends GeneratorModuleCommand
 {
     use ViewHandlerTrait;
+
     /**
      * The console command name.
      *
@@ -30,7 +31,6 @@ class ViewMakeCommand extends GeneratorModuleCommand
      * @var string
      */
     protected string $type = 'View';
-
 
     protected string $generatorType = 'file';
 
@@ -57,10 +57,9 @@ class ViewMakeCommand extends GeneratorModuleCommand
      * @param string $path
      * @return string
      */
-    protected function prepareFile(string $path): string
+    protected function prepareFile(string $path,): string
     {
-
-        return $path . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
+        return $path.'.'.ltrim($this->option('extension') ?? '.blade.php', '.');
     }
 
     /**
@@ -74,7 +73,6 @@ class ViewMakeCommand extends GeneratorModuleCommand
             '{{ quote }}' => Inspiring::quotes()->random(),
             '{{quote}}'   => Inspiring::quotes()->random(),
         ];
-
     }
 
     /**

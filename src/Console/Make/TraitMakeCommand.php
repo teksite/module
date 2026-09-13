@@ -43,9 +43,9 @@ class TraitMakeCommand extends GeneratorModuleCommand
     protected function path(): string
     {
         return match (true) {
-            is_dir(module_path($this->getModuleInput() ,'Concerns')) => 'app/Concerns',
-            is_dir(module_path($this->getModuleInput() ,'Traits')) => 'app/Traits',
-            default => 'app/Traits',
+            is_dir(module_path($this->getModuleInput(), 'Concerns')) => 'app/Concerns',
+            is_dir(module_path($this->getModuleInput(), 'Traits'))   => 'app/Traits',
+            default                                                  => 'app/Traits',
         };
     }
 
@@ -57,7 +57,6 @@ class TraitMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

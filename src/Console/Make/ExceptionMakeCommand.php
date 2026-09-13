@@ -46,8 +46,8 @@ class ExceptionMakeCommand extends GeneratorModuleCommand
     {
         if ($this->option('render')) {
             return $this->option('report')
-            ? $this->resolveStubPath('stubs/exception-render-report.stub')
-            : $this->resolveStubPath('stubs/exception-render.stub');
+                ? $this->resolveStubPath('stubs/exception-render-report.stub')
+                : $this->resolveStubPath('stubs/exception-render.stub');
         }
 
         return $this->option('report')
@@ -68,7 +68,6 @@ class ExceptionMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -88,13 +87,9 @@ class ExceptionMakeCommand extends GeneratorModuleCommand
 
     protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
-        if ($this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->didReceiveOptions($input))  return;
 
         $input->setOption('report', confirm('Should the exception have a report method?', default: false));
         $input->setOption('render', confirm('Should the exception have a render method?', default: false));
     }
-
-
 }

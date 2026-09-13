@@ -42,7 +42,7 @@ class ProviderMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'app/Providers';
+        return 'app/Providers';
     }
 
     /**
@@ -53,7 +53,6 @@ class ProviderMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

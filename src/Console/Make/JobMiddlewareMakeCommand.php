@@ -29,7 +29,7 @@ class JobMiddlewareMakeCommand extends GeneratorModuleCommand
      *
      * @var string
      */
-    protected string $type = 'Middleware';
+    protected string $type = 'Job middleware';
 
     /**
      * Get the stub file for the generator.

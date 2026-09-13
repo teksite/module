@@ -32,9 +32,7 @@ class ResourceMakeCommand extends GeneratorModuleCommand
 
     public function handle(): void
     {
-        if ($this->collection()) {
-            $this->type = 'Resource collection';
-        }
+        if ($this->collection()) $this->type = 'Resource collection';
 
         parent::handle();
     }
@@ -48,9 +46,9 @@ class ResourceMakeCommand extends GeneratorModuleCommand
     protected function getStub(): string
     {
         return match (true) {
-            $this->collection() => $this->resolveStubPath('stubs/resource-collection.stub'),
+            $this->collection()       => $this->resolveStubPath('stubs/resource-collection.stub'),
             $this->option('json-api') => $this->resolveStubPath('stubs/resource-json-api.stub'),
-            default => $this->resolveStubPath('stubs/resource.stub'),
+            default                   => $this->resolveStubPath('stubs/resource.stub'),
         };
     }
 
@@ -61,13 +59,12 @@ class ResourceMakeCommand extends GeneratorModuleCommand
      */
     protected function collection(): bool
     {
-        return $this->option('collection') ||
-            str_ends_with($this->argument('name'), 'Collection');
+        return $this->option('collection') || str_ends_with($this->argument('name'), 'Collection');
     }
 
     protected function path(): string
     {
-        return  'app/Http/Resources';
+        return 'app/Http/Resources';
     }
 
     /**
@@ -78,7 +75,6 @@ class ResourceMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -94,6 +90,4 @@ class ResourceMakeCommand extends GeneratorModuleCommand
             ['collection', 'c', InputOption::VALUE_NONE, 'Create a resource collection'],
         ];
     }
-
-
 }

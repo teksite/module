@@ -54,7 +54,8 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $defaultControllerPath = module_path($this->getModuleInput() , 'App\Http\Controllers\Controller.php');
+        $defaultControllerPath = module_path($this->getModuleInput(), 'App\Http\Controllers\Controller.php');
+
         if (file_exists($defaultControllerPath)) {
             $defaultController = $this->defaultNamespaceController($defaultControllerPath);
         } else {
@@ -62,7 +63,6 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
         }
 
         return ['{{ defaultController }}' => $defaultController];
-
     }
 
     /**
@@ -78,13 +78,12 @@ class TrashControllerMakeCommand extends GeneratorModuleCommand
         ];
     }
 
-    private function defaultNamespaceController(string $path): string
+    private function defaultNamespaceController(string $path,): string
     {
         $contents = file_get_contents($path);
 
         preg_match('/^namespace\s+(.+?);/m', $contents, $nsMatch);
         preg_match('/^abstract class\s+(\w+)/m', $contents, $classMatch);
-        return $nsMatch[1] . '\\' . $classMatch[1];
-
+        return $nsMatch[1].'\\'.$classMatch[1];
     }
 }

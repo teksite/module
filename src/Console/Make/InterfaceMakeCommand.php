@@ -47,7 +47,7 @@ class InterfaceMakeCommand extends GeneratorModuleCommand
         return match (true) {
             is_dir(module_path($this->getModuleInput(), 'Contracts'))  => 'app/Contracts',
             is_dir(module_path($this->getModuleInput(), 'Interfaces')) => 'app/Interfaces',
-            default => 'app/Contracts',
+            default                                                    => 'app/Contracts',
         };
     }
 
@@ -59,7 +59,6 @@ class InterfaceMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -73,6 +72,4 @@ class InterfaceMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the exception already exists'],
         ];
     }
-
-
 }

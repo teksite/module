@@ -39,16 +39,16 @@ class LogicMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        if ($this->hasOption('crud')) return  $this->resolveStubPath('stubs/logic.crud.stub');
+        if ($this->hasOption('crud')) return $this->resolveStubPath('stubs/logic.crud.stub');
         return $this->resolveStubPath('stubs/logic.stub');
     }
 
     protected function path(): string
     {
         return match (true) {
-            is_dir(module_path($this->getModuleInput(), 'Repository'))  => 'app/Repository',
-            is_dir(module_path($this->getModuleInput(), 'Logic')) => 'app/Logics',
-            default => 'app/Logics',
+            is_dir(module_path($this->getModuleInput(), 'Repository')) => 'app/Repository',
+            is_dir(module_path($this->getModuleInput(), 'Logic'))      => 'app/Logics',
+            default                                                    => 'app/Logics',
         };
     }
 
@@ -60,7 +60,6 @@ class LogicMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -75,6 +74,4 @@ class LogicMakeCommand extends GeneratorModuleCommand
             ['crud', null, InputOption::VALUE_NONE, 'contain crud methods'],
         ];
     }
-
-
 }

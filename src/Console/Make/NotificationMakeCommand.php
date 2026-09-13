@@ -43,10 +43,7 @@ class NotificationMakeCommand extends GeneratorModuleCommand
      */
     protected function handler(): void
     {
-        if ($this->option('markdown') !== false) {
-            $this->writeMarkdownTemplate($this->getModuleInput(), 'notification');
-        }
-
+        if ($this->option('markdown') !== false) $this->writeMarkdownTemplate($this->getModuleInput(), 'notification');
     }
 
     /**
@@ -74,14 +71,12 @@ class NotificationMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-        $view = $this->getModuleInput() . "::" . $this->viewPath('notification');
+        $view = $this->getModuleInput()."::".$this->viewPath('notification');
 
         return [
             '{{ view }}' => $view,
             '{{view}}'   => $view,
-
         ];
-
     }
 
     /**
@@ -97,25 +92,22 @@ class NotificationMakeCommand extends GeneratorModuleCommand
         ];
     }
 
-
     /**
      * Perform actions after the user was prompted for missing arguments.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
-        if ($this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->didReceiveOptions($input)) return;
 
         $wantsMarkdownView = confirm('Would you like to create a markdown view?');
 
         if ($wantsMarkdownView) {
             $defaultMarkdownView = (new Collection(explode('/', str_replace('\\', '/', $this->argument('name')))))
-                ->map(fn($path) => Str::kebab($path))
+                ->map(fn($path,) => Str::kebab($path))
                 ->prepend('mail')
                 ->implode('.');
 

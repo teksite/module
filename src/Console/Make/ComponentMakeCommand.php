@@ -13,6 +13,7 @@ use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 class ComponentMakeCommand extends GeneratorModuleCommand
 {
     use ViewHandlerTrait;
+
     /**
      * The console command name.
      *
@@ -40,9 +41,8 @@ class ComponentMakeCommand extends GeneratorModuleCommand
      */
     protected function handler(): void
     {
-        if (!$this->option('inline')) {
-            $this->writeView($this->getModuleInput() ,'component');
-        }
+        if (!$this->option('inline')) $this->writeView($this->getModuleInput(), 'component');
+
     }
 
     /**
@@ -61,7 +61,6 @@ class ComponentMakeCommand extends GeneratorModuleCommand
         return 'app/View/Components';
     }
 
-
     /**
      * set replacements
      *
@@ -71,29 +70,26 @@ class ComponentMakeCommand extends GeneratorModuleCommand
     {
         if ($this->option('inline')) {
             return [
-                '{{ view }}' => "<<<'blade'\n<div>\n    <!-- " . Inspiring::quotes()->random() . " -->\n</div>\nblade",
-                '{{view}}' => "<<<'blade'\n<div>\n    <!-- " . Inspiring::quotes()->random() . " -->\n</div>\nblade",
+                '{{ view }}' => "<<<'blade'\n<div>\n    <!-- ".Inspiring::quotes()->random()." -->\n</div>\nblade",
+                '{{view}}'   => "<<<'blade'\n<div>\n    <!-- ".Inspiring::quotes()->random()." -->\n</div>\nblade",
             ];
         }
+
         return [
-            '{{ view }}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->viewPath('components') . '\')',
-            '{{view}}' => 'view(\'' . $this->getLowerNameModule() . '::' . $this->viewPath('components') . '\')',
+            '{{ view }}' => 'view(\''.$this->getLowerNameModule().'::'.$this->viewPath('components').'\')',
+            '{{view}}'   => 'view(\''.$this->getLowerNameModule().'::'.$this->viewPath('components').'\')',
         ];
-
     }
-
-
 
     protected function getViewDir(): string
     {
-
         $getViewArray = $this->getViewArray();
 
         $path = [
             ...$getViewArray,
         ];
         return (new Collection($path))
-            ->map(fn($segment) => Str::kebab($segment))
+            ->map(fn($segment,) => Str::kebab($segment))
             ->implode('\\');
     }
 
@@ -103,9 +99,8 @@ class ComponentMakeCommand extends GeneratorModuleCommand
 
         $name = array_pop($segments);
 
-        $path = [
-            ...$segments,
-        ];
+        $path = [...$segments,];
+
         $path[] = $name;
 
         return $path;

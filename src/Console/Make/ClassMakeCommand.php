@@ -30,7 +30,7 @@ class ClassMakeCommand extends GeneratorModuleCommand
      *
      * @var string
      */
-    protected string $type = 'Console command';
+    protected string $type = 'Class';
 
     /**
      * Get the stub file for the generator.
@@ -57,7 +57,7 @@ class ClassMakeCommand extends GeneratorModuleCommand
      */
     protected function replacements(): array
     {
-       return [];
+        return [];
 
     }
 
@@ -73,6 +73,4 @@ class ClassMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the class already exists'],
         ];
     }
-
-
 }

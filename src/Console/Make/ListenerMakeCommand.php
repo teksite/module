@@ -50,7 +50,6 @@ class ListenerMakeCommand extends GeneratorModuleCommand implements PromptsForMi
         return $this->option('event')
             ? $this->resolveStubPath('stubs/listener.typed.stub')
             : $this->resolveStubPath('stubs/listener.stub');
-
     }
 
     protected function path(): string
@@ -66,9 +65,8 @@ class ListenerMakeCommand extends GeneratorModuleCommand implements PromptsForMi
     protected function replacements(): array
     {
         return [
-            '{{ event }}' =>$this->option('event'),
+            '{{ event }}' => $this->option('event'),
         ];
-
     }
 
     /**
@@ -85,27 +83,20 @@ class ListenerMakeCommand extends GeneratorModuleCommand implements PromptsForMi
         ];
     }
 
-
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
-        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) return;
 
-        $event = suggest(
-            'What event should be listened for? (Optional)',
-            $this->possibleEvents(),
-        );
+        $event = suggest('What event should be listened for? (Optional)', $this->possibleEvents());
 
-        if ($event) {
-            $input->setOption('event', $event);
-        }
+        if ($event) $input->setOption('event', $event);
+
     }
 }

@@ -42,7 +42,7 @@ class ScopeMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'app/Models/Scopes';
+        return 'app/Models/Scopes';
     }
 
     /**
@@ -53,7 +53,6 @@ class ScopeMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

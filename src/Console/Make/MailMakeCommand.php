@@ -31,19 +31,15 @@ class MailMakeCommand extends GeneratorModuleCommand
      */
     protected string $type = 'Mailable';
 
-
     /**
      * @throws \Exception
      */
     protected function handler(): void
     {
-        if ($this->option('markdown') !== false) {
-            $this->writeMarkdownTemplate($this->getModuleInput(), 'mail');
-        }
+        if ($this->option('markdown') !== false) $this->writeMarkdownTemplate($this->getModuleInput(), 'mail');
 
-        if ($this->option('view') !== false) {
-            $this->writeView($this->getModuleInput(), 'mail');
-        }
+        if ($this->option('view') !== false) $this->writeView($this->getModuleInput(), 'mail');
+
     }
 
     /**
@@ -54,13 +50,9 @@ class MailMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        if ($this->option('markdown') !== false) {
-            return $this->resolveStubPath('stubs/markdown-mail.stub');
-        }
+        if ($this->option('markdown') !== false) return $this->resolveStubPath('stubs/markdown-mail.stub');
 
-        if ($this->option('view') !== false) {
-            return $this->resolveStubPath('stubs/view-mail.stub');
-        }
+        if ($this->option('view') !== false) return $this->resolveStubPath('stubs/view-mail.stub');
 
         return $this->resolveStubPath('stubs/mail.stub');
     }
@@ -79,7 +71,7 @@ class MailMakeCommand extends GeneratorModuleCommand
     {
         $nameSegment = explode(DIRECTORY_SEPARATOR, $this->getNameInput());
         $subject = array_pop($nameSegment);
-        $view = $this->getModuleInput(). "::" .$this->viewPath('mail');
+        $view = $this->getModuleInput()."::".$this->viewPath('mail');
         return [
             '{{subject}}'   => $subject,
             '{{ subject }}' => $subject,
@@ -87,7 +79,6 @@ class MailMakeCommand extends GeneratorModuleCommand
             '{{ view }}'    => $view,
         ];
     }
-
 
     /**
      * Get the console command arguments.
@@ -102,5 +93,4 @@ class MailMakeCommand extends GeneratorModuleCommand
             ['view', null, InputOption::VALUE_OPTIONAL, 'Create a new Blade template for the mailable', false],
         ];
     }
-
 }

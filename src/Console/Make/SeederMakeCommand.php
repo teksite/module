@@ -42,7 +42,7 @@ class SeederMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'database/seeders';
+        return 'database/seeders';
     }
 
     /**
@@ -53,7 +53,6 @@ class SeederMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -63,7 +62,6 @@ class SeederMakeCommand extends GeneratorModuleCommand
      */
     protected function getOptions(): array
     {
-        return [
-        ];
+        return [];
     }
 }

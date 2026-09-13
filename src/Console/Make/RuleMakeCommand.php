@@ -38,14 +38,14 @@ class RuleMakeCommand extends GeneratorModuleCommand
     protected function getStub(): string
     {
         return $this->option('implicit')
-            ?  $this->resolveStubPath('stubs/rule.implicit.stub')
-            :  $this->resolveStubPath('stubs/rule.stub');
+            ? $this->resolveStubPath('stubs/rule.implicit.stub')
+            : $this->resolveStubPath('stubs/rule.stub');
 
     }
 
     protected function path(): string
     {
-        return  'app/Rules';
+        return 'app/Rules';
     }
 
     /**
@@ -56,9 +56,8 @@ class RuleMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [
-            '{{ ruleType }}'=> $this->option('implicit') ? 'ImplicitRule' : 'Rule'
+            '{{ ruleType }}' => $this->option('implicit') ? 'ImplicitRule' : 'Rule',
         ];
-
     }
 
     /**
@@ -73,6 +72,4 @@ class RuleMakeCommand extends GeneratorModuleCommand
             ['implicit', 'i', InputOption::VALUE_NONE, 'Generate an implicit rule'],
         ];
     }
-
-
 }

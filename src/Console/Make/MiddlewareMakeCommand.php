@@ -55,7 +55,6 @@ class MiddlewareMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -69,6 +68,4 @@ class MiddlewareMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the job already exists'],
         ];
     }
-
-
 }

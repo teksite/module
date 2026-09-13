@@ -77,6 +77,7 @@ class ControllerMakeCommand extends GeneratorModuleCommand
      * set replacements
      *
      * @return array [string $searchable , string $replace ]
+     * @throws \Exception
      */
     protected function replacements(): array
     {
@@ -85,14 +86,14 @@ class ControllerMakeCommand extends GeneratorModuleCommand
             $replace = $this->buildParentReplacements();
         }
         if ($this->option('model')) {
-            $replace = $this->modelNameReplaces('controller' , true);
+            $replace = $this->modelNameReplaces('controller', true);
         }
 
         if ($this->option('creatable')) {
             $replace['abort(404);'] = '//';
         }
 
-        $baseControllerPath = $this->module_path($this->getModuleInput() ,'app/Http/Controllers');
+        $baseControllerPath = $this->module_path($this->getModuleInput(), 'app/Http/Controllers');
         $baseControllerExists = file_exists($baseControllerPath);
         if ($baseControllerExists) {
             $replace["{{ rootNamespace }}"] = $this->module_namespace($this->getModuleInput(), 'App\\');
@@ -101,7 +102,7 @@ class ControllerMakeCommand extends GeneratorModuleCommand
             $replace["use {{ rootNamespace }}Http\Controllers\Controller;\n"] = '';
         }
 
-        $requestReplace= $this->buildFormRequestReplacements($replace, $this->filename);
+        $requestReplace = $this->buildFormRequestReplacements($replace, $this->filename);
         return array_merge($replace, $requestReplace);
     }
 
@@ -126,15 +127,14 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         ];
     }
 
-
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
         if ($this->didReceiveOptions($input)) {
             return;
@@ -155,7 +155,7 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         if (in_array($type, ['api', 'resource', 'singleton'])) {
             $model = suggest(
                 "What model is this $type controller for? (Optional)",
-                $this->findAvailableModels()
+                $this->findAvailableModels(),
             );
 
             if ($model) {
@@ -164,41 +164,39 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         }
     }
 
-
     protected function buildParentReplacements(): array
     {
         $parentModelClass = $this->parseModel($this->option('parent'));
 
-        if (! class_exists($parentModelClass) &&
+        if (!class_exists($parentModelClass) &&
             confirm("A {$parentModelClass} model does not exist. Do you want to generate it?", default: true)) {
             $this->call('make:model', ['name' => $parentModelClass]);
         }
 
         return [
-            'ParentDummyFullModelClass' => $parentModelClass,
+            'ParentDummyFullModelClass'   => $parentModelClass,
             '{{ namespacedParentModel }}' => $parentModelClass,
-            '{{namespacedParentModel}}' => $parentModelClass,
-            'ParentDummyModelClass' => class_basename($parentModelClass),
-            '{{ parentModel }}' => class_basename($parentModelClass),
-            '{{parentModel}}' => class_basename($parentModelClass),
-            'ParentDummyModelVariable' => lcfirst(class_basename($parentModelClass)),
-            '{{ parentModelVariable }}' => lcfirst(class_basename($parentModelClass)),
-            '{{parentModelVariable}}' => lcfirst(class_basename($parentModelClass)),
+            '{{namespacedParentModel}}'   => $parentModelClass,
+            'ParentDummyModelClass'       => class_basename($parentModelClass),
+            '{{ parentModel }}'           => class_basename($parentModelClass),
+            '{{parentModel}}'             => class_basename($parentModelClass),
+            'ParentDummyModelVariable'    => lcfirst(class_basename($parentModelClass)),
+            '{{ parentModelVariable }}'   => lcfirst(class_basename($parentModelClass)),
+            '{{parentModelVariable}}'     => lcfirst(class_basename($parentModelClass)),
         ];
     }
 
-
-    protected function buildFormRequestReplacements(array $replace, $modelClass): array
+    protected function buildFormRequestReplacements(array $replace, $modelClass,): array
     {
         [$namespace, $storeRequestClass, $updateRequestClass] = [
             'Illuminate\\Http', 'Request', 'Request',
         ];
 
         if ($this->option('requests')) {
-            $namespace = $this->module_namespace($this->getModuleInput()) .'\\App\\Http\\Requests';
+            $namespace = $this->module_namespace($this->getModuleInput()).'\\App\\Http\\Requests';
 
             [$storeRequestClass, $updateRequestClass] = $this->generateFormRequests(
-                $modelClass
+                $modelClass,
             );
         }
 
@@ -209,16 +207,16 @@ class ControllerMakeCommand extends GeneratorModuleCommand
         }
 
         return array_merge($replace, [
-            '{{ storeRequest }}' => $storeRequestClass,
-            '{{storeRequest}}' => $storeRequestClass,
-            '{{ updateRequest }}' => $updateRequestClass,
-            '{{updateRequest}}' => $updateRequestClass,
-            '{{ namespacedStoreRequest }}' => $namespace.'\\'.$storeRequestClass,
-            '{{namespacedStoreRequest}}' => $namespace.'\\'.$storeRequestClass,
+            '{{ storeRequest }}'            => $storeRequestClass,
+            '{{storeRequest}}'              => $storeRequestClass,
+            '{{ updateRequest }}'           => $updateRequestClass,
+            '{{updateRequest}}'             => $updateRequestClass,
+            '{{ namespacedStoreRequest }}'  => $namespace.'\\'.$storeRequestClass,
+            '{{namespacedStoreRequest}}'    => $namespace.'\\'.$storeRequestClass,
             '{{ namespacedUpdateRequest }}' => $namespace.'\\'.$updateRequestClass,
-            '{{namespacedUpdateRequest}}' => $namespace.'\\'.$updateRequestClass,
-            '{{ namespacedRequests }}' => $namespacedRequests,
-            '{{namespacedRequests}}' => $namespacedRequests,
+            '{{namespacedUpdateRequest}}'   => $namespace.'\\'.$updateRequestClass,
+            '{{ namespacedRequests }}'      => $namespacedRequests,
+            '{{namespacedRequests}}'        => $namespacedRequests,
         ]);
     }
 
@@ -228,24 +226,21 @@ class ControllerMakeCommand extends GeneratorModuleCommand
      * @param string $modelClass
      * @return array
      */
-    protected function generateFormRequests(string $modelClass): array
+    protected function generateFormRequests(string $modelClass,): array
     {
         $storeRequestClass = 'Store'.class_basename($modelClass).'Request';
         $updateRequestClass = 'Update'.class_basename($modelClass).'Request';
 
-        $options =[
-            '--api' => $this->hasOption('api')  && $this->option('api'),
+        $options = [
+            '--api'  => $this->hasOption('api') && $this->option('api'),
             'module' => $this->getModuleInput(),
         ];
         if ($this->option('api')) {
-            $options[]='--api';
+            $options[] = '--api';
         }
-        $this->call('module:make-request', ['name' =>$storeRequestClass , ...$options]);
-        $this->call('module:make-request', ['name' =>$updateRequestClass , ...$options]);
+        $this->call('module:make-request', ['name' => $storeRequestClass, ...$options]);
+        $this->call('module:make-request', ['name' => $updateRequestClass, ...$options]);
 
         return [$storeRequestClass, $updateRequestClass];
     }
-
-
-
 }

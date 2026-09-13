@@ -44,7 +44,7 @@ class CastMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-       return  'app/Casts';
+        return 'app/Casts';
     }
 
     /**
@@ -55,7 +55,6 @@ class CastMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

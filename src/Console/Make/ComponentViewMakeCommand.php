@@ -11,6 +11,7 @@ use Teksite\Module\Console\Make\traits\ViewHandlerTrait;
 class ComponentViewMakeCommand extends GeneratorModuleCommand
 {
     use ViewHandlerTrait;
+
     /**
      * The console command name.
      *
@@ -47,7 +48,7 @@ class ComponentViewMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return $this->viewPath() .'/Components';
+        return $this->viewPath().'/Components';
     }
 
     /**
@@ -56,9 +57,9 @@ class ComponentViewMakeCommand extends GeneratorModuleCommand
      * @param string $filename
      * @return string
      */
-    protected function addExtensionToFilename(string $filename): string
+    protected function addExtensionToFilename(string $filename,): string
     {
-        return $filename . '.' . ltrim($this->option('extension') ?? '.blade.php', '.');
+        return $filename.'.'.ltrim($this->option('extension') ?? '.blade.php', '.');
     }
 
     /**
@@ -72,7 +73,6 @@ class ComponentViewMakeCommand extends GeneratorModuleCommand
             '{{ quote }}' => Inspiring::quotes()->random(),
             '{{quote}}'   => Inspiring::quotes()->random(),
         ];
-
     }
 
     /**

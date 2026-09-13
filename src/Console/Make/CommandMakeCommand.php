@@ -10,6 +10,7 @@ use Teksite\Module\Console\Make\traits\CreatesModuleMatchingTest;
 class CommandMakeCommand extends GeneratorModuleCommand
 {
     use CreatesModuleMatchingTest;
+
     /**
      * The console command name.
      *
@@ -44,7 +45,7 @@ class CommandMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'app/Console/Commands';
+        return 'app/Console/Commands';
     }
 
     /**
@@ -59,7 +60,6 @@ class CommandMakeCommand extends GeneratorModuleCommand
         return [
             '{{ command }}' => $command,
         ];
-
     }
 
     /**
@@ -74,6 +74,4 @@ class CommandMakeCommand extends GeneratorModuleCommand
             ['command', null, InputOption::VALUE_OPTIONAL, 'The terminal command that will be used to invoke the class'],
         ];
     }
-
-
 }

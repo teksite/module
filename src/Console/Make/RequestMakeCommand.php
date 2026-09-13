@@ -70,9 +70,7 @@ class RequestMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists",],
         ];
 
-        if ($this->hasApiFormRequest()) {
-            $options[] = ['api', null, InputOption::VALUE_NONE, 'Generate an API form request class',];
-        }
+        if ($this->hasApiFormRequest()) $options[] = ['api', null, InputOption::VALUE_NONE, 'Generate an API form request class',];
 
         return $options;
     }

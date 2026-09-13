@@ -82,9 +82,9 @@ class AttributeMakeCommand extends GeneratorModuleCommand
 
 
         return [
-            '{{ target }}'=>$targetValue,
-            '{{ params }}'=>$paramsCode,
-            '{{ assign }}'=>$assignCode,
+            '{{ target }}' => $targetValue,
+            '{{ params }}' => $paramsCode,
+            '{{ assign }}' => $assignCode,
         ];
 
     }

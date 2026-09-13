@@ -74,21 +74,12 @@ class ObserverMakeCommand extends GeneratorModuleCommand implements PromptsForMi
         ];
     }
 
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
-        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) return;
 
-        $model = suggest(
-            'What model should be observed? (Optional)',
-            $this->findAvailableModels(),
-        );
+        $model = suggest('What model should be observed? (Optional)', $this->findAvailableModels());
 
-        if ($model) {
-            $input->setOption('model', $model);
-        }
+        if ($model) $input->setOption('model', $model);
     }
-
-
 }

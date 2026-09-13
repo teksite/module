@@ -32,7 +32,6 @@ class EnumMakeCommand extends GeneratorModuleCommand
      */
     protected string $type = 'Enum';
 
-
     /**
      * Get the stub file for the generator.
      *
@@ -46,7 +45,6 @@ class EnumMakeCommand extends GeneratorModuleCommand
         }
         return $this->resolveStubPath('stubs/enum.stub');
     }
-
 
     protected function path(): string
     {
@@ -62,7 +60,6 @@ class EnumMakeCommand extends GeneratorModuleCommand
         $type = ($this->option('string') || $this->option('int'))
             ? $this->option('string') ? 'string' : 'int'
             : '';
-
 
         return ['{{ type }}' => $type];
     }
@@ -80,15 +77,13 @@ class EnumMakeCommand extends GeneratorModuleCommand
     /**
      * Interact further with the user if they were prompted for missing arguments.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      * @return void
      */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output,): void
     {
-        if ($this->didReceiveOptions($input)) {
-            return;
-        }
+        if ($this->didReceiveOptions($input)) return;
 
         $type = select('Which type of enum would you like?', [
             'pure'   => 'Pure enum',
@@ -96,10 +91,7 @@ class EnumMakeCommand extends GeneratorModuleCommand
             'int'    => 'Backed enum (Integer)',
         ]);
 
-        if ($type !== 'pure') {
-            $input->setOption($type, true);
-        }
+        if ($type !== 'pure') $input->setOption($type, true);
+
     }
-
-
 }

@@ -41,17 +41,13 @@ class TestMakeCommand extends GeneratorModuleCommand implements TestGenerator
         $suffix = $this->option('unit') ? '.unit.stub' : '.stub';
 
         return $this->usingPest()
-            ? $this->resolveStubPath('stubs/pest' . $suffix)
-            : $this->resolveStubPath('stubs/test' . $suffix);
+            ? $this->resolveStubPath('stubs/pest'.$suffix)
+            : $this->resolveStubPath('stubs/test'.$suffix);
     }
 
     protected function path(): string
     {
-        if ($this->option('unit')) {
-            return 'tests\Unit';
-        } else {
-            return 'tests\Feature';
-        }
+        return $this->option('unit') ? 'tests\Unit' : 'tests\Feature';
     }
 
     /**
@@ -62,7 +58,6 @@ class TestMakeCommand extends GeneratorModuleCommand implements TestGenerator
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**
@@ -85,17 +80,13 @@ class TestMakeCommand extends GeneratorModuleCommand implements TestGenerator
     {
         if ($this->option('phpunit')) return false;
 
-
-        return $this->option('pest') ||
-            (
-                function_exists('\Pest\\version') &&
+        return $this->option('pest')
+            || (function_exists('\Pest\\version') &&
                 (
-                    file_exists(base_path('tests') . '/Pest.php')
+                    file_exists(base_path('tests').'/Pest.php')
                     ||
-                    file_exists(module_path($this->getModuleInput(), 'tests') . '/Pest.php')
-
+                    file_exists(module_path($this->getModuleInput(), 'tests').'/Pest.php')
                 )
-
             );
     }
 }

@@ -41,7 +41,7 @@ class EventMakeCommand extends GeneratorModuleCommand
 
     protected function path(): string
     {
-        return  'app/Events';
+        return 'app/Events';
     }
 
     /**
@@ -52,7 +52,6 @@ class EventMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     /**

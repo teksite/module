@@ -54,7 +54,6 @@ class ChannelMakeCommand extends GeneratorModuleCommand
         return [
             ...$this->userNameReplaces()
         ];
-
     }
 
     /**
@@ -68,8 +67,4 @@ class ChannelMakeCommand extends GeneratorModuleCommand
             ['force', 'f', InputOption::VALUE_NONE, "Create the class or file even if the {$this->type} already exists"],
         ];
     }
-
-
-
-
 }

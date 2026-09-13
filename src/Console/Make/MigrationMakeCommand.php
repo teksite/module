@@ -38,28 +38,24 @@ class MigrationMakeCommand extends GeneratorModuleCommand
 
         $name = $this->getNameInput();
         if ($this->isReservedName($name)) {
-            $this->components->error('The name "' . $name . '" is reserved by PHP.');
+            $this->components->error('The name "'.$name.'" is reserved by PHP.');
             return;
         }
         $module = $this->getModuleInput();
         if (!$this->isModuleExist($module)) {
-            $this->components->error('The module "' . $module . ' is not registered or does not exist.');
+            $this->components->error('The module "'.$module.' is not registered or does not exist.');
             $this->components->error("use steward work instead of module name to make {$this->type} in steward");
             return;
         }
 
         $this->generateMigration($name, $module);
-
-
     }
 
-    protected function generateMigration(string $name, string $module): void
+    protected function generateMigration(string $name, string $module,): void
     {
-
-
         $path = $module === 'Steward'
-            ? steward_path(config('modules.steward.migration_path', 'database/migrations') , false)
-            : module_path($module, config('modules.module.migration_path', 'database/migrations') , false);
+            ? steward_path(config('modules.steward.migration_path', 'database/migrations'), false)
+            : module_path($module, config('modules.module.migration_path', 'database/migrations'), false);
 
         $this->ensureDirectoryExistence($path);
 
@@ -97,7 +93,6 @@ class MigrationMakeCommand extends GeneratorModuleCommand
     protected function replacements(): array
     {
         return [];
-
     }
 
     protected function getOptions(): array

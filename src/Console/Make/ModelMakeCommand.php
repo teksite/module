@@ -38,13 +38,9 @@ class ModelMakeCommand extends GeneratorModuleCommand
      */
     protected function getStub(): string
     {
-        if ($this->option('pivot')) {
-            return $this->resolveStubPath('stubs/model.pivot.stub');
-        }
+        if ($this->option('pivot')) return $this->resolveStubPath('stubs/model.pivot.stub');
 
-        if ($this->option('morph-pivot')) {
-            return $this->resolveStubPath('stubs/model.morph-pivot.stub');
-        }
+        if ($this->option('morph-pivot')) return $this->resolveStubPath('stubs/model.morph-pivot.stub');
 
         return $this->resolveStubPath('stubs/model.stub');
     }
@@ -58,6 +54,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
      * set replacements
      *
      * @return array [string $searchable , string $replace ]
+     * @throws \Exception
      */
     protected function replacements(): array
     {
@@ -65,12 +62,12 @@ class ModelMakeCommand extends GeneratorModuleCommand
         if ($this->option('factory') || $this->option('all')) {
             $modelPath = Str::of($this->argument('name'))->studly()->replace('/', '\\')->toString();
 
-            $factoryNamespace = $this->module_namespace($this->getModuleInput()) . '\\Database\\Factories\\' . $modelPath . 'Factory';
+            $factoryNamespace = $this->module_namespace($this->getModuleInput()).'\\Database\\Factories\\'.$modelPath.'Factory';
 
             $factoryCode = <<<EOT
-            /** @use HasFactory<$factoryNamespace> */
-                use HasFactory;
-            EOT;
+                /** @use HasFactory<$factoryNamespace> */
+                    use HasFactory;
+                EOT;
 
             $replacements['{{ factory }}'] = $factoryCode;
             $replacements['{{ factoryImport }}'] = 'use Illuminate\Database\Eloquent\Factories\HasFactory;';
@@ -81,7 +78,6 @@ class ModelMakeCommand extends GeneratorModuleCommand
         }
 
         return $replacements;
-
     }
 
     /**
@@ -120,17 +116,14 @@ class ModelMakeCommand extends GeneratorModuleCommand
             $this->input->setOption('resource', true);
         }
 
-        if ($this->option('factory')) {
-            $this->createFactory();
-        }
+        if ($this->option('factory')) $this->createFactory();
 
-        if ($this->option('migration')) {
-            $this->createMigration();
-        }
 
-        if ($this->option('seed')) {
-            $this->createSeeder();
-        }
+        if ($this->option('migration')) $this->createMigration();
+
+
+        if ($this->option('seed')) $this->createSeeder();
+
 
         if ($this->option('controller') || $this->option('resource') || $this->option('api')) {
             $this->createController();
@@ -138,9 +131,8 @@ class ModelMakeCommand extends GeneratorModuleCommand
             $this->createFormRequests();
         }
 
-        if ($this->option('policy')) {
-            $this->createPolicy();
-        }
+        if ($this->option('policy')) $this->createPolicy();
+
     }
 
     /**
@@ -168,9 +160,7 @@ class ModelMakeCommand extends GeneratorModuleCommand
     {
         $table = Str::snake(Str::pluralStudly(class_basename($this->argument('name'))));
 
-        if ($this->option('pivot')) {
-            $table = Str::singular($table);
-        }
+        if ($this->option('pivot')) $table = Str::singular($table);
 
         $this->call('module:make-migration', [
             'name'     => "create_{$table}_table",
