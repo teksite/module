@@ -48,6 +48,7 @@ use Teksite\Module\Console\Module\ModuleDisableCommand;
 use Teksite\Module\Console\Module\ModuleEnableCommand;
 use Teksite\Module\Console\Module\ModuleMakeCommand;
 use Teksite\Module\Console\Module\ModuleScanCommand;
+use Teksite\Module\Console\Module\StewardDestroy;
 use Teksite\Module\Console\Module\StewardInitialize;
 use Teksite\Module\Providers\ModuleManagerServiceProvider;
 use Teksite\Module\Services\ModuleServices;
@@ -154,6 +155,7 @@ class ModuleServiceProvider extends ServiceProvider
 
             /* Steward -> Generator commands */
             StewardInitialize::class,
+            StewardDestroy::class,
 
 
         ]);

@@ -14,6 +14,9 @@ trait ModuleGeneratorCommandTrait
         return Module::modulePath($moduleName);
     }
 
+    /**
+     * @throws \Exception
+     */
     private function getStewardPath(): string
     {
         return Module::stewardPath();

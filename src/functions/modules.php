@@ -364,11 +364,9 @@ if (!function_exists('modulePath')) {
      */
     function modulePath(string $module, ?string $path = null, bool $absolute = false, bool $throwOnSteward = true,): ?string
     {
-        return match (true) {
-            $module === 'Steward' && isStewardInstalled()  => steward_path($path, $absolute),
-            $module === 'Steward' && !isStewardInstalled() => $throwOnSteward ? throw new Exception('Steward is not installed') : null,
-            default                                        => module_path($module, $path, $absolute),
-        };
+        return in_array($module, ['steward', 'Steward'])
+            ? steward_path($path, $absolute)
+            : module_path($module, $path, $absolute);
     }
 }
 
