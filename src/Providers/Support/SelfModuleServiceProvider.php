@@ -4,7 +4,6 @@ namespace Teksite\Module\Providers\Support;
 
 class SelfModuleServiceProvider extends BaseModuleServiceProvider
 {
-
     /**
      *  module type (self|steward)
      *
@@ -12,10 +11,11 @@ class SelfModuleServiceProvider extends BaseModuleServiceProvider
      */
     protected string $type = "self";
 
-
+    /**
+     * @throws \Exception
+     */
     public function boot(): void
     {
-
         $this->bootCommands();
         $this->bootCommandSchedules();
         $this->bootTranslations();

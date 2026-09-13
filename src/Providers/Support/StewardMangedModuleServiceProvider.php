@@ -2,12 +2,6 @@
 
 namespace Teksite\Module\Providers\Support;
 
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\ServiceProvider;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-
 class StewardMangedModuleServiceProvider extends BaseModuleServiceProvider
 {
 
@@ -21,7 +15,6 @@ class StewardMangedModuleServiceProvider extends BaseModuleServiceProvider
 
     public function boot(): void
     {
-
         $this->bootCommands();
         $this->bootCommandSchedules();
     }

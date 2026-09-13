@@ -5,8 +5,6 @@ namespace Teksite\Module\Providers\Support;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Teksite\Module\Providers\Support\Concerns\PublishesModuleConfig;
 
 class BaseModuleServiceProvider extends ServiceProvider
@@ -168,7 +166,7 @@ class BaseModuleServiceProvider extends ServiceProvider
     protected function bootMigrations(): void
     {
         $generatorMigrationPath = config('modules.module.migration_path') ?? 'database/migrations';
-        
+
         $this->loadMigrationsFrom(module_path($this->lowerModuleName, $generatorMigrationPath));
     }
 }

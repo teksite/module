@@ -4,7 +4,6 @@ namespace Teksite\Module\Providers\Support;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
-use Teksite\Module\Facade\Module;
 
 class RoutesHeadquarterServiceProvider extends ServiceProvider
 {
@@ -15,8 +14,8 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
     public function map(): void
     {
         if (!isStewardInstalled()) return;
-        $modules = collect(get_modules())->filter(function ($module) {
-            return ($module['type'] === 'steward' && ($module['active'] ?? false) === true);
+        $modules = collect(get_modules())->filter(function ($module,) {
+            return (($module['type'] ?? null) === 'steward' && ($module['active'] ?? false) === true);
         })->keys()->toArray();
         $routsArray = config('modules.hq', []);
 
@@ -27,14 +26,14 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
         }
     }
 
-    protected function mappingRoutes(array $routsArray, $module): void
+    protected function mappingRoutes(array $routsArray, $module,): void
     {
         foreach ($routsArray as $route) {
             if (empty($route['path'])) continue;
 
             $file = $module === 'steward'
-                ? steward_path('routes' . DIRECTORY_SEPARATOR . $route['path'])
-                : module_path($module, 'routes' . DIRECTORY_SEPARATOR . $route['path']);
+                ? steward_path('routes'.DIRECTORY_SEPARATOR.$route['path'])
+                : module_path($module, 'routes'.DIRECTORY_SEPARATOR.$route['path']);
 
             if (!file_exists($file)) continue;
 
@@ -48,5 +47,4 @@ class RoutesHeadquarterServiceProvider extends ServiceProvider
                  ->group($file);
         }
     }
-
 }
