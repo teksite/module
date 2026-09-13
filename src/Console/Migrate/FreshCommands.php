@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\BasicMigrator;
 use Teksite\Module\Contract\MigrationContract;
 use Illuminate\Contracts\Events\Dispatcher;
+use Throwable;
 
 class FreshCommands extends BasicMigrator implements MigrationContract
 {
@@ -18,41 +19,36 @@ class FreshCommands extends BasicMigrator implements MigrationContract
 
     protected $description = 'Drop all tables and re-run all migrations for a specific module or all modules';
 
-
     protected function needsMigrator(): bool
     {
         return true;
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
-    protected function handler(array $modules): int
+    protected function handler(array $modules,): int
     {
-        if ($this->isProhibited() || !$this->confirmToProceed()) {
-            return CommandAlias::FAILURE;
-        }
+        if ($this->isProhibited() || !$this->confirmToProceed()) return CommandAlias::FAILURE;
 
         $this->resetStats();
+
         $database = $this->getDatabaseConnection();
 
         $this->migrator->usingConnection($database, function () use ($database) {
             try {
                 $repositoryExists = $this->migrator->repositoryExists();
                 $this->successCount++;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error($e);
                 $this->failureCount++;
                 $repositoryExists = false;
             }
 
-            if ($repositoryExists) {
-                $this->wipeDB($database);
-            }
+            if ($repositoryExists) $this->wipeDB($database);
         });
 
         $this->ensureMigrationTableExists($database);
-
 
         $this->migrateModules($database);
 
@@ -62,12 +58,11 @@ class FreshCommands extends BasicMigrator implements MigrationContract
         return $this->failureCount === 0 ? CommandAlias::SUCCESS : CommandAlias::FAILURE;
     }
 
-
     /**
      * @param string $database
      * @return void
      */
-    function wipeDB(string $database): void
+    function wipeDB(string $database,): void
     {
         $this->line("<fg=cyan;options=bold> dropping tables</>");
 
@@ -81,21 +76,20 @@ class FreshCommands extends BasicMigrator implements MigrationContract
                     ])) === 0;
             });
             $this->successCount++;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error($e);
             $this->failureCount++;
-
         }
-
     }
 
     /**
      * @param string $database
      * @return void
      */
-    public function migrateModules(string $database): void
+    public function migrateModules(string $database,): void
     {
         $this->newLine();
+
         try {
             $result = $this->call('module:migrate', array_filter([
                 '--module'   => $this->option('module'),
@@ -105,23 +99,21 @@ class FreshCommands extends BasicMigrator implements MigrationContract
                 '--pretend'  => $this->option('pretend'),
                 '--realpath' => $this->option('realpath'),
             ]));
-            if ($result !== CommandAlias::SUCCESS) {
-                throw new \Exception('seeding failed');
-            }
+            if ($result !== CommandAlias::SUCCESS) throw new \Exception('seeding failed');
+
             $this->successCount++;
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error($e);
             $this->failureCount++;
         }
     }
 
-
     /**
      * @param string $database
      * @return void
      */
-    public function seeding(string $database): void
+    public function seeding(string $database,): void
     {
         if ($this->option('seed')) {
             try {
@@ -130,15 +122,12 @@ class FreshCommands extends BasicMigrator implements MigrationContract
                     '--database' => $database,
                     '--force'    => true,
                 ]));
-                if ($result !== CommandAlias::SUCCESS) {
-                    throw new \Exception('seeding failed');
-                }
-                $this->successCount++;
+                if ($result !== CommandAlias::SUCCESS) throw new \Exception('seeding failed');
 
-            } catch (\Throwable $e) {
+                $this->successCount++;
+            } catch (Throwable $e) {
                 Log::error($e);
                 $this->failureCount++;
-
             }
         }
     }
@@ -164,7 +153,7 @@ class FreshCommands extends BasicMigrator implements MigrationContract
             'module' => fn() => $this->components->choice(
                 'Which module(s) do you want to fresh migrate?',
                 $this->getAllModules(true),
-                multiple: true
+                multiple: true,
             ),
         ];
     }

@@ -15,7 +15,6 @@ class ResetCommands extends BasicMigrator
 
     protected $description = 'Rollback all database migrations for a specific module or all modules';
 
-
     protected function needsMigrator(): bool
     {
         return true;
@@ -24,7 +23,7 @@ class ResetCommands extends BasicMigrator
     /**
      * @throws \Throwable
      */
-    protected function handler(array $modules): int
+    protected function handler(array $modules,): int
     {
         $this->resetStats();
         $this->components->info('Rolling back module migrations...');
@@ -39,7 +38,7 @@ class ResetCommands extends BasicMigrator
         $this->ensureMigrationTableExists($database);
 
         foreach (array_reverse($modules) as $module) {
-            $this->processModuleOperation($module, 'reset', $options, function ($module, $path, $opts) {
+            $this->processModuleOperation($module, 'reset', $options, function ($module, $path, $opts,) {
                 $this->executeReset($path, $opts);
             });
         }
@@ -48,7 +47,7 @@ class ResetCommands extends BasicMigrator
         return $this->failureCount === 0 ? CommandAlias::SUCCESS : CommandAlias::FAILURE;
     }
 
-    private function executeReset(string $migrationPath, array $options): void
+    private function executeReset(string $migrationPath, array $options,): void
     {
         $beforeMigrations = $this->getRanMigrationsForPath($migrationPath);
 
@@ -74,7 +73,6 @@ class ResetCommands extends BasicMigrator
         }
     }
 
-
     /**
      * Get the console command options.
      *
@@ -90,6 +88,7 @@ class ResetCommands extends BasicMigrator
             ['step', null, InputOption::VALUE_OPTIONAL, 'Number of migrations to rollback', 0],
         ];
     }
+
     /**
      * Prompt for missing input
      */
@@ -99,7 +98,7 @@ class ResetCommands extends BasicMigrator
             'module' => fn() => $this->components->choice(
                 'Which module(s) do you want to reset?',
                 $this->getAllModules(true),
-                multiple: true
+                multiple: true,
             ),
         ];
     }

@@ -16,13 +16,12 @@ class RefreshCommands extends BasicMigrator
 
     protected $description = 'Reset and re-run all migrations for a specific module or all modules';
 
-    protected function handler(array $modules): int
+    protected function handler(array $modules,): int
     {
-        if ($this->isProhibited() || !$this->confirmToProceed()) {
-            return CommandAlias::FAILURE;
-        }
+        if ($this->isProhibited() || !$this->confirmToProceed()) return CommandAlias::FAILURE;
 
         $this->resetStats();
+
         $this->components->info('Refreshing module migrations...');
 
         try {
@@ -33,9 +32,8 @@ class RefreshCommands extends BasicMigrator
                 '--step'     => $this->option('step'),
             ]));
 
-            if ($resetResult !== CommandAlias::SUCCESS) {
-                throw new \Exception('reset failed');
-            }
+            if ($resetResult !== CommandAlias::SUCCESS) throw new \Exception('reset failed');
+
             $this->components->info('✓ Reset completed successfully.');
 
             $migrateResult = $this->call('module:migrate', array_filter([
@@ -45,20 +43,19 @@ class RefreshCommands extends BasicMigrator
                 '--step'     => $this->option('step'),
             ]));
 
-            if ($migrateResult !== CommandAlias::SUCCESS) {
-                throw new \Exception('Migration failed');
-            }
+            if ($migrateResult !== CommandAlias::SUCCESS) throw new \Exception('Migration failed');
+
             $this->successCount++;
 
-
         } catch (\Throwable $e) {
+
             $this->failureCount++;
             Log::error($e);
+
             if (!$this->option('force')) {
                 $this->showSummary('refresh');
                 return CommandAlias::FAILURE;
             }
-
         }
 
         if ($this->option('seed')) {
@@ -67,15 +64,14 @@ class RefreshCommands extends BasicMigrator
                     '--module' => $modules,
                     '--force'  => $this->option('force'),
                 ]);
-                if ($seedingResult !== CommandAlias::SUCCESS) {
-                    throw new \Exception('Migration failed');
-                }
+
+                if ($seedingResult !== CommandAlias::SUCCESS) throw new \Exception('Migration failed');
                 $this->successCount++;
 
             } catch (\Exception $e) {
                 $this->failureCount++;
                 Log::error($e);
-                $this->components->error("✗ seeding failed: " . $e->getMessage());
+                $this->components->error("✗ seeding failed: ".$e->getMessage());
 
                 if (!$this->option('force')) {
                     $this->showSummary('refresh');
@@ -112,7 +108,7 @@ class RefreshCommands extends BasicMigrator
             'module' => fn() => $this->components->choice(
                 'Which module(s) do you want to refresh?',
                 $this->getAllModules(true),
-                multiple: true
+                multiple: true,
             ),
         ];
     }

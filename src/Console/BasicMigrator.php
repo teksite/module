@@ -18,23 +18,18 @@ abstract class BasicMigrator extends Command implements Isolatable
 {
     use Prohibitable, ConfirmableTrait;
 
-    /**
-     * Cache for modules list to avoid repeated calls
-     */
-    private ?array $cachedAllModules = null;
-    private ?array $cachedEnabledModules = null;
-    private ?array $cachedDisabledModules = null;
-
-    protected int $successCount = 0;
-    protected int $failureCount = 0;
-    protected array $successItems = [];
-    protected array $failedItems = [];
+    private array   $cachedAllModulesByShape     = [];
+    private array   $cachedEnabledModulesByShape = [];
+    private ?array  $cachedDisabledModules       = null;
+    protected int   $successCount                = 0;
+    protected int   $failureCount                = 0;
+    protected array $successItems                = [];
+    protected array $failedItems                 = [];
 
     /**
      * @var Migrator|null The migrator instance for database operations
      */
     protected ?Migrator $migrator = null;
-
 
     /**
      * Execute the console command.
@@ -43,9 +38,7 @@ abstract class BasicMigrator extends Command implements Isolatable
      */
     public function handle(): int
     {
-        if ($this->isProhibited() || !$this->confirmToProceed()) {
-            return CommandAlias::FAILURE;
-        }
+        if ($this->isProhibited() || !$this->confirmToProceed()) return CommandAlias::FAILURE;
 
         $this->newLine();
 
@@ -59,18 +52,16 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Main business logic of the command
      */
-    abstract protected function handler(array $modules): int;
-
+    abstract protected function handler(array $modules,): int;
 
     /**
      * Set the migrator instance
      */
-    public function setMigrator(Migrator $migrator): self
+    public function setMigrator(Migrator $migrator,): self
     {
         $this->migrator = $migrator;
         return $this;
     }
-
 
     /**
      * get modules name from the command or get all
@@ -89,7 +80,7 @@ abstract class BasicMigrator extends Command implements Isolatable
      */
     protected function getEnabledModules(): array
     {
-        return $this->cachedEnabledModules ??= get_enabled_modules(true);
+        return $this->cachedEnabledModulesByShape['names'] ??= getEnabledModules(true);
     }
 
     /**
@@ -97,33 +88,27 @@ abstract class BasicMigrator extends Command implements Isolatable
      */
     protected function getDisabledModules(): array
     {
-        return $this->cachedDisabledModules ??= get_disabled_modules(true);
+        return $this->cachedDisabledModules ??= array_diff(getAllModules(true), getEnabledModules(true));
     }
-
 
     /**
      * Get all modules (cached)
      */
-    protected function getAllModules(bool $onlyName = true, bool $onlyEnabled = true): array
+    protected function getAllModules(bool $onlyName = true, bool $onlyEnabled = true,): array
     {
-        if ($this->cachedAllModules === null) {
+        $cacheKey = $onlyName ? 'names' : 'full';
 
-            $enabledModules = getEnabledModules($onlyName);
-            $allModules = getAllModules($onlyName);
-
-            $this->cachedAllModules = $allModules;
-            $this->cachedEnabledModules = $enabledModules;
+        if ($onlyEnabled) {
+            return $this->cachedEnabledModulesByShape[$cacheKey] ??= getEnabledModules($onlyName);
         }
 
-        return $onlyEnabled
-            ? $this->cachedEnabledModules
-            : $this->cachedAllModules;
+        return $this->cachedAllModulesByShape[$cacheKey] ??= getAllModules($onlyName);
     }
 
     /**
      * Check if a specific module exists
      */
-    protected function moduleExists(string $moduleName): bool
+    protected function moduleExists(string $moduleName,): bool
     {
         return in_array($moduleName, $this->getAllModules(true), true);
     }
@@ -131,7 +116,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Execute a closure and measure execution time in milliseconds
      */
-    protected function measureExecutionTime(\Closure $callback): float
+    protected function measureExecutionTime(\Closure $callback,): float
     {
         $startTime = Carbon::now();
         $callback();
@@ -140,13 +125,13 @@ abstract class BasicMigrator extends Command implements Isolatable
         return $startTime->diffInMilliseconds($endTime);
     }
 
-
     /**
      * Execute callback with a specific database connection
      */
-    protected function usingDatabase(string $database, \Closure $callback): mixed
+    protected function usingDatabase(string $database, \Closure $callback,): mixed
     {
         $resolver = app('db');
+
         $previousConnection = $resolver->getDefaultConnection();
 
         try {
@@ -164,7 +149,7 @@ abstract class BasicMigrator extends Command implements Isolatable
         if (empty($moduleOption)) return $this->getAllModules(true, false);
 
         return Collection::make($moduleOption)
-                         ->flatMap(fn($module) => $this->splitAndTrimModuleString($module))
+                         ->flatMap(fn($module,) => $this->splitAndTrimModuleString($module))
                          ->unique()
                          ->values()
                          ->all();
@@ -173,7 +158,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Split comma-separated module string and trim each item
      */
-    private function splitAndTrimModuleString(string $moduleString): array
+    private function splitAndTrimModuleString(string $moduleString,): array
     {
         return Collection::make(explode(',', $moduleString))
                          ->map('trim')
@@ -187,21 +172,17 @@ abstract class BasicMigrator extends Command implements Isolatable
      *
      * @throws InvalidArgumentException
      */
-    private function validateModulesExist(array $modules): void
+    private function validateModulesExist(array $modules,): void
     {
-        $invalidModules = array_diff($modules, $this->getAllModules(true));
+        $invalidModules = array_diff($modules, $this->getAllModules());
 
-        if (!empty($invalidModules)) {
-            throw new InvalidArgumentException(
-                sprintf('Modules not found or disabled: [%s]', implode(', ', $invalidModules))
-            );
-        }
+        if (!empty($invalidModules)) throw new InvalidArgumentException(sprintf('Modules not found or disabled: [%s]', implode(', ', $invalidModules)));
     }
 
     /**
      * Update the module option value in input
      */
-    private function updateModuleOption(array $modules): void
+    private function updateModuleOption(array $modules,): void
     {
         $this->input->setOption('module', $modules);
     }
@@ -211,35 +192,31 @@ abstract class BasicMigrator extends Command implements Isolatable
      *
      * @throws \Throwable
      */
-    protected function showTimedDetail(string $label, \Closure $callback, ?string $errorMessage = null): float
+    protected function showTimedDetail(string $label, \Closure $callback, ?string $errorMessage = null,): float
     {
         try {
             $time = $this->measureExecutionTime($callback);
-            $this->components->twoColumnDetail($label, "<fg=green>{$time}ms</>");
+            $this->components->twoColumnDetail($label, "<fg=green>{$time} ms</>");
             return $time;
         } catch (\Throwable $e) {
+
             Log::error($e);
-            if ($errorMessage) {
-                $this->components->twoColumnDetail($label, "<fg=red>Failed: {$errorMessage}</>");
-            }
+            if ($errorMessage) $this->components->twoColumnDetail($label, "<fg=red>Failed: {$errorMessage}</>");
             throw $e;
         }
     }
 
-
-    protected function getMigrationPath(string $module): string
+    protected function getMigrationPath(string $module,): string
     {
-        if ($module === 'Steward') {
-            return steward_path(config('modules.steward.migration_path', 'database/migrations'), false);
-        }
+        if ($module === 'Steward') return steward_path(config('modules.steward.migration_path', 'database/migrations'), false);
+
         return module_path($module, config('modules.module.migration_path', 'database/migrations'), false);
     }
-
 
     /**
      * Validate if migration path exists and is readable
      */
-    protected function isValidMigrationPath(string $path): bool
+    protected function isValidMigrationPath(string $path,): bool
     {
         return is_dir($path) && is_readable($path);
     }
@@ -247,7 +224,7 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Format migration name for display
      */
-    protected function formatMigrationName(string $migration): string
+    protected function formatMigrationName(string $migration,): string
     {
         $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $migration);
         $name = str_replace('_', ' ', $name);
@@ -257,28 +234,23 @@ abstract class BasicMigrator extends Command implements Isolatable
     /**
      * Get ran migrations for a specific path
      */
-    protected function getRanMigrationsForPath(string $migrationPath): array
+    protected function getRanMigrationsForPath(string $migrationPath,): array
     {
-        if (!$this->migrator) {
-            return [];
-        }
+        if (!$this->migrator) return [];
 
         try {
             $repository = $this->migrator->getRepository();
 
-            if (!$repository->repositoryExists()) {
-                return [];
-            }
+            if (!$repository->repositoryExists()) return [];
 
             $ran = $repository->getRan();
+
             $migrationFiles = $this->migrator->getMigrationFiles($migrationPath);
 
-            // Return only migrations that belong to this path
             return array_intersect($ran, array_keys($migrationFiles));
 
         } catch (\Exception $e) {
             Log::error($e);
-
             return [];
         }
     }
@@ -290,10 +262,10 @@ abstract class BasicMigrator extends Command implements Isolatable
      * @throws \Throwable
      */
     protected function processModuleOperation(
-        string   $module,
-        string   $operationType, // 'migrate', 'reset', 'rollback', 'fresh'
-        array    $options,
-        callable $operationCallback
+        string $module,
+        string $operationType, // 'migrate', 'reset', 'rollback', 'fresh'
+        array $options,
+        callable $operationCallback,
     ): bool
     {
         $migrationPath = $this->getMigrationPath($module);
@@ -312,40 +284,37 @@ abstract class BasicMigrator extends Command implements Isolatable
             });
 
             $this->components->twoColumnDetail("<fg=green>✓ {$module} {$operationType} completed</>", "<fg=green>{$time}ms</>");
-
             $this->addSuccessItem($module);
 
             return true;
 
         } catch (\Throwable $e) {
             Log::error($e);
-            $this->components->error("✗ {$module} failed: " . $e->getMessage());
+            $this->components->error("✗ {$module} failed: ".$e->getMessage());
             $this->addFailureItem($module);
 
-            if (!$this->option('force')) {
-                throw $e;
-            }
+            if (!$this->option('force')) throw $e;
+
             return false;
         }
     }
 
-    protected function addFailureItem($module): void
+    protected function addFailureItem($module,): void
     {
         $this->failureCount++;
         $this->failedItems[] = $module;
     }
 
-    protected function addSuccessItem($module): void
+    protected function addSuccessItem($module,): void
     {
         $this->successCount++;
         $this->successItems[] = $module;
-
     }
 
     /**
      * Show seeding summary
      */
-    protected function showSummary(null|string $operationType = null): void
+    protected function showSummary(null|string $operationType = null,): void
     {
         $this->newLine();
 
@@ -361,22 +330,15 @@ abstract class BasicMigrator extends Command implements Isolatable
             )
         );
 
-
         if (!empty($this->failedItems)) {
             $this->newLine();
             $this->components->error('Failed items:');
-            $this->components->bulletList(
-                collect($this->failedItems)
-                    ->map(fn($item) => "<fg=red>✗ {$item}</>")
-                    ->toArray()
-            );
+            $this->components->bulletList(array_map(fn($item,) => "<fg=red>✗ {$item}</>" ,$this->failedItems));
         }
-
         $this->newLine();
     }
 
-
-    protected function ensureMigrationTableExists(?string $database): void
+    protected function ensureMigrationTableExists(?string $database,): void
     {
         $this->usingDatabase($database, function () use ($database) {
             $schema = $this->laravel['db']->connection($database)->getSchemaBuilder();
@@ -395,7 +357,6 @@ abstract class BasicMigrator extends Command implements Isolatable
             }
         });
     }
-
 
     /**
      * Reset statistics

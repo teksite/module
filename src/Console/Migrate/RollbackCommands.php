@@ -10,7 +10,7 @@ class RollbackCommands extends BasicMigrator
 {
     protected $name = 'module:migrate-rollback';
 
-    protected $description = 'Rollback the last batch of database migrations for a specific module or all modules';
+    protected $description = 'Rollback the last batch of database migrations for a specific module or all modules.';
 
     protected function needsMigrator(): bool
     {
@@ -20,212 +20,172 @@ class RollbackCommands extends BasicMigrator
     /**
      * @throws \Throwable
      */
-    protected function handler(array $modules): int
+    protected function handler(array $modules,): int
     {
         $this->resetStats();
-        $this->components->info('Rolling back module migrations (last batch)...');
 
-        $step = (int) $this->option('step');
-        $hasModuleOption = !empty($this->option('module'));
+        $step = max(1, (int)$this->option('step'));
 
-        $options = array_filter([
-            'pretend' => $this->option('pretend'),
-            'step'    => $this->option('step'),
-            'force'   => $this->option('force'),
-        ]);
+        $this->components->info("Rolling back the last {$step} migration batch(s)...");
 
-        if ($hasModuleOption) {
-            foreach (array_reverse($modules) as $module) {
-                $this->rollbackSpecificModule($module, $step);
-            }
+
+        if ($this->option('module')) {
+            $this->rollbackModules($modules, $step);
         } else {
-            $this->rollbackGlobal($step);
+            $this->rollbackAllModules($step);
         }
 
         $this->showSummary('rollback');
-        return $this->failureCount === 0 ? CommandAlias::SUCCESS : CommandAlias::FAILURE;
+
+        return $this->failureCount === 0
+            ? CommandAlias::SUCCESS
+            : CommandAlias::FAILURE;
     }
 
-    private function rollbackSpecificModule(string $module, int $step): void
+    /**
+     * Rollback migrations for specific modules.
+     *
+     * @param array<int, string> $modules
+     *
+     * @throws \Throwable
+     */
+    private function rollbackModules(array $modules, int $step,): void
+    {
+        foreach (array_reverse($modules) as $module) {
+            $this->rollbackModule($module, $step);
+        }
+    }
+
+    /**
+     * Rollback migrations for a single module.
+     *
+     * @throws \Throwable
+     */
+    private function rollbackModule(string $module, int $step,): void
     {
         $migrationPath = $this->getMigrationPath($module);
 
         if (!$this->isValidMigrationPath($migrationPath)) {
-            $this->warn("No migration path found: {$module}");
+            $this->components->twoColumnDetail($module, '<fg=yellow>No migration path found</>');
+
             $this->addFailureItem($module);
+
             return;
         }
 
-        $moduleFiles = $this->getModuleMigrationFiles($migrationPath);
+        $ranMigrations = $this->getRanMigrationsForPath($migrationPath);
 
-        $allRan = $this->migrator->getRepository()->getRan();
-        $executedModuleMigrations = array_intersect($allRan, $moduleFiles);
+        if ($ranMigrations === []) {
+            $this->components->twoColumnDetail($module, '<fg=yellow>No executed migrations found</>');
 
-        if (empty($executedModuleMigrations)) {
-            $this->components->twoColumnDetail($module, "<fg=yellow>No migrations found</>");
             $this->addSuccessItem($module);
+
             return;
         }
 
-        $batchGroups = [];
-        foreach ($executedModuleMigrations as $migration) {
-            $batch = $this->migrator->getRepository()->ba($migration);
-            $batchGroups[$batch][] = $migration;
-        }
+        $this->components->twoColumnDetail(
+            "<fg=cyan;options=bold>{$module}</>",
+            $migrationPath,
+        );
 
-        // 4. مرتب‌سازی batch ها (نزولی)
-        $batches = array_keys($batchGroups);
-        rsort($batches);
+        try {
+            $this->rollback([$migrationPath], $step);
 
-        // 5. انتخاب به تعداد step
-        $batchesToRollback = array_slice($batches, 0, $step);
-
-        if (empty($batchesToRollback)) {
-            $this->components->twoColumnDetail($module, "<fg=yellow>No batches to rollback</>");
             $this->addSuccessItem($module);
-            return;
+
+        } catch (\Throwable $e) {
+            $this->addFailureItem($module);
+
+            $this->components->error("✗ {$module} failed: {$e->getMessage()}");
+
+            if (!$this->option('force')) throw $e;
+
         }
-
-        // 6. اجرای rollback
-        $this->components->twoColumnDetail("<fg=cyan>{$module}</>", $migrationPath);
-
-        foreach ($batchesToRollback as $batch) {
-            foreach ($batchGroups[$batch] as $migration) {
-                $this->rollbackMigration($migrationPath, $migration);
-                $this->components->twoColumnDetail(
-                    "  └─ {$migration}",
-                    "<fg=yellow>rolled back (batch {$batch})</>"
-                );
-            }
-        }
-
-        $this->addSuccessItem($module);
     }
 
     /**
-     * سناریو 2: همه ماژول‌ها با هم - بر اساس batch های کلی
+     * Rollback migrations from all enabled modules.
+     *
+     * This uses Laravel's public Migrator::rollback() API.
+     *
+     * @throws \Throwable
      */
-    private function rollbackGlobal(int $step): void
+    private function rollbackAllModules(int $step,): void
     {
-        $this->components->info("Rolling back last {$step} batch(es) from ALL modules...");
+        $modules = $this->getEnabledModules();
 
-        // 1. همه migration های اجرا شده از دیتابیس (همه ماژول‌ها)
-        $allRanMigrations = $this->migrator->getRepository()->getRan();
+        $paths = [];
 
-        if (empty($allRanMigrations)) {
-            $this->components->warn("No migrations found in database.");
-            return;
-        }
-
-        // 2. گروه‌بندی بر اساس batch (بدون توجه به ماژول)
-        $batchGroups = [];
-        foreach ($allRanMigrations as $migration) {
-            $batch = $this->migrator->getRepository()->getBatchNumber($migration);
-            $batchGroups[$batch][] = $migration;
-        }
-
-        // 3. مرتب‌سازی batch ها (نزولی)
-        $batches = array_keys($batchGroups);
-        rsort($batches);
-
-        // 4. انتخاب به تعداد step
-        $batchesToRollback = array_slice($batches, 0, $step);
-
-        if (empty($batchesToRollback)) {
-            $this->components->warn("No batches to rollback.");
-            return;
-        }
-
-        // 5. برای هر batch، همه migration ها را rollback کن
-        foreach ($batchesToRollback as $batch) {
-            $this->components->info("Rolling back batch {$batch}...");
-
-            foreach ($batchGroups[$batch] as $migration) {
-                // پیدا کردن مسیر و ماژول مربوط به این migration
-                $modulePath = $this->findModulePathForMigration($migration);
-
-                if ($modulePath) {
-                    $this->rollbackMigration($modulePath, $migration);
-                    $moduleName = $this->getModuleNameFromPath($modulePath);
-                    $this->components->twoColumnDetail(
-                        "  └─ [{$moduleName}] {$migration}",
-                        "<fg=yellow>rolled back</>"
-                    );
-                } else {
-                    $this->components->warn("  └─ {$migration} - module not found");
-                    $this->addFailureItem($migration);
-                }
-            }
-        }
-    }
-
-
-    private function findModulePathForMigration(string $migrationName): ?string
-    {
-        $allModules = $this->getEnabledModules();
-
-        foreach ($allModules as $module) {
+        foreach ($modules as $module) {
             $path = $this->getMigrationPath($module);
 
-            if (!$this->isValidMigrationPath($path)) {
-                continue;
-            }
+            if (!$this->isValidMigrationPath($path)) continue;
 
-            $moduleFiles = $this->getModuleMigrationFiles($path);
 
-            if (in_array($migrationName, $moduleFiles)) {
-                return $path;
-            }
+            $paths[] = $path;
         }
 
-        return null;
+        if ($paths === []) {
+            $this->components->warn('No valid migration paths found.');
+            return;
+        }
+
+        try {
+            $this->rollback($paths, $step);
+
+            $this->addSuccessItem('all modules');
+
+        } catch (\Throwable $e) {
+            $this->addFailureItem('all modules');
+
+            $this->components->error(
+                "✗ Rollback failed: {$e->getMessage()}",
+            );
+
+            if (!$this->option('force')) throw $e;
+
+        }
     }
 
-
-    private function getModuleNameFromPath(string $path): string
-    {
-        // فرض کنید مسیرها به صورت: .../Modules/Post/Database/Migrations
-        if (preg_match('/Modules[\/\\\\]([^\/\\\\]+)/', $path, $matches)) {
-            return $matches[1];
-        }
-
-        // مسیر steward
-        if (str_contains($path, 'steward')) {
-            return 'steward';
-        }
-
-        return 'unknown';
-    }
-
-
-    private function rollbackMigration(string $path, string $migration): void
+    /**
+     * Execute Laravel's public Migrator::rollback() method.
+     *
+     * This intentionally does NOT call:
+     *
+     *     Migrator::rollbackMigrations()
+     *
+     * because that is an internal implementation detail.
+     *
+     * @param array<int, string> $paths
+     *
+     * @throws \Throwable
+     */
+    private function rollback(array $paths, int $step,): void
     {
         $database = $this->getDatabaseConnection();
 
-        $this->usingDatabase($database, function () use ($path, $migration) {
-//            $this->migrator->rollbackMigrations([$path], $migration, false);
-        });
-    }
-
-
-    private function getModuleMigrationFiles(string $path): array
-    {
-        if (!$this->migrator) {
-            return [];
-        }
-
-        $files = $this->migrator->getMigrationFiles($path);
-        return array_keys($files);
+        $this->usingDatabase(
+            $database,
+            function () use ($paths, $step): void {
+                $this->migrator->rollback(
+                    $paths,
+                    [
+                        'step'    => $step,
+                        'pretend' => (bool)$this->option('pretend'),
+                    ],
+                );
+            },
+        );
     }
 
     protected function getOptions(): array
     {
         return [
-            ['module', 'M', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Specific modules', []],
-            ['step', null, InputOption::VALUE_OPTIONAL, 'Number of batches to rollback', 1],
-            ['database', null, InputOption::VALUE_OPTIONAL, 'Database connection'],
-            ['force', null, InputOption::VALUE_NONE, 'Force operation'],
-            ['pretend', null, InputOption::VALUE_NONE, 'Pretend mode'],
+            ['module', 'M', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Specific modules to rollback.', [],],
+            ['step', null, InputOption::VALUE_OPTIONAL, 'Number of migration batches to rollback.', 1,],
+            ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to use.',],
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation.',],
+            ['pretend', null, InputOption::VALUE_NONE, 'Display the SQL queries without executing them.',],
         ];
     }
 
@@ -235,7 +195,7 @@ class RollbackCommands extends BasicMigrator
             'module' => fn() => $this->components->choice(
                 'Which module(s) do you want to rollback?',
                 $this->getAllModules(true),
-                multiple: true
+                multiple: true,
             ),
         ];
     }

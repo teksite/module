@@ -54,6 +54,7 @@ abstract class GeneratorModuleCommand extends Command
      * @var string|null
      */
     protected ?string $filename = null;
+
     /**
      * The filesystem instance.
      */
@@ -64,7 +65,6 @@ abstract class GeneratorModuleCommand extends Command
      */
     protected string $type;
 
-
     // Abstract methods
 
     /**
@@ -73,7 +73,6 @@ abstract class GeneratorModuleCommand extends Command
      * @return string
      */
     abstract protected function getStub(): string;
-
 
     /**
      * desired path for making file or class - based on autoload(-dev)
@@ -90,19 +89,18 @@ abstract class GeneratorModuleCommand extends Command
     abstract protected function replacements(): array;
 
 
-    public function __construct(Filesystem $files)
+    public function __construct(Filesystem $files,)
     {
         parent::__construct();
 
-        if ($this->usesCreatesMatchingTestTrait()) {
-            $this->addTestOptions();
-        }
+        if ($this->usesCreatesMatchingTestTrait())  $this->addTestOptions();
 
         $this->files = $files;
     }
 
     /**
      * Execute the console command.
+     *
      * @throws FileNotFoundException
      * @throws \Exception
      */
@@ -129,9 +127,8 @@ abstract class GeneratorModuleCommand extends Command
         $path = $this->getPath($name, $module);
         $fullFilePath = $this->buildFullFilePath($path);
 
-        if (!$this->checkForce($fullFilePath)) {
-            return;
-        }
+        if (!$this->checkForce($fullFilePath)) return;
+
 
         $this->ensureDirectoryExistence($fullFilePath);
         $this->generateAndWriteFile($fullFilePath);
@@ -144,21 +141,22 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Build the complete file path with proper filename.
      */
-    private function buildFullFilePath(string $path): string
+    private function buildFullFilePath(string $path,): string
     {
         $pathParts = explode(DIRECTORY_SEPARATOR, $path);
         $fileName = array_pop($pathParts);
         $resolvedFilename = $this->resolveFilename($fileName);
         $this->filename = $resolvedFilename;
         $finalFilename = $this->addExtensionToFilename($resolvedFilename);
-        return implode(DIRECTORY_SEPARATOR, $pathParts) . DIRECTORY_SEPARATOR . $finalFilename;
+        return implode(DIRECTORY_SEPARATOR, $pathParts).DIRECTORY_SEPARATOR.$finalFilename;
     }
 
     /**
      * Generate and write the file content.
+     *
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function generateAndWriteFile(string $fullFilePath): void
+    private function generateAndWriteFile(string $fullFilePath,): void
     {
         $content = $this->buildFile();
         $this->makeFile($content, $fullFilePath);
@@ -168,28 +166,23 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Handle test creation if the trait is used.
      */
-    private function handleTestCreationIfNeeded(string $fullFilePath): void
+    private function handleTestCreationIfNeeded(string $fullFilePath,): void
     {
-        if ($this->usesCreatesMatchingTestTrait()) {
-            $this->handleTestCreation($fullFilePath);
-        }
+        if ($this->usesCreatesMatchingTestTrait()) $this->handleTestCreation($fullFilePath);
     }
 
     /**
      * Display success message.
      */
-    private function displaySuccessMessage(string $module, string $fullFilePath): void
+    private function displaySuccessMessage(string $module, string $fullFilePath,): void
     {
-        $this->components->twoColumnDetail(
-            "{$module} | the {$this->type} file has been created.",
-            $fullFilePath
-        );
+        $this->components->twoColumnDetail("{$module} | the {$this->type} file has been created.", $fullFilePath,);
     }
 
     /**
      * Display reserved name error.
      */
-    private function errorReservedName(string $name): void
+    private function errorReservedName(string $name,): void
     {
         $this->components->error("The name \"{$name}\" is reserved by PHP or Lareon.");
     }
@@ -197,21 +190,21 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Display module not exists error.
      */
-    private function errorModuleNotExists(string $module): void
+    private function errorModuleNotExists(string $module,): void
     {
         $this->components->error("The module \"{$module}\" is not registered or does not exist.");
     }
 
     /**
      * Prepare namespace configurations.
+     *
      * @throws FileNotFoundException
      * @throws \Exception
      */
-    private function prepareNamespaces(string $module, string $name): void
+    private function prepareNamespaces(string $module, string $name,): void
     {
         if ($this->generatorType === 'class') {
             $this->getNamespace($module, $name);
-
             $this->moduleNamespace = moduleNamespace($module);
         }
     }
@@ -224,35 +217,34 @@ abstract class GeneratorModuleCommand extends Command
         return isset(class_uses_recursive($this)[CreatesMatchingTest::class]);
     }
 
-
     /**
      * Resolve the stub file path.
+     *
      * @throws \Exception
      */
-    protected function resolveStubPath(string $stub): string
+    protected function resolveStubPath(string $stub,): string
     {
-        $path = app('modules.stubs') . '/' . trim($stub, '/\\');
+        $path = app('modules.stubs').'/'.trim($stub, '/\\');
 
-        if (!file_exists($path)) {
-            throw new \Exception("{$stub} doesn't exist in the path: {$path}");
-        }
+        if (!file_exists($path)) throw new \Exception("{$stub} doesn't exist in the path: {$path}");
 
         return $path;
     }
 
     /**
      * Get the full file path for generation.
+     *
      * @throws \Exception
      */
-    protected function getPath(string $name, string $module): string
+    protected function getPath(string $name, string $module,): string
     {
-        return modulePath($module, $this->path() . DIRECTORY_SEPARATOR . $name, false);
+        return modulePath($module, $this->path().DIRECTORY_SEPARATOR.$name, false);
     }
 
     /**
      * Resolve filename (override in child classes if needed).
      */
-    protected function resolveFilename(string $filename): string
+    protected function resolveFilename(string $filename,): string
     {
         return $filename;
     }
@@ -260,7 +252,7 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Add extension to filename.
      */
-    protected function addExtensionToFilename(string $filename): string
+    protected function addExtensionToFilename(string $filename,): string
     {
         return "{$filename}.php";
     }
@@ -268,7 +260,7 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Ensure directory exists for the given path.
      */
-    protected function ensureDirectoryExistence(string $path): void
+    protected function ensureDirectoryExistence(string $path,): void
     {
         $directory = dirname($path);
 
@@ -280,18 +272,19 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Check if file already exists.
      */
-    protected function alreadyExists(string $path): bool
+    protected function alreadyExists(string $path,): bool
     {
         return $this->files->exists($path);
     }
 
     /**
      * Get the full namespace for a given class.
+     *
      * @throws FileNotFoundException
      */
-    protected function getNamespace(string $module, string $name): string
+    protected function getNamespace(string $module, string $name,): string
     {
-        $fullNamespace = $this->getModuleDirNamespace($module, $this->path()) . '\\' . $name;
+        $fullNamespace = $this->getModuleDirNamespace($module, $this->path()).'\\'.$name;
         $namespaceParts = explode('\\', $fullNamespace);
         $namespace = trim(implode('\\', array_slice($namespaceParts, 0, -1)), '\\');
 
@@ -308,9 +301,7 @@ abstract class GeneratorModuleCommand extends Command
     {
         $name = trim($this->argument('name'));
 
-        if (Str::endsWith($name, '.php')) {
-            $name = Str::substr($name, 0, -4);
-        }
+        if (Str::endsWith($name, '.php')) $name = Str::substr($name, 0, -4);
 
         return normalizeSlashPath($name);
     }
@@ -346,22 +337,19 @@ abstract class GeneratorModuleCommand extends Command
 
     /**
      * Build the file content with replacements.
+     *
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
     protected function buildFile(): string
     {
         $stub = $this->files->get($this->getStub());
 
-        $replacements = array_merge(
-            $this->getDefaultReplacements(),
-            $this->replacements(),
-            $this->replacements ?? []
-        );
+        $replacements = array_merge($this->getDefaultReplacements(), $this->replacements(),);
 
         return str_replace(
             array_keys($replacements),
             array_values($replacements),
-            $stub
+            $stub,
         );
     }
 
@@ -381,7 +369,7 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * Write content to file.
      */
-    public function makeFile(string $content, string $path): void
+    public function makeFile(string $content, string $path,): void
     {
         $this->files->put($path, $content);
     }
@@ -389,32 +377,32 @@ abstract class GeneratorModuleCommand extends Command
     /**
      * integrate module and steward paths
      *
-     * @param string $module
+     * @param string      $module
      * @param string|null $path
-     * @param bool $absolute
+     * @param bool        $absolute
      * @return string
      */
-    protected function module_path(string $module, null|string $path = null, bool $absolute = false): string
+    protected function module_path(string $module, null|string $path = null, bool $absolute = false,): string
     {
         if ($module === 'Steward' && isStewardInstalled()) {
             return steward_path($path, $absolute);
         }
+
         return module_path($module, $path, $absolute);
     }
 
     /**
      * integrate module and steward paths
      *
-     * @param string $module
+     * @param string      $module
      * @param string|null $path
      * @return string
      * @throws \Exception
      */
-    protected function module_namespace(string $module, null|string $path = null): string
+    protected function module_namespace(string $module, null|string $path = null,): string
     {
-        $pathNamespace = $path ? "\\" . normalizeSlashNamespace($path) : '';
-
-        return moduleNamespace($module) . $pathNamespace;
+        $pathNamespace = $path ? "\\".normalizeSlashNamespace($path) : '';
+        return moduleNamespace($module).$pathNamespace;
     }
 
     /**
@@ -423,7 +411,7 @@ abstract class GeneratorModuleCommand extends Command
     protected function getArguments(): array
     {
         return [
-            ['name', InputArgument::REQUIRED, "The name of the " . strtolower($this->type)],
+            ['name', InputArgument::REQUIRED, "The name of the ".strtolower($this->type)],
             ['module', InputArgument::REQUIRED, 'The name of the module or steward'],
         ];
     }
@@ -435,6 +423,4 @@ abstract class GeneratorModuleCommand extends Command
     {
         // Override in child classes
     }
-
-
 }

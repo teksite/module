@@ -16,17 +16,15 @@ class MigrateCommands extends BasicMigrator
 
     protected array $migrationNotes = [];
 
-
     protected function needsMigrator(): bool
     {
         return true;
     }
 
-
     /**
      * @throws \Throwable
      */
-    protected function handler(array $modules): int
+    protected function handler(array $modules,): int
     {
         $this->resetStats();
 
@@ -42,7 +40,7 @@ class MigrateCommands extends BasicMigrator
         $this->ensureMigrationTableExists($database);
 
         foreach ($modules as $module) {
-            $this->processModuleOperation($module, 'migration', $options, function ($module, $path, $opts) {
+            $this->processModuleOperation($module, 'migration', $options, function ($module, $path, $opts,) {
                 $this->executeMigration($path, $opts);
             });
         }
@@ -52,7 +50,7 @@ class MigrateCommands extends BasicMigrator
 
     }
 
-    private function executeMigration(string $migrationPath, array $options): void
+    private function executeMigration(string $migrationPath, array $options,): void
     {
         $beforeMigrations = $this->getRanMigrationsForPath($migrationPath);
 
@@ -68,13 +66,12 @@ class MigrateCommands extends BasicMigrator
 
         if (!empty($newMigrations)) {
             foreach ($newMigrations as $migration) {
-                $this->components->twoColumnDetail("<fg=gray> └─" . $migration."</>", "<fg=green>✓ migrated</>");
+                $this->components->twoColumnDetail("<fg=gray> └─".$migration."</>", "<fg=green>✓ migrated</>");
             }
         } else {
             $this->components->twoColumnDetail("  └─ No new migrations", "<fg=yellow>⏭ skipped</>");
         }
     }
-
 
     /**
      * Show migration summary
@@ -91,7 +88,6 @@ class MigrateCommands extends BasicMigrator
         ];
     }
 
-
     /**
      * Prompt for missing input
      */
@@ -101,7 +97,7 @@ class MigrateCommands extends BasicMigrator
             'module' => fn() => $this->components->choice(
                 'Which module(s) do you want to migrate?',
                 $this->getAllModules(true),
-                multiple: true
+                multiple: true,
             ),
         ];
     }
