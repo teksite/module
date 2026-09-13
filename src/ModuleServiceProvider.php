@@ -101,8 +101,7 @@ class ModuleServiceProvider extends ServiceProvider
 
     public function bootCommands(): void
     {
-
-        $this->commands([
+        $commands=[
             AttributeMakeCommand::class,
             CastMakeCommand::class,
             ConfigMakeCommand::class,
@@ -138,7 +137,6 @@ class ModuleServiceProvider extends ServiceProvider
             TraitMakeCommand::class,
             ViewMakeCommand::class,
             TrashControllerMakeCommand::class,
-            RouteChannelMakeCommand::class,
 
             /* Module -> Migration and Seeds */
             MigrateCommands::class,
@@ -160,7 +158,11 @@ class ModuleServiceProvider extends ServiceProvider
             StewardDestroy::class,
 
 
-        ]);
+        ];
+
+        if (isStewardInstalled()) $commands[] = RouteChannelMakeCommand::class;
+
+        $this->commands($commands);
     }
 
     public function publish(): void

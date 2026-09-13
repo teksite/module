@@ -105,4 +105,9 @@ class RouteChannelMakeCommand extends GeneratorModuleCommand
     {
         return $this->option('file') ?? 'channels.php';
     }
+
+    protected function prepareToProcess(): void
+    {
+        if (!isBroadcastingInstalled()) throw new \Exception('you should install broadcasting package first');
+    }
 }
