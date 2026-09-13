@@ -55,3 +55,24 @@ if (!function_exists('humanReadableVarExport')) {
         if ((bool)$return) return $export; else echo $export;
     }
 }
+
+
+if (!function_exists('isBroadcastingInstalled')) {
+    /**
+     * Whether Laravel's broadcasting is actually available to use.
+     *
+     * Starting with Laravel 11, broadcasting is no longer bundled by
+     * default - it's a separate, optional install
+     * (`php artisan install:broadcasting`, package `illuminate/broadcasting`).
+     * Calling `Broadcast::channel(...)` when it isn't installed would throw
+     * a fatal "class not found" error, so anything that loads a module's
+     * routes/channels.php must check this first.
+     *
+     * @return bool
+     */
+    function isBroadcastingInstalled(): bool
+    {
+        return class_exists(\Illuminate\Support\Facades\Broadcast::class)
+            && class_exists(\Illuminate\Broadcasting\BroadcastManager::class);
+    }
+}

@@ -41,4 +41,18 @@ class {{ class }} extends ServiceProvider
             Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->moduleName, '/routes/api.php'));
         }
     }
+
+    /**
+     * Register the module's broadcast channel definitions
+     * (routes/channels.php), so `Broadcast::channel(...)` calls declared
+     * inside the module are picked up.
+     */
+      protected function mapBroadcastChannels(): void
+      {
+          if (!isBroadcastingInstalled()) return;
+
+          $channelsFile = module_path($this->moduleName, '/routes/channels.php');
+
+          if (file_exists($channelsFile))  require $channelsFile;
+      }
 }
