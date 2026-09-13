@@ -19,7 +19,7 @@ trait CreatesModuleMatchingTest
                 $option,
                 null,
                 InputOption::VALUE_NONE,
-                "Generate an accompanying {$name} test for the {$this->type} in modules or steward"
+                "Generate an accompanying {$name} test for the {$this->type} in modules or steward",
             ));
         }
     }
@@ -27,21 +27,19 @@ trait CreatesModuleMatchingTest
     /**
      * Create the matching test case if requested.
      *
-     * @param  string  $path
+     * @param string $path
      * @return bool
      */
-    protected function handleTestCreation($path): bool
+    protected function handleTestCreation($path,): bool
     {
-        if (! $this->option('test') && ! $this->option('pest') && ! $this->option('phpunit')) {
-            return false;
-        }
+        if (!$this->option('test') && !$this->option('pest') && !$this->option('phpunit')) return false;
 
         return $this->call('module:make-test', [
-                'name' => (new Stringable($path))->after($this->laravel['path'])->beforeLast('.php')->append('Test')->replace('\\', '/'),
-                'module' => $this->getM,
-                '--pest' => $this->option('pest'),
+                'name'      => (new Stringable($path))->after($this->laravel['path'])->beforeLast('.php')->append('Test')->replace('\\', '/'),
+                'module'    => $this->getM,
+                '--pest'    => $this->option('pest'),
                 '--phpunit' => $this->option('phpunit'),
-                '--force' => $this->hasOption('force') && $this->option('force'),
+                '--force'   => $this->hasOption('force') && $this->option('force'),
             ]) == 0;
     }
 }

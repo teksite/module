@@ -49,9 +49,8 @@ trait ViewHandlerTrait
 
         $name = array_pop($segments);
 
-        $path = [
-            ...$segments,
-        ];
+        $path = [...$segments,];
+
         $path[] = $name;
 
         return $path;
@@ -60,14 +59,15 @@ trait ViewHandlerTrait
     /**
      * Write the Markdown template for the mailable.
      *
+     * @param             $module
+     * @param string|null $dir
+     * @param string      $extension
      * @return void
      * @throws \Exception
      */
     protected function writeMarkdownTemplate($module, ?string $dir = null, string $extension = '.blade.php'): void
     {
-
         $stubPath = $this->resolveStubPath('stubs/markdown.stub');
-
 
         $filePath = $this->getModuleInput() === 'Steward'
             ? steward_view_path($module, false)
@@ -83,7 +83,6 @@ trait ViewHandlerTrait
 
         $this->files->ensureDirectoryExists(dirname($filepath));
 
-
         $content = str_replace(
             ['{{ quote }}', '{{quote}}'],
             Inspiring::quotes()->random(),
@@ -93,8 +92,6 @@ trait ViewHandlerTrait
         $this->files->put($filepath, $content);
 
         $this->components->twoColumnDetail("$module| the markdown file has been created.", $filepath);
-
-
     }
 
     /**
@@ -104,7 +101,6 @@ trait ViewHandlerTrait
      */
     protected function writeView($module, ?string $dir = null, string $extension = '.blade.php'): void
     {
-
         $stubPath = $this->resolveStubPath('stubs/view.stub');
 
         $filePath = $this->getModuleInput() === 'Steward'
@@ -121,8 +117,7 @@ trait ViewHandlerTrait
         }
 
         $this->files->ensureDirectoryExists(dirname($filepath));
-
-
+        
         $content = str_replace(
             ['{{ quote }}', '{{quote}}'],
             Inspiring::quotes()->random(),

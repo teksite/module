@@ -12,19 +12,16 @@ trait ReplaceStubGeneratorTrait
     /**
      * Cache for model lookups to avoid repeated filesystem scans.
      */
-    private array $modelCache = [];
+    private array  $modelCache           = [];
     private ?array $availableModelsCache = null;
-    private ?array $possibleEventsCache = null;
-
+    private ?array $possibleEventsCache  = null;
 
     /**
      * Get possible events (with caching).
      */
     protected function possibleEvents(): array
     {
-        if ($this->possibleEventsCache !== null) {
-            return $this->possibleEventsCache;
-        }
+        if ($this->possibleEventsCache !== null) return $this->possibleEventsCache;
 
         $eventPath = $this->module_path($this->getModuleInput(), 'app/Events');
 
@@ -34,7 +31,7 @@ trait ReplaceStubGeneratorTrait
         }
 
         $this->possibleEventsCache = (new Collection(Finder::create()->files()->depth(0)->in($eventPath)))
-            ->map(fn($file) => $file->getBasename('.php'))
+            ->map(fn($file,) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
@@ -47,9 +44,7 @@ trait ReplaceStubGeneratorTrait
      */
     protected function findAvailableModels(): array
     {
-        if ($this->availableModelsCache !== null) {
-            return $this->availableModelsCache;
-        }
+        if ($this->availableModelsCache !== null) return $this->availableModelsCache;
 
         $modelPath = $this->module_path($this->getModuleInput(), 'App\\Models');
 
@@ -59,7 +54,7 @@ trait ReplaceStubGeneratorTrait
         }
 
         $this->availableModelsCache = (new Collection(Finder::create()->files()->depth(0)->in($modelPath)))
-            ->map(fn($file) => $file->getBasename('.php'))
+            ->map(fn($file,) => $file->getBasename('.php'))
             ->sort()
             ->values()
             ->all();
@@ -71,26 +66,27 @@ trait ReplaceStubGeneratorTrait
     /**
      * Qualify model class name.
      */
-    protected function qualifyModel(string $class, ?string $term = null, bool $check = false): ?string
+    protected function qualifyModel(string $class, ?string $term = null, bool $check = false,): ?string
     {
         $cacheKey = "{$class}|{$term}|{$check}";
 
-        if (isset($this->modelCache[$cacheKey])) {
-            return $this->modelCache[$cacheKey];
-        }
+        if (isset($this->modelCache[$cacheKey])) return $this->modelCache[$cacheKey];
 
         $modelNamespace = $this->guessModel($class, $term);
         if ($check && !class_exists($modelNamespace)) {
-            $answer = $this->choice('The related model class does not exist. Do you want to continue?',
-                ['y' => 'yes without making a relative model', 'n' => 'no need to proceed', 'm' => 'yes and make relative model'], 'y');
-            if ($answer === 'y') {
-                $this->modelCache[$cacheKey] = $modelNamespace;
+            $answer = $this->choice(
+                'The related model class does not exist. Do you want to continue?',
+                [
+                    'y' => 'yes without making a relative model',
+                    'n' => 'no need to proceed',
+                    'm' => 'yes and make relative model'],
+                'y');
 
-            }
+            if ($answer === 'n') throw new \RuntimeException('Aborted: the related model class does not exist.');
 
             if ($answer === 'm') {
                 $this->call('model:make-model', ["name" => $this->filename, 'module' => $this->getModuleInput()]);
-                $modelNamespace = module_namespace($this->getModuleInput()) . "\\App\\Models\\" . $this->filename;
+                $modelNamespace = module_namespace($this->getModuleInput())."\\App\\Models\\".$this->filename;
             }
         }
 
@@ -101,7 +97,7 @@ trait ReplaceStubGeneratorTrait
     /**
      * Guess the model name.
      */
-    protected function guessModel(string $name, ?string $term = null): string
+    protected function guessModel(string $name, ?string $term = null,): string
     {
         $model = $this->extractModelName($name, $term);
         $model = normalizeSlashNamespace($model);
@@ -112,11 +108,9 @@ trait ReplaceStubGeneratorTrait
     /**
      * Extract model name from input.
      */
-    private function extractModelName(string $name, ?string $term = null): string
+    private function extractModelName(string $name, ?string $term = null,): string
     {
-        if ($term && str_ends_with($name, $term)) {
-            return substr($name, 0, -strlen($term));
-        }
+        if ($term && str_ends_with($name, $term)) return substr($name, 0, -strlen($term));
 
         return $name;
     }
@@ -124,21 +118,22 @@ trait ReplaceStubGeneratorTrait
 
     /**
      * Apply appropriate namespace to model.
+     *
+     * @throws \Exception
      */
-    private function applyModelNamespace(string $model): string
+    private function applyModelNamespace(string $model,): string
     {
         $stewardNamespace = steward_namespace();
-        $rootStewardPattern = $stewardNamespace . '\\App\\Models\\';
+        $rootStewardPattern = $stewardNamespace.'\\App\\Models\\';
         $stewardBasePattern = 'Steward\\App\\Models\\';
         $modulesAppModelsPattern = '/^([^\\\\s]+)\\\\App\\\\Modules\\\\(.+)$/';
 
-        if (Str::startsWith($model, $rootStewardPattern)) {
-            return $model;
-        }
+        if (Str::startsWith($model, $rootStewardPattern)) return $model;
+
 
         if (Str::startsWith($model, $stewardBasePattern)) {
             $model = Str::replaceFirst($stewardBasePattern, '', $model);
-            return 'Lareon\\' . $model;
+            return 'Lareon\\'.$model;
         }
 
         if (preg_match('/^Lareon\\\\Modules\\\\([^\\\\s]+)\\\\App\\\\Modules\\\\(.+)$/', $model)) {
@@ -146,21 +141,20 @@ trait ReplaceStubGeneratorTrait
         }
 
         if (preg_match($modulesAppModelsPattern, $model)) {
-            return 'Lareon\\Modules\\' . $model;
+            return 'Lareon\\Modules\\'.$model;
         }
 
         if (Str::startsWith($model, 'App\\Models\\')) {
             return $model;
         }
 
-        return $this->module_namespace($this->getModuleInput()) . '\\App\\Models\\' . $model;
-
+        return $this->module_namespace($this->getModuleInput()).'\\App\\Models\\'.$model;
     }
 
     /**
      * Get model replacements array.
      */
-    protected function modelNameReplaces(?string $term = null, bool $check = false): array
+    protected function modelNameReplaces(?string $term = null, bool $check = false,): array
     {
         [$modelNamespace, $model] = $this->getModel($term, $check);
         $modelVariable = lcfirst($model);
@@ -178,7 +172,7 @@ trait ReplaceStubGeneratorTrait
     /**
      * Get model information.
      */
-    protected function getModel(?string $term = null, bool $check = false): array
+    protected function getModel(?string $term = null, bool $check = false,): array
     {
         $modelNamespace = $this->qualifyModel($this->option('model'), $term, $check);
         $model = class_basename($modelNamespace);
@@ -199,7 +193,7 @@ trait ReplaceStubGeneratorTrait
             '{{namespacedUserModel}}'   => $userModelNamespace,
             '{{ user }}'                => $userClassName,
             '{{user}}'                  => $userClassName,
-            '$user'                     => '$' . Str::camel($userClassName),
+            '$user'                     => '$'.Str::camel($userClassName),
         ];
     }
 

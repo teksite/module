@@ -110,14 +110,14 @@ trait ModuleValidationGeneratorTrait
         $modulesList = array_keys($modules);
 
         if (!$this->validationExactMatch($modulesList, $module)) {
-            if ($this->validateSimilarMatches($modulesList, $module)) {
-                return true;
-            }
+
+            if ($this->validateSimilarMatches($modulesList, $module))  return true;
+
             return false;
-
-
         };
+
         if (($modules[$module] ?? false) === false) $this->line("<fg=yellow;options=bold>{$module} is not active");
+
         return true;
     }
 
@@ -131,9 +131,7 @@ trait ModuleValidationGeneratorTrait
     {
         return in_array(
             strtolower($name),
-            (new Collection($this->reservedNames))
-                ->transform(fn($name) => strtolower($name))
-                ->all()
+            (new Collection($this->reservedNames))->transform(fn($name) => strtolower($name))->all()
         );
     }
 
@@ -151,6 +149,7 @@ trait ModuleValidationGeneratorTrait
                 return false;
             }
         }
+
         return true;
     }
 
@@ -164,27 +163,28 @@ trait ModuleValidationGeneratorTrait
      */
     protected function validationExactMatch(array $modules, $module): bool
     {
-
         return in_array($module, $modules);
     }
 
     /**
-     * Check for similar matches in different cases and return suggestions.
+     * Check for similar matches in different cases and, if confirmed by the
+     * user, swap the module argument for the correctly-cased match.
      *
      * @param array $modules
      * @param string $module
-     * @return string|null
+     * @return bool
      */
-    protected function validateSimilarMatches(array $modules, string $module): ?string
+    protected function validateSimilarMatches(array $modules, string $module): bool
     {
-
         $similarModule = collect($modules)->first(function ($item) use ($module) {
             return strtolower($item) === strtolower($module);
         });
-        if (!!$similarModule && $this->confirm("Did you mean '{$similarModule}'?")) {
+
+        if ($similarModule && $this->confirm("Did you mean '{$similarModule}'?")) {
             $this->input->setArgument('module', $similarModule);
             return true;
         }
+
         return false;
     }
 }
