@@ -67,7 +67,7 @@ class ModuleServices
     /**
      * @return array|string[]
      */
-    public function registeredModules(): array
+    public function availableModules(): array
     {
         return get_modules();
     }

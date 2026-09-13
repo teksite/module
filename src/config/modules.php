@@ -22,8 +22,7 @@ return [
    */
     "registration_modules_file" => base_path('bootstrap') . '/modules.php',
 
-    "boot_all_modules" => 1, //1 for all modules (enabled and disabled)
-    //0 only for enabled modules
+    "boot_all_modules" => 1, //1 register enabled modules , 0 register enabled and disabled modules
 
 
     /*
@@ -41,7 +40,7 @@ return [
         "enable"    => true,
         "directory" => "app/Livewire",
     ],
- 
+
     /*
     |--------------------------------------------------------------------------
     | Module and Steward configuration

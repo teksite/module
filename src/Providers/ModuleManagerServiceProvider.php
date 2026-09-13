@@ -13,20 +13,17 @@ class ModuleManagerServiceProvider extends ServiceProvider
         $this->registerModules();
     }
 
-    public function boot(): void
-    {
-
-    }
+    public function boot(): void {}
 
     /**
      * @return void
      */
     public function registerSteward(): void
     {
-        if (isStewardInstalled()) {
-            $providerClass = config('modules.steward.steward_provider', '\\Lareon\\Steward\\App\\Providers\\StewardServiceProvider');
-            $this->app->register($providerClass);
-        }
+        if (!isStewardInstalled()) return;
+
+        $providerClass = config('modules.steward.steward_provider', '\\Lareon\\Steward\\App\\Providers\\StewardServiceProvider');
+        $this->app->register($providerClass);
     }
 
     /**
@@ -34,20 +31,19 @@ class ModuleManagerServiceProvider extends ServiceProvider
      */
     public function registerModules(): void
     {
-        $modules = Module::registeredModules();
-        foreach ($modules as $module => $info) {
-            $providerClass = $info['provider'];
-            $type = $module['type'] ?? 'self';
+        $bootOnlyActiveModules = config('modules.boot_all_modules', 1);
 
-            if (!class_exists($providerClass)) continue;
+        foreach (Module::availableModules() as $moduleName => $info) {
 
-            if (config('modules.boot_all_modules', 1) === 1) {
-                if ($info['active']) {
-                    $this->app->register($providerClass);
-                }
-            } else {
-                $this->app->register($providerClass);
-            }
+            $provider = $info['provider'] ?? null;
+
+            if (!$provider || !class_exists($provider)) continue;
+
+            $isActive = $info['active'] ?? false;
+
+            if ($bootOnlyActiveModules && !$isActive) continue;
+
+            $this->app->register($provider);
         }
     }
 }
