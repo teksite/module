@@ -5,7 +5,9 @@ namespace Teksite\Module\Console\Module;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
+use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
+use Teksite\Module\Facade\Module;
 
 class ModuleScanCommand extends Command
 {
@@ -28,14 +30,18 @@ class ModuleScanCommand extends Command
             $this->newLine();
             return;
         }
+
         $widowedString = implode(',',$widowedModules);
+
         $this->line("** some directories has been found: $widowedString");
         $this->line("** now we are trying to validate and register them");
         $this->newLine();
+
         foreach ($widowedModules as $module) {
-            $this->line("scaning <fg=cyan;options=bold>{$module}</>");
+            $this->line("scan <fg=cyan;options=bold>{$module}</> ...");
 
             $serviceProviderNameNamespace = module_namespace($module) . '\\App\\Providers\\' . $module . "ServiceProvider";
+
             $serviceProviderName = $module . "ServiceProvider";
 
             $serviceProviderPath = $this->getServiceProviderPath($module, $serviceProviderName);
@@ -43,9 +49,10 @@ class ModuleScanCommand extends Command
             if (!$serviceProviderPath) continue;
 
             $type = $this->getModuleType($serviceProviderPath, $serviceProviderNameNamespace);
+
             if (!$type) continue;
 
-            $this->registerModule($module, $type, false);
+            $this->registerModule($module, $type, $this->option('active') === 'true');
 
             $this->components->twoColumnDetail("<fg=green> └─ $module is registered</>", '<fg=green;options=bold>✓ DONE</>');
 
@@ -73,12 +80,14 @@ class ModuleScanCommand extends Command
             $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>✗class is not exists</>");
             return false;
         }
+
+
         $ref = new ReflectionClass($serviceProviderNameNamespace);
 
         $defaultProperties = $ref->getDefaultProperties();
 
-        $type = $defaultProperties['type'] ?? false;
-        if (!(bool)$type) {
+        $type = $defaultProperties['type'] ?? null;
+        if (!in_array($type, ['steward', 'self'])) {
             $this->components->twoColumnDetail("$serviceProviderNameNamespace", "<fg=red>✗module type is not valid or not set</>");
             $this->line("<fg=gray>module should be self(manged bt itself) or steward (managed by steward)</>");
             return false;
@@ -88,26 +97,36 @@ class ModuleScanCommand extends Command
 
     private function getWidowModules(): array
     {
-        $modulesBasePath = module_path() ?? [];
+        $modulesBasePath = module_path();
+
+        if (!File::isDirectory($modulesBasePath)) return [];
+
         $directories = File::directories($modulesBasePath);
         $registeredModules = get_modules_name();
 
-
         $modulesNeedToBeRegistered = [];
+
         foreach ($directories as $dir) {
-            $explodePath = explode('\\', $dir);
-            $moduleName = end($explodePath);
+            $moduleName = basename($dir);
             if (in_array($moduleName, $registeredModules)) continue;
             $modulesNeedToBeRegistered[] = $moduleName;
         }
-        return $modulesNeedToBeRegistered;
 
+        return $modulesNeedToBeRegistered;
     }
 
 
     protected function getArguments(): array
     {
         return [
+        ];
+    }
+
+
+    protected function getOptions(): array
+    {
+        return [
+            ['active', null, InputOption::VALUE_OPTIONAL, 'active module as scan or not (true or false | default : false)'],
         ];
     }
 

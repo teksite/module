@@ -13,19 +13,19 @@ use Symfony\Component\Console\Input\InputOption;
 use Teksite\Module\Console\Module\traits\ModuleGeneratorCommandTrait;
 use Teksite\Module\Facade\Module;
 
-class StewardInitialize extends Command
+class StewardDestroy extends Command
 {
     use ModuleGeneratorCommandTrait;
 
-    protected $name = 'module:steward';
+    protected $name = 'module:destroy:steward';
 
-    protected $description = 'Developing STEWARD module to manage modules that are overseen by headquarters.';
+    protected $description = 'remove STEWARD module.';
 
     protected string $type = 'Module';
 
     public function handle(): void
     {
-        $stewardName = 'Steward';
+        $this->ask('are you sure you want to remove STEWARD? it may affect on whole application.');
 
         $stewardPath = $this->getStewardPath();
 

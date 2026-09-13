@@ -44,21 +44,7 @@ class ModuleEnableCommand extends Command
 
     private function validating(string $moduleName, $modulePath): bool
     {
-        if (!$this->isAllowedName($moduleName)) {
-            $this->error("$moduleName is not allowed");
-            return false;
-        }
-
-        if (!$this->isModuleDirectoryExists($modulePath)) {
-            $this->error("directory of the module ($moduleName) does not exist");
-            return false;
-        }
-
-        if (!$this->isModuleRegistered($moduleName)) {
-            $this->error("the module ($moduleName) is not registered. run module:scan first to be registered in bootstrap/modules file");
-            return false;
-        }
-        return true;
+        return $this->validateModuleState($moduleName, $modulePath, shouldAlreadyExist: true, shouldAlreadyBeRegistered: true);
     }
 
     private function enableModule(string $moduleName): void
